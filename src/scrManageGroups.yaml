@@ -702,20 +702,24 @@ Screens:
             Width: =1000
             Height: =36
       - txtPasteRoster:
-          Control: ModernTextInput@1.1.0
+          Control: Classic/TextInput@2.3.2
           Properties:
-            Placeholder: ="Paste rows here — Name (Tab) Email, one person per line"
+            HintText: ="Paste rows here — Name (Tab) Email, one person per line"
             Mode: =TextMode.MultiLine
+            BorderColor: =RGBA(0,18,107,1)
+            Font: =Font.'Open Sans'
+            HoverBorderColor: =RGBA(0,18,107,1)
+            HoverFill: =RGBA(186,202,226,1)
             Visible: =!IsBlank(varManageGroupID)
             OnChange: |-
-              =Set(varRosterLines, Filter(Split(txtPasteRoster.Text, Char(10)), Trim(Result) <> ""));
+              =Set(varRosterLines, Filter(Split(txtPasteRoster.Text, Char(10)), Trim(Value) <> ""));
               ClearCollect(colParsedRoster,
                   ForAll(
                       varRosterLines,
                       With(
-                          {cols: If(Find(Char(9), ThisRecord.Result) > 0, Split(ThisRecord.Result, Char(9)), Split(ThisRecord.Result, ","))},
+                          {cols: If(Find(Char(9), ThisRecord.Value) > 0, Split(ThisRecord.Value, Char(9)), Split(ThisRecord.Value, ","))},
                           With(
-                              {emailVal: Trim(Last(cols).Result), nameVal: Trim(First(cols).Result)},
+                              {emailVal: Trim(Last(cols).Value), nameVal: Trim(First(cols).Value)},
                               {Name: nameVal, Email: Lower(emailVal)}
                           )
                       )

@@ -482,13 +482,12 @@ Screens:
             OnSelect: |-
               =Set(varEffectiveField, If(varBccForced, "bcc", varRecipientField));
               Set(varRecipients, Distinct(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title), Email));
-              Set(varAddressString, Concat(varRecipients, Result, "; "));
-              Reset(txtAddressStaging);
+              Set(varAddressString, Concat(varRecipients, Value, "; "));
               If(
                   CountRows(varRecipients) = 0,
                   Notify("Tick at least one group first.", NotificationType.Warning),
                   Len(EncodeUrl(varAddressString)) > 1800,
-                  Copy(txtAddressStaging);
+                  Copy(varAddressString);
                   Notify("Address list is too long for a mailto link (" & CountRows(varRecipients) & " recipients). Copied to clipboard instead - paste into the " & Upper(varEffectiveField) & " field.", NotificationType.Warning),
                   Launch("mailto:?" & varEffectiveField & "=" & EncodeUrl(varAddressString), {}, LaunchTarget.New)
               )
@@ -503,26 +502,17 @@ Screens:
             BasePaletteColor: =RGBA(46,110,145,1)
             OnSelect: |-
               =Set(varRecipients, Distinct(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title), Email));
-              Set(varAddressString, Concat(varRecipients, Result, "; "));
-              Reset(txtAddressStaging);
+              Set(varAddressString, Concat(varRecipients, Value, "; "));
               If(
                   CountRows(varRecipients) = 0,
                   Notify("Tick at least one group first.", NotificationType.Warning),
-                  Copy(txtAddressStaging);
+                  Copy(varAddressString);
                   Notify("Copied " & CountRows(varRecipients) & " addresses to clipboard.", NotificationType.Success)
               )
             X: =760
             Y: =784
             Width: =560
             Height: =56
-      - txtAddressStaging:
-          Control: ModernTextInput@1.1.0
-          Properties:
-            Default: =varAddressString
-            X: =-2000
-            Y: =0
-            Width: =300
-            Height: =40
       - recLightboxBackdrop:
           Control: Classic/Button@2.2.0
           Properties:
@@ -594,8 +584,8 @@ Screens:
             Items: |-
               =Switch(varLightboxMode,
                   "members", If(IsBlank(varLightboxGroupID), Filter(colMemberships, false), Sort(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varLightboxGroupID).Title), Title, SortOrder.Ascending)),
-                  "batch1", Sort(AddColumns(GroupBy(Filter(colMemberships, GroupName in Filter(colGroups, ThursdayBatch.Value = "Batch 1").Title), "Email", "GroupedRows"), "Title", First(GroupedRows).Title), Title, SortOrder.Ascending),
-                  "batch2", Sort(AddColumns(GroupBy(Filter(colMemberships, GroupName in Filter(colGroups, ThursdayBatch.Value = "Batch 2").Title), "Email", "GroupedRows"), "Title", First(GroupedRows).Title), Title, SortOrder.Ascending),
+                  "batch1", Sort(AddColumns(GroupBy(Filter(colMemberships, GroupName in Filter(colGroups, ThursdayBatch.Value = "Batch 1").Title), Email, GroupedRows), Title, First(GroupedRows).Title), Title, SortOrder.Ascending),
+                  "batch2", Sort(AddColumns(GroupBy(Filter(colMemberships, GroupName in Filter(colGroups, ThursdayBatch.Value = "Batch 2").Title), Email, GroupedRows), Title, First(GroupedRows).Title), Title, SortOrder.Ascending),
                   Filter(colMemberships, false)
               )
             Visible: =varShowLightbox && (varLightboxMode = "members" || varLightboxMode = "batch1" || varLightboxMode = "batch2")

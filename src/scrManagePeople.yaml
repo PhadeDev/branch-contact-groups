@@ -7,11 +7,11 @@ Screens:
             !varIsMaintainer,
             Back(),
             ClearCollect(colMemberships, 'BM Memberships');
-            ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+            ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
             Set(varSelectedPersonEmail, Blank());
             Set(varConfirmPurgeArmed, false);
             ClearCollect(colPersonGroupPicks, Filter(colGroups, false));
-            ClearCollect(colAddPersonPicks, AddColumns(colGroups, "Picked", false))
+            ClearCollect(colAddPersonPicks, AddColumns(colGroups, Picked, false))
         )
     Children:
       - recHeader:
@@ -117,7 +117,7 @@ Screens:
                   RadiusBottomRight: =8
                   OnSelect: |-
                     =Set(varSelectedPersonEmail, ThisItem.Email);
-                    ClearCollect(colPersonGroupPicks, AddColumns(colGroups, "Picked", CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = Lower(ThisItem.Email))) > 0))
+                    ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = Lower(ThisItem.Email))) > 0))
                   X: =0
                   Y: =0
                   Width: =620
@@ -265,7 +265,7 @@ Screens:
                       )
                   );
                   ClearCollect(colMemberships, 'BM Memberships');
-                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
                   Notify("Saved " & varNewPersonName & ".", NotificationType.Success)
               )
             X: =700
@@ -351,7 +351,7 @@ Screens:
                   CountRows(Filter(colPeople, Lower(Email) = varNewPersonEmail)) > 0,
                   Notify("This email already exists as " & LookUp(colPeople, Lower(Email) = varNewPersonEmail).Name & " — select them from the list to edit their groups instead.", NotificationType.Warning);
                   Set(varSelectedPersonEmail, varNewPersonEmail);
-                  ClearCollect(colPersonGroupPicks, AddColumns(colGroups, "Picked", CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = varNewPersonEmail)) > 0)),
+                  ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = varNewPersonEmail)) > 0)),
                   CountRows(Filter(colAddPersonPicks, Picked = true)) = 0,
                   Notify("Tick at least one group to add them to.", NotificationType.Warning),
                   ForAll(
@@ -361,10 +361,10 @@ Screens:
                       Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " added (" & varNewPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}})
                   );
                   ClearCollect(colMemberships, 'BM Memberships');
-                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
                   Reset(txtAddPersonName);
                   Reset(txtAddPersonEmail);
-                  ClearCollect(colAddPersonPicks, AddColumns(colGroups, "Picked", false));
+                  ClearCollect(colAddPersonPicks, AddColumns(colGroups, Picked, false));
                   Notify("Added " & varNewPersonName & ".", NotificationType.Success)
               )
             X: =680
@@ -440,7 +440,7 @@ Screens:
                   );
                   RemoveIf('BM Memberships', Lower(Email) = Lower(varPurgeEmail));
                   ClearCollect(colMemberships, 'BM Memberships');
-                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
                   Reset(txtPurgeSearch);
                   Set(varConfirmPurgeArmed, false);
                   Set(varSelectedPersonEmail, Blank());
