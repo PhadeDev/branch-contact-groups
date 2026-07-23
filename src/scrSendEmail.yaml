@@ -492,8 +492,8 @@ Screens:
                   Launch("mailto:?" & varEffectiveField & "=" & EncodeUrl(varAddressString), {}, LaunchTarget.New)
               )
             X: =760
-            Y: =716
-            Width: =560
+            Y: =708
+            Width: =270
             Height: =56
       - btnCopyAddresses:
           Control: ModernButton@1.0.0
@@ -509,9 +509,9 @@ Screens:
                   Copy(varAddressString);
                   Notify("Copied " & CountRows(varRecipients) & " addresses to clipboard.", NotificationType.Success)
               )
-            X: =760
-            Y: =784
-            Width: =560
+            X: =1050
+            Y: =708
+            Width: =270
             Height: =56
       - recLightboxBackdrop:
           Control: Classic/Button@2.2.0
