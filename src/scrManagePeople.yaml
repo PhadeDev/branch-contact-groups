@@ -249,7 +249,7 @@ Screens:
                   ForAll(
                       colPersonGroupPicks As grp,
                       With(
-                          {existing: LookUp(colMemberships, GroupName = grp.Title, Lower(Email) = Lower(varSelectedPersonEmail))},
+                          {existing: LookUp(colMemberships, GroupName = grp.Title && Lower(Email) = Lower(varSelectedPersonEmail))},
                           If(
                               grp.Picked && IsBlank(existing),
                               Patch('BM Memberships', Defaults('BM Memberships'), {Title: varNewPersonName, Email: varSelectedPersonEmail, GroupName: grp.Title});

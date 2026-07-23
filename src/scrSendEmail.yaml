@@ -150,7 +150,7 @@ Screens:
                 Properties:
                   Text: |-
                     =With(
-                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(ThisItem.Modified, Now(), Days)},
+                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(ThisItem.Modified, Now(), "Days")},
                         n & " member" & If(n = 1, "", "s") & " · Last modified " & Text(ThisItem.Modified, "d mmm yyyy") & " (" & If(d <= 0, "today", d & If(d = 1, " day ago", " days ago")) & ")"
                     )
                   Color: =RGBA(120,120,120,1)

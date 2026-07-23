@@ -178,7 +178,7 @@ Screens:
                 Properties:
                   Text: |-
                     =With(
-                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(ThisItem.Modified, Now(), Days)},
+                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(ThisItem.Modified, Now(), "Days")},
                         n & " member" & If(n = 1, "", "s") & " · Last modified " & Text(ThisItem.Modified, "d mmm yyyy") & " (" & If(d <= 0, "today", d & If(d = 1, " day ago", " days ago")) & ")"
                     )
                   Visible: =varEditingGroupID <> ThisItem.ID
@@ -239,7 +239,7 @@ Screens:
                 Control: ModernDropdown@1.0.1
                 Properties:
                   Items: =["None", "Batch 1", "Batch 2"]
-                  Default: =ThisItem.ThursdayBatch.Value
+                  Default: =ThisItem.ThursdayBatch
                   Visible: =varEditingGroupID = ThisItem.ID
                   X: =530
                   Y: =8
@@ -378,7 +378,7 @@ Screens:
           Control: ModernDropdown@1.0.1
           Properties:
             Items: =["None", "Batch 1", "Batch 2"]
-            Default: ="None"
+            Default: '={Value: "None"}'
             Visible: =varShowCreateGroup
             X: =554
             Y: =550
