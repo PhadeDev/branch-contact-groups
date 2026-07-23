@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Branch Mailer — PowerApps</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f1a;
+      color: #e8e8f0;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    h1 { font-size: 1.8rem; font-weight: 600; color: #c8b8ff; margin-bottom: 4px; }
+    .version { font-size: 0.65em; font-weight: 400; color: #666; vertical-align: middle; margin-left: 8px; }
+    .built { font-size: 0.75rem; color: #3a3a55; font-family: 'Cascadia Code','Consolas',monospace; margin-bottom: 4px; }
+    .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 24px; }
+    h2 { font-size: 1.2rem; color: #a0c0e0; margin: 40px 0 16px; border-bottom: 1px solid #2a2a3a; padding-bottom: 8px; }
+    h3 { font-size: 1rem; color: #e8e8f0; margin: 24px 0 8px; }
+    p { color: #aaa; line-height: 1.6; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 24px; }
+    th { background: #1a1a2e; color: #c8b8ff; text-align: left; padding: 8px 12px; border: 1px solid #2a2a3a; }
+    td { padding: 8px 12px; border: 1px solid #2a2a3a; color: #d0d0e0; vertical-align: top; }
+    tr:nth-child(even) td { background: #131320; }
+    .code-block { position: relative; margin: 12px 0 24px; }
+    pre {
+      background: #1a1a2e;
+      color: #c8d8f0;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 12px;
+      background: #7c4dff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover { background: #6a3de8; }
+    .copy-btn.ok { background: #2a7d4e; }
+    .screen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+    .screen-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #1a1a2e;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .screen-card:hover { border-color: #7c4dff; background: #1e1e35; }
+    .screen-number { font-size: 0.75rem; color: #666; margin-bottom: 8px; }
+    .screen-name { font-size: 1rem; font-weight: 600; color: #c8b8ff; margin-bottom: 6px; }
+    .screen-desc { font-size: 0.82rem; color: #888; line-height: 1.4; }
+    .screen-cta { margin-top: 16px; font-size: 0.82rem; color: #7c4dff; }
+    .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+    .doc-card {
+      background: #16161a;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .doc-card:hover { border-color: #4dafff; background: #1a1e26; }
+    .doc-name { font-size: 0.95rem; font-weight: 600; color: #9fd0ff; margin-bottom: 4px; }
+    .doc-desc { font-size: 0.8rem; color: #888; }
+    .note { background: #1a2a1a; border-left: 3px solid #2a7d4e; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
+    .warning { background: #2a1a1a; border-left: 3px solid #7d2a2a; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
+    ol { padding-left: 24px; color: #aaa; font-size: 0.9rem; line-height: 2; }
+    a.back { font-size: 0.82rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 32px; }
+    a.back:hover { color: #999; }
+  </style>
+</head>
+<body>
+
+<a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
+<h1>Branch Mailer <span class="version">v1.0</span></h1>
+<p class="built">Built 23 Jul 2026  08:46 BST</p>
+<p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds.</p>
+
+<h2>Before You Start</h2>
+<ol>
+  <li>Create the three SharePoint lists below (all columns, exact names) on <code>https://modgovuk.sharepoint.com/teams/1598/</code>.</li>
+  <li>Add the two maintainer rows to <strong>BM Maintainers</strong> and your real group/member data (see the Migration Plan card below).</li>
+  <li>Open Power Apps Studio → New blank canvas app (tablet layout).</li>
+  <li>Add all data sources listed below (Data panel → Add data).</li>
+  <li>Set App → OnStart using the code block below.</li>
+  <li>Create one blank screen per screen below (name them exactly as shown), then paste each YAML.</li>
+</ol>
+
+<h2>Data Connections</h2>
+<p>Add these in the Data panel before pasting any YAML:</p>
+<table>
+  <thead><tr><th>Connection</th><th>Type</th></tr></thead>
+  <tbody>
+    <tr><td>'BM Groups'</td><td>SharePoint → your site → BM Groups</td></tr>
+    <tr><td>'BM Memberships'</td><td>SharePoint → your site → BM Memberships</td></tr>
+    <tr><td>'BM Maintainers'</td><td>SharePoint → your site → BM Maintainers</td></tr>
+    <tr><td>Office365Users</td><td>Office 365 Users connector</td></tr>
+  </tbody>
+</table>
+
+<h2>SharePoint Lists</h2>
+
+<h3>List: <code>BM Groups</code></h3>
+<table>
+  <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Title</td><td>Single line of text</td><td>Built-in — the group name, e.g. "All Branch Staff". Not Required.</td></tr>
+    <tr><td>SortOrder</td><td>Number</td><td>Optional display order. Not Required.</td></tr>
+    <tr><td>Active</td><td>Yes/No</td><td>Default <strong>Yes</strong>. Set to No to retire a group without deleting it.</td></tr>
+    <tr><td>ThursdayGroup</td><td>Yes/No</td><td>Default <strong>No</strong>. Tick for the 7 groups included in the Thursday preset.</td></tr>
+  </tbody>
+</table>
+<p><strong>Versioning:</strong> List Settings → Versioning Settings → "Create a version each time you edit an item" = Yes.</p>
+<p><strong>Permissions:</strong> List Settings → Permissions for this list → Stop Inheriting Permissions → grant <strong>Edit</strong> to the two maintainers, <strong>Read</strong> to everyone else on the site.</p>
+
+<h3>List: <code>BM Memberships</code></h3>
+<table>
+  <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Title</td><td>Single line of text</td><td>Built-in — display name of the person. Not Required.</td></tr>
+    <tr><td>Email</td><td>Single line of text</td><td>Store lowercase. Not Required.</td></tr>
+    <tr><td>GroupName</td><td>Single line of text</td><td>Must match a 'BM Groups'.Title value exactly. Plain text, not a Lookup column — this keeps every filter delegable and avoids the Lookup-column delegation issues this app family has hit before. Not Required.</td></tr>
+  </tbody>
+</table>
+<p>One row per person-per-group (deliberately denormalised — a person in 3 groups is 3 rows). This mirrors how Outlook contact groups actually work and keeps every query in the app a plain, delegable <code>Filter</code>.</p>
+<p><strong>Versioning:</strong> enabled, same as BM Groups — gives you an audit trail of who was added/removed and when.</p>
+<p><strong>Permissions:</strong> same unique-permission pattern as BM Groups — Edit for the two maintainers, Read for everyone else.</p>
+
+<h3>List: <code>BM Maintainers</code></h3>
+<table>
+  <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Title</td><td>Single line of text</td><td>Built-in — the maintainer's name.</td></tr>
+    <tr><td>Email</td><td>Single line of text</td><td>Store lowercase. This is what the app checks against the signed-in user to decide whether to show the Manage Groups screen.</td></tr>
+  </tbody>
+</table>
+<p>This list exists specifically so <strong>adding a future maintainer is a one-row add to a SharePoint list, not an app edit</strong> — no formula change, no republish. Add the two starting rows yourself:</p>
+<table>
+  <thead><tr><th>Title</th><th>Email</th></tr></thead>
+  <tbody>
+    <tr><td>Allan Hamilton</td><td>allan.hamilton775@mod.gov.uk</td></tr>
+    <tr><td>Dan Smith</td><td>dan.smith391@mod.gov.uk</td></tr>
+  </tbody>
+</table>
+<p><strong>Permissions:</strong> Edit access to this specific list should stay restricted to site owners/admins, not the maintainers themselves — it's the gate that decides who else can become a maintainer, so it shouldn't be self-service from inside the list. Read access for everyone on the site is fine (the app reads it to check <code>User().Email</code>).</p>
+
+<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all three lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
+
+<h2>App.OnStart</h2>
+<p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML.</p>
+<div class="code-block">
+  <button class="copy-btn" onclick="copyBlock(this, 'on-start')">Copy</button>
+  <pre id="on-start">Set(varMyEmail, Lower(User().Email));
+ClearCollect(colMaintainers, 'BM Maintainers');
+Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
+ClearCollect(colGroupsRaw, Sort(Filter('BM Groups', Active = true), SortOrder, SortOrder.Ascending));
+ClearCollect(colGroups, AddColumns(colGroupsRaw, Ticked, false));
+ClearCollect(colMemberships, 'BM Memberships')</pre>
+</div>
+
+<h2>Screens</h2>
+<p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
+<div class="screen-grid">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=1.0">
+    <div>
+      <div class="screen-number">Screen 1</div>
+      <div class="screen-name">scrSendEmail</div>
+      <div class="screen-desc">Tick groups, see live recipient count, open a BCC'd Outlook draft or copy addresses to clipboard. Thursday preset button.</div>
+    </div>
+    <div class="screen-cta">Open and copy →</div>
+  </a>
+  <a class="screen-card" href="screens/scrManageGroups.html?v=1.0">
+    <div>
+      <div class="screen-number">Screen 2</div>
+      <div class="screen-name">scrManageGroups</div>
+      <div class="screen-desc">Maintainer-only. Pick a group, remove members, add from the GAL or type a manual address. Gated on BM Maintainers.</div>
+    </div>
+    <div class="screen-cta">Open and copy →</div>
+  </a>
+</div>
+
+<h2>Further Reading</h2>
+<div class="doc-grid">
+  <a class="doc-card" href="flow-spec.html">
+    <div class="doc-name">Power Automate Flow Spec</div>
+    <div class="doc-desc">Thursday draft-creation flow, Graph HTTP body, DLP fallback variant.</div>
+  </a>
+  <a class="doc-card" href="migration-plan.html">
+    <div class="doc-name">Migration Plan</div>
+    <div class="doc-desc">Getting the 50 existing Outlook contact groups into BM Memberships.</div>
+  </a>
+  <a class="doc-card" href="maintainer-quickstart.html">
+    <div class="doc-name">Maintainer Quickstart</div>
+    <div class="doc-desc">One-page, non-technical add/remove/new-group guide.</div>
+  </a>
+</div>
+
+<h2>Issues</h2>
+<p>Found a problem? <a href="https://github.com/PhadeDev/branch-mailer/issues" style="color:#7c4dff">Report it here</a>.</p>
+
+<script>
+async function copyBlock(btn, id) {
+  const text = document.getElementById(id).textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copied!';
+    btn.className = 'copy-btn ok';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.className = 'copy-btn'; }, 3000);
+  } catch (e) {
+    btn.textContent = 'Failed';
+  }
+}
+</script>
+</body>
+</html>

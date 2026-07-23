@@ -1,0 +1,6 @@
+Set(varMyEmail, Lower(User().Email));
+ClearCollect(colMaintainers, 'BM Maintainers');
+Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
+ClearCollect(colGroupsRaw, Sort(Filter('BM Groups', Active = true), SortOrder, SortOrder.Ascending));
+ClearCollect(colGroups, AddColumns(colGroupsRaw, Ticked, false));
+ClearCollect(colMemberships, 'BM Memberships')

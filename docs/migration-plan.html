@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branch Mailer — Migration Plan</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #e8e8f0; max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 1.6rem; font-weight: 600; color: #c8b8ff; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 32px; }
+  h2 { font-size: 1.15rem; color: #a0c0e0; margin: 36px 0 12px; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+  p, li { color: #aaa; line-height: 1.6; }
+  ol, ul { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 8px; }
+  code { background: #1a1a2e; color: #c8d8f0; padding: 1px 6px; border-radius: 4px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 0.85em; }
+  pre { background: #1a1a2e; color: #c8d8f0; padding: 14px; border-radius: 8px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 0.82rem; line-height: 1.55; overflow-x: auto; white-space: pre; margin: 10px 0 20px; }
+  .note { background: #1a2a1a; border-left: 3px solid #2a7d4e; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
+  .warning { background: #2a1a1a; border-left: 3px solid #7d2a2a; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
+  a.back { font-size: 0.82rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 32px; }
+  a.back:hover { color: #999; }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Branch Mailer</a>
+<h1>Migration Plan — 50 Contact Groups → BM Memberships</h1>
+<p class="subtitle">Outlook contact groups have no export/API. This is copy-paste, done once per group, with a grid-view paste at the end to avoid adding ~500 rows by hand.</p>
+
+<h2>Step 1 — Create the group shells first</h2>
+<p>Before touching any members, create all 50 rows in <code>BM Groups</code> (just the group names). This is small enough to do as a single grid-view paste: type your 50 group names into one column in Excel, open <code>BM Groups</code> in the browser, switch to grid view (the grid/pencil icon above the list, or View → "Edit in grid view"), and paste the column straight into the Title column. Tick <code>ThursdayGroup</code> for the known 7 afterwards.</p>
+
+<h2>Step 2 — Extract members from one contact group</h2>
+<ol>
+  <li>In <strong>Outlook desktop</strong> (not the web version — contact group editing needs classic Outlook), open the shared zero mailbox's Contacts, double-click the contact group to open it in its own window.</li>
+  <li>Click into the <strong>Members</strong> list area, press <code>Ctrl+A</code> then <code>Ctrl+C</code>.</li>
+  <li>Paste into a single blank cell in Excel. Outlook typically pastes the whole list as one text blob, members separated by semicolons, each in the form <code>Name &lt;email@domain&gt;</code>.</li>
+</ol>
+
+<h2>Step 3 — Split the blob into rows and columns</h2>
+<ol>
+  <li>Select the cell → <strong>Data → Text to Columns</strong> → Delimited → Semicolon. This spreads the members across one row of columns.</li>
+  <li>Copy that row → <strong>Paste Special → Transpose</strong> into a new area, to turn it into one member per row instead of one per column.</li>
+  <li>With each member now in its own cell as <code>Name &lt;email&gt;</code>, add two helper columns next to it:
+    <pre>Name:  =TRIM(LEFT(A1,FIND("&lt;",A1)-1))
+Email: =TRIM(MID(A1,FIND("&lt;",A1)+1,FIND("&gt;",A1)-FIND("&lt;",A1)-1))</pre>
+  </li>
+  <li>Add a third column, <code>GroupName</code>, and fill it down with the exact group name you used in <code>BM Groups</code>.Title for this group.</li>
+</ol>
+
+<div class="warning"><strong>Watch for X.500/Exchange DN addresses</strong> instead of real email addresses — something like <code>/O=EXCHANGE/OU=.../CN=RECIPIENTS/CN=jbloggs123</code> instead of <code>jbloggs@mod.gov.uk</code>. This happens when Outlook has cached a resolved internal directory entry rather than an SMTP address. These can't be BCC'd or used in Graph as-is. When you spot one, look the person up in the GAL by name and manually type their real SMTP email into that row instead.</div>
+
+<h2>Step 4 — Repeat for all 50 groups</h2>
+<p>Build one running Excel sheet with exactly three columns in this order: <code>Title</code> (the person's display name), <code>Email</code>, <code>GroupName</code>. Append each group's cleaned member block underneath the last. By the end you'll have roughly one row per person-per-group — duplicates across different groups are expected and correct (that's the point of the denormalised design).</p>
+
+<h2>Step 5 — Paste into BM Memberships</h2>
+<ol>
+  <li>Open <code>BM Memberships</code> in the browser, switch to grid view the same way as Step 1.</li>
+  <li>Add empty rows in the grid roughly matching your row count first (grid view usually only shows a handful of blank rows at a time — scroll down or add more as needed, or paste in batches of ~100 rows).</li>
+  <li>Copy your three-column Excel range (<strong>no header row</strong>) and paste directly into the Title/Email/GroupName columns of the grid. SharePoint grid view accepts a multi-row, multi-column clipboard paste and creates new rows as needed.</li>
+</ol>
+
+<h2>Step 6 — Verify</h2>
+<ul>
+  <li>Open Branch Mailer, go to Screen 1, and compare the live "N members" count against the original Outlook contact group's member count — at minimum for the 7 Thursday groups, plus a random sample of 5–10 others.</li>
+  <li>Spot-check a couple of email addresses per group against the original for typos introduced by the Text-to-Columns/Transpose steps.</li>
+</ul>
+
+<h2>Step 7 — Don't delete the originals yet</h2>
+<div class="note">Keep the original Outlook contact groups in place for a few weeks while the branch transitions to using the app day-to-day. Once you're confident the counts and addresses match and people are actually using Branch Mailer, archive or delete the old contact groups — there's no rush and no downside to running both in parallel for a while.</div>
+</body>
+</html>

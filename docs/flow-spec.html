@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branch Mailer — Flow Spec</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #e8e8f0; max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 1.6rem; font-weight: 600; color: #c8b8ff; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 32px; }
+  h2 { font-size: 1.15rem; color: #a0c0e0; margin: 36px 0 12px; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+  h3 { font-size: 0.98rem; color: #e8e8f0; margin: 20px 0 6px; }
+  p, li { color: #aaa; line-height: 1.6; }
+  ol, ul { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+  code { background: #1a1a2e; color: #c8d8f0; padding: 1px 6px; border-radius: 4px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 0.85em; }
+  pre { background: #1a1a2e; color: #c8d8f0; padding: 16px; border-radius: 8px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 0.82rem; line-height: 1.55; overflow-x: auto; white-space: pre; margin: 10px 0 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 20px; }
+  th { background: #1a1a2e; color: #c8b8ff; text-align: left; padding: 8px 12px; border: 1px solid #2a2a3a; }
+  td { padding: 8px 12px; border: 1px solid #2a2a3a; color: #d0d0e0; vertical-align: top; }
+  .note { background: #1a2a1a; border-left: 3px solid #2a7d4e; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
+  .warning { background: #2a1a1a; border-left: 3px solid #7d2a2a; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
+  a.back { font-size: 0.82rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 32px; }
+  a.back:hover { color: #999; }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Branch Mailer</a>
+<h1>Power Automate — Thursday Draft Flow</h1>
+<p class="subtitle">Phase 2, optional. Builds a single BCC'd draft (or, if DLP blocks that, sends individually) to the 7 Thursday groups without you having to rebuild the recipient list by hand every week.</p>
+
+<h2>Why an Instant flow, not scheduled</h2>
+<p>You want to review subject/body/attachments before anything goes out, and you may want to run it on a day other than Thursday occasionally. A manually-triggered flow (run from Power Automate's mobile app, the web portal, or a button added to the canvas app later) gives you that control. Nothing here auto-sends on a timer.</p>
+
+<h2>Trigger</h2>
+<p><strong>Manually trigger a flow</strong> (Power Automate → Instant cloud flow). Inputs:</p>
+<table>
+  <thead><tr><th>Input</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Subject</td><td>Text</td><td>Default value you set once, editable each run.</td></tr>
+    <tr><td>Body</td><td>Text (multi-line)</td><td>Plain text or simple HTML — used as-is in the draft body.</td></tr>
+    <tr><td>ConfirmSend</td><td>Yes/No</td><td>Default <strong>No</strong>. Safety gate — the flow stops early unless this is explicitly set to Yes on the run.</td></tr>
+  </tbody>
+</table>
+
+<h2>Steps</h2>
+<ol>
+  <li><strong>Get items</strong> — <code>BM Groups</code>, Filter Query: <code>ThursdayGroup eq 1</code></li>
+  <li><strong>Compose — "Build OData filter"</strong>, to turn those group names into a filter string for the next step:
+    <pre>join(select(body('Get_items')?['value'], concat('GroupName eq ''', item()?['Title'], '''')), ' or ')</pre>
+  </li>
+  <li><strong>Get items</strong> — <code>BM Memberships</code>, Filter Query: <code>@{outputs('Build_OData_filter')}</code></li>
+  <li><strong>Select — "Emails only"</strong>: From = <code>body('Get_items_2')?['value']</code>, Map = <code>item()?['Email']</code></li>
+  <li><strong>Compose — "Dedupe emails"</strong>: <code>union(body('Emails_only'), body('Emails_only'))</code> — this is the standard Power Automate trick for deduplicating an array of primitives (union of a list with itself keeps only unique values).</li>
+  <li><strong>Select — "BCC recipient objects"</strong> (for the Graph draft body): From = <code>outputs('Dedupe_emails')</code>, Map = <code>{"emailAddress": {"address": item()}}</code></li>
+  <li><strong>Condition — "Confirmed?"</strong>: <code>ConfirmSend</code> is equal to <code>Yes</code>
+    <ul>
+      <li><strong>If no:</strong> Terminate (status: Cancelled, message: "Run again with ConfirmSend = Yes to actually create the draft.")</li>
+    </ul>
+  </li>
+  <li><strong>Get files (properties only)</strong> — SharePoint, List: your document library, Folder: <code>BM Outbox</code></li>
+  <li><strong>Apply to each</strong> file from the previous step → <strong>Get file content</strong>, then <strong>Compose — "Attachment object"</strong>:
+    <pre>{
+  "@odata.type": "#microsoft.graph.fileAttachment",
+  "name": items('Apply_to_each')?['{FilenameWithExtension}'],
+  "contentBytes": base64(body('Get_file_content'))
+}</pre>
+    (Collect these into an array — either let Apply to each's Compose output accumulate automatically, or use a separate "Select" afterward over the file list mapping to the same shape.)
+  </li>
+  <li><strong>Send an HTTP request</strong> — <em>Office 365 Outlook</em> connector's built-in action (not a raw HTTP connector — this is what lets a Standard-tier flow call Graph using the connection's own token, no premium connector or app registration needed):
+    <ul>
+      <li>Method: <code>POST</code></li>
+      <li>Uri: <code>https://graph.microsoft.com/v1.0/me/messages</code></li>
+      <li>Body:
+        <pre>{
+  "subject": "@{triggerBody()['Subject']}",
+  "body": {
+    "contentType": "HTML",
+    "content": "@{triggerBody()['Body']}"
+  },
+  "bccRecipients": @{outputs('BCC_recipient_objects')},
+  "attachments": @{body('Select_attachment_objects')}
+}</pre>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<div class="note">This creates a <strong>draft</strong> in your own mailbox (POST to <code>/me/messages</code> with no <code>/send</code> call afterwards). Nothing is sent — you open Outlook, review it, hit Send yourself. There is no native "create draft" action in the standard Office 365 Outlook connector, which is why this goes via <code>Send an HTTP request</code> against Graph directly.</div>
+
+<h2>DLP Fallback — If "Send an HTTP request" Is Blocked</h2>
+<p>Some tenants' Data Loss Prevention policies classify <code>Send an HTTP request</code> as a "premium"/blocked action even though it's part of a standard connector, or block outbound HTTP actions generally. If step 10 above fails with a DLP policy violation error, replace steps 9–10 with:</p>
+<ol>
+  <li><strong>Apply to each</strong> — over <code>outputs('Dedupe_emails')</code> (the flat email array from step 5, not the BCC-shaped one)</li>
+  <li>Inside the loop: <strong>Send an email (V2)</strong> (standard Office 365 Outlook action)
+    <ul>
+      <li>To: <code>@{item()}</code></li>
+      <li>Subject: <code>@{triggerBody()['Subject']}</code></li>
+      <li>Body: <code>@{triggerBody()['Body']}</code></li>
+      <li>Attachments: same file-content outputs as step 9 above, mapped to this action's Attachments Name/Content fields</li>
+    </ul>
+  </li>
+</ol>
+<p>This sends one individual email per recipient (mail-merge style) rather than one BCC'd draft — no BCC needed since each message has exactly one real recipient. Keep the same <code>ConfirmSend</code> gate in front of this loop. For ~130 recipients per group, this is well within Exchange Online's per-flow-run sending limits, but consider adding a short <strong>Delay</strong> (1–2 seconds) inside the loop if you see throttling errors on a live run.</p>
+
+<div class="warning">Test which variant your tenant allows with a <strong>single test recipient</strong> (your own email in <code>BM Memberships</code> temporarily, or a one-off manual test group) before running either version against the full 260-person distribution.</div>
+</body>
+</html>

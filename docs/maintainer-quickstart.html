@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branch Mailer — Maintainer Quickstart</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #e8e8f0; max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 1.5rem; font-weight: 600; color: #c8b8ff; margin-bottom: 4px; }
+  .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 28px; }
+  h2 { font-size: 1.05rem; color: #a0c0e0; margin: 28px 0 10px; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+  p, li { color: #ccc; line-height: 1.6; }
+  ol { padding-left: 22px; margin-bottom: 6px; }
+  li { margin-bottom: 6px; }
+  strong { color: #fff; }
+  code { background: #1a1a2e; color: #c8d8f0; padding: 1px 6px; border-radius: 4px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 0.85em; }
+  .note { background: #1a2a1a; border-left: 3px solid #2a7d4e; padding: 10px 14px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 12px 0; }
+  a.back { font-size: 0.82rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 24px; }
+  a.back:hover { color: #999; }
+  @media print {
+    body { background: #fff; color: #000; max-width: 100%; }
+    h1, h2 { color: #000; }
+    strong { color: #000; }
+    a.back { display: none; }
+    code { background: #eee; color: #000; }
+    .note { background: #eef7ee; color: #333; }
+  }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Branch Mailer</a>
+<h1>Branch Mailer — Maintainer Quickstart</h1>
+<p class="subtitle">One page. Print it or keep it pinned — everything a maintainer needs day to day.</p>
+
+<h2>Add someone from the GAL to a group</h2>
+<ol>
+  <li>Open Branch Mailer → tap <strong>Manage Groups</strong> (top right — only visible to maintainers).</li>
+  <li>Pick the group from the dropdown.</li>
+  <li>Type their name into the <strong>Search GAL by name</strong> box.</li>
+  <li>Tap their name in the results list. They're added straight away — no save button needed.</li>
+</ol>
+
+<h2>Add someone who isn't in the GAL (external/contractor)</h2>
+<ol>
+  <li>Same screen, same group selected.</li>
+  <li>Under <strong>Add manually</strong>, type their full name and email address.</li>
+  <li>Tap <strong>Add</strong>.</li>
+</ol>
+
+<h2>Remove someone from a group</h2>
+<ol>
+  <li>Pick the group from the dropdown.</li>
+  <li>Find their row in the member list.</li>
+  <li>Tap the bin icon next to their name. They're removed straight away.</li>
+</ol>
+<p class="note">Removing someone only takes them out of <strong>that one group</strong>. If they're in other groups too, those are untouched.</p>
+
+<h2>Add a brand new group</h2>
+<p>This one step can't be done from inside the app — it needs a quick trip to the SharePoint list directly:</p>
+<ol>
+  <li>Go to the <code>BM Groups</code> list on the branch SharePoint site.</li>
+  <li>Click <strong>+ New</strong>, type the group name in the Title field.</li>
+  <li>Leave <strong>Active</strong> as Yes.</li>
+  <li>Tick <strong>ThursdayGroup</strong> only if this group should be included when the Thursday preset button is used.</li>
+  <li>Save. It appears in the app straight away (close and reopen the app if it doesn't show immediately).</li>
+</ol>
+
+<h2>Retire a group without losing its history</h2>
+<p>Don't delete the group row. Instead open it in <code>BM Groups</code> and set <strong>Active</strong> to No. It disappears from the app immediately, but its members and the list's version history are kept.</p>
+
+<h2>Who can do all this?</h2>
+<p>Only the people listed in the <code>BM Maintainers</code> list. To add another maintainer, a site owner adds a row there (name + email) — nothing in the app itself needs to change.</p>
+</body>
+</html>

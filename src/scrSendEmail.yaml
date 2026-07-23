@@ -1,0 +1,235 @@
+Screens:
+  scrSendEmail:
+    Properties:
+      Fill: =RGBA(255,255,255,1)
+      OnVisible: |-
+        =ClearCollect(colGroupsRaw, Sort(Filter('BM Groups', Active = true), SortOrder, SortOrder.Ascending));
+        ClearCollect(colGroups, AddColumns(colGroupsRaw, Ticked, false));
+        ClearCollect(colMemberships, 'BM Memberships')
+    Children:
+      - recHeader:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(0,78,66,1)
+            HoverFill: =RGBA(0,78,66,1)
+            PressedFill: =RGBA(0,78,66,1)
+            BorderThickness: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =72
+      - lblHeaderTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Branch Mailer"
+            Color: =RGBA(255,255,255,1)
+            FontWeight: =FontWeight.Bold
+            Size: =20
+            Font: =Font.'Open Sans'
+            X: =24
+            Y: =10
+            Width: =500
+            Height: =32
+      - lblHeaderSub:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Send email to group members"
+            Color: =RGBA(214,232,227,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =24
+            Y: =42
+            Width: =500
+            Height: =22
+      - btnManageNav:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Manage Groups"
+            BasePaletteColor: =RGBA(46,110,145,1)
+            Visible: =varIsMaintainer
+            OnSelect: =Navigate(scrManageGroups, ScreenTransition.Cover)
+            X: =1180
+            Y: =16
+            Width: =160
+            Height: =40
+      - lblLeftHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Groups"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =88
+            Width: =300
+            Height: =30
+      - galGroups:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colGroups
+            TemplateSize: =90
+            TemplatePadding: =0
+            OnSelect: |-
+              =Patch(colGroups, ThisItem, {Ticked: !ThisItem.Ticked})
+            X: =20
+            Y: =126
+            Width: =700
+            Height: =600
+          Children:
+            - recCheckBox:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =If(ThisItem.Ticked, RGBA(59,109,17,1), RGBA(255,255,255,1))
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =If(ThisItem.Ticked, RGBA(59,109,17,1), RGBA(150,160,175,1))
+                  BorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  OnSelect: |-
+                    =Patch(colGroups, ThisItem, {Ticked: !ThisItem.Ticked})
+                  X: =20
+                  Y: =20
+                  Width: =28
+                  Height: =28
+            - lblGroupName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =16
+                  Font: =Font.'Open Sans'
+                  X: =64
+                  Y: =8
+                  Width: =460
+                  Height: =26
+            - lblMemberCount:
+                Control: Label@2.5.1
+                Properties:
+                  Text: '=With({n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title))}, n & " member" & If(n=1, "", "s"))'
+                  Color: =RGBA(120,120,120,1)
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =64
+                  Y: =38
+                  Width: =460
+                  Height: =20
+      - lblSummaryHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Send Email"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =18
+            Font: =Font.'Open Sans'
+            X: =760
+            Y: =88
+            Width: =560
+            Height: =32
+      - lblTickedGroups:
+          Control: Label@2.5.1
+          Properties:
+            Text: '="Groups: " & Concat(Filter(colGroups, Ticked=true), Title, ", ")'
+            Color: =RGBA(80,80,80,1)
+            Size: =13
+            Font: =Font.'Open Sans'
+            X: =760
+            Y: =128
+            Width: =560
+            Height: =60
+      - lblRecipientCount:
+          Control: Label@2.5.1
+          Properties:
+            Text: '="Recipients: " & CountRows(Distinct(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title), Email))'
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =760
+            Y: =196
+            Width: =560
+            Height: =30
+      - btnThursdayPreset:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Thursday Preset"
+            BasePaletteColor: =RGBA(46,110,145,1)
+            OnSelect: |-
+              =UpdateIf(colGroups, true, {Ticked: false});
+              UpdateIf(colGroups, ThursdayGroup, {Ticked: true})
+            X: =760
+            Y: =246
+            Width: =270
+            Height: =48
+      - btnClearSelection:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Clear Selection"
+            BasePaletteColor: =RGBA(120,120,120,1)
+            OnSelect: |-
+              =UpdateIf(colGroups, true, {Ticked: false})
+            X: =1050
+            Y: =246
+            Width: =270
+            Height: =48
+      - btnOpenOutlook:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Open New Email in Outlook"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varRecipients, Distinct(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title), Email));
+              Set(varAddressString, Concat(varRecipients, Result, "; "));
+              Reset(txtAddressStaging);
+              If(
+                  CountRows(varRecipients) = 0,
+                  Notify("Tick at least one group first.", NotificationType.Warning),
+                  Len(EncodeUrl(varAddressString)) > 1800,
+                  Copy(txtAddressStaging);
+                  Notify("Address list is too long for a mailto link (" & CountRows(varRecipients) & " recipients). Copied to clipboard instead - paste into the BCC field.", NotificationType.Warning),
+                  Launch("mailto:?bcc=" & EncodeUrl(varAddressString), {}, LaunchTarget.New)
+              )
+            X: =760
+            Y: =314
+            Width: =560
+            Height: =56
+      - btnCopyAddresses:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Copy Addresses to Clipboard"
+            BasePaletteColor: =RGBA(46,110,145,1)
+            OnSelect: |-
+              =Set(varRecipients, Distinct(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title), Email));
+              Set(varAddressString, Concat(varRecipients, Result, "; "));
+              Reset(txtAddressStaging);
+              If(
+                  CountRows(varRecipients) = 0,
+                  Notify("Tick at least one group first.", NotificationType.Warning),
+                  Copy(txtAddressStaging);
+                  Notify("Copied " & CountRows(varRecipients) & " addresses to clipboard.", NotificationType.Success)
+              )
+            X: =760
+            Y: =382
+            Width: =560
+            Height: =56
+      - txtAddressStaging:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Default: =varAddressString
+            X: =-2000
+            Y: =0
+            Width: =300
+            Height: =40
