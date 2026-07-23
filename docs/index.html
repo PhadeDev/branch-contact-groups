@@ -104,7 +104,8 @@
   <li>Open Power Apps Studio → New blank canvas app (tablet layout).</li>
   <li>Add all data sources listed below (Data panel → Add data).</li>
   <li>Set App → OnStart using the code block below.</li>
-  <li>Create three blank screens (name them exactly as shown), <strong>with "Auto layout" unchecked</strong> in the New Screen dialog if your Studio version offers it — these screens use manual X/Y positioning throughout, and an Auto layout screen ignores X/Y entirely (everything bunches together regardless of coordinates or screen height). Then paste each YAML in order: scrSendEmail, scrManageGroups, scrManagePeople.</li>
+  <li>Create three blank screens (name them exactly as shown), then paste each YAML in order: scrSendEmail, scrManageGroups, scrManagePeople.</li>
+  <li>These screens use manual X/Y positioning throughout and rely on scrolling for the taller panels (e.g. Manage Groups' member panel). If a panel ever renders with everything bunched together regardless of the screen's Height, check <strong>App settings → Display → Scale to fit</strong> — turn it off, since it overrides scrolling by proportionally shrinking the whole screen to the device frame instead.</li>
 </ol>
 
 <h2>Data Connections</h2>
