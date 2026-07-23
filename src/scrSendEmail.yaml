@@ -135,7 +135,7 @@ Screens:
                     =ThisItem.Title
                     & If(ThisItem.ThursdayBatch.Value = "Batch 1", "  [Thursday · Batch 1]", If(ThisItem.ThursdayBatch.Value = "Batch 2", "  [Thursday · Batch 2]", ""))
                     & If(ThisItem.Private, "  [Private]", "")
-                    & If(ThisItem.OfficialSensitiveApproved, "  [🔒 Sensitive]", "")
+                    & If(ThisItem.OfficialSensitiveApproved, "  [🔒 Official Sensitive Approved]", "")
                     & If(ThisItem.OfficialUseOnly, "  [📄 Official Use]", "")
                   Color: =RGBA(31,58,95,1)
                   FontWeight: =FontWeight.Semibold
