@@ -12,6 +12,9 @@ Screens:
             Set(varManageGroupID, Blank());
             Set(varEditingGroupID, Blank());
             Set(varShowCreateGroup, false);
+            Set(varShowLightbox, false);
+            Set(varLightboxMode, "history");
+            Set(varManageSubTab, "members");
             Set(varParsedRosterCount, 0);
             Set(varParsedRosterSkipped, 0);
             Set(varConfirmReplaceArmed, false);
@@ -166,7 +169,7 @@ Screens:
                   Visible: =varEditingGroupID <> ThisItem.ID
                   Color: =RGBA(46,110,145,1)
                   OnSelect: |-
-                    =Set(varLightboxGroupID, ThisItem.ID);
+                    =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "history");
                     Set(varShowLightbox, true)
                   X: =1220
@@ -209,9 +212,12 @@ Screens:
                   BasePaletteColor: =RGBA(46,110,145,1)
                   OnSelect: |-
                     =Set(varManageGroupID, ThisItem.ID);
+                    Set(varLightboxMode, "manage");
+                    Set(varManageSubTab, "members");
                     Reset(txtPasteRoster);
                     Set(varParsedRosterCount, 0);
-                    Set(varConfirmReplaceArmed, false)
+                    Set(varConfirmReplaceArmed, false);
+                    Set(varShowLightbox, true)
                   X: =16
                   Y: =88
                   Width: =220
@@ -443,55 +449,132 @@ Screens:
             Y: =638
             Width: =220
             Height: =40
-      - lblManagePanelHeading:
+      - recLightboxBackdrop:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =varShowLightbox
+            Fill: =RGBA(15,25,20,0.45)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =768
+      - recLightboxPanel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =varShowLightbox
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =14
+            RadiusTopRight: =14
+            RadiusBottomLeft: =14
+            RadiusBottomRight: =14
+            X: =143
+            Y: =54
+            Width: =1080
+            Height: =660
+      - lblLightboxTitle:
           Control: Label@2.5.1
           Properties:
-            Text: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)
-            Visible: =!IsBlank(varManageGroupID)
+            Text: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " — History", ""))
+            Visible: =varShowLightbox
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
-            Size: =17
+            Size: =18
             Font: =Font.'Open Sans'
-            X: =20
-            Y: =750
-            Width: =700
-            Height: =30
-      - icoCloseManage:
+            X: =183
+            Y: =78
+            Width: =940
+            Height: =32
+      - icoLightboxClose:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.Cancel
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox
             Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varManageGroupID, Blank())
-            X: =1310
-            Y: =750
-            Width: =24
-            Height: =24
-      - lblMembersHeading:
-          Control: Label@2.5.1
+            OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
+            X: =1179
+            Y: =78
+            Width: =28
+            Height: =28
+      - btnLbTabMembers:
+          Control: ModernButton@1.0.0
           Properties:
             Text: ="Members"
-            Visible: =!IsBlank(varManageGroupID)
-            Color: =RGBA(31,58,95,1)
-            FontWeight: =FontWeight.Bold
-            Size: =15
-            Font: =Font.'Open Sans'
-            X: =20
-            Y: =792
-            Width: =360
-            Height: =24
+            Visible: =varShowLightbox && varLightboxMode = "manage"
+            BasePaletteColor: =If(varManageSubTab = "members", RGBA(0,78,66,1), RGBA(46,110,145,1))
+            OnSelect: =Set(varManageSubTab, "members")
+            X: =183
+            Y: =124
+            Width: =200
+            Height: =36
+      - btnLbTabAdd:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Add people"
+            Visible: =varShowLightbox && varLightboxMode = "manage"
+            BasePaletteColor: =If(varManageSubTab = "add", RGBA(0,78,66,1), RGBA(46,110,145,1))
+            OnSelect: =Set(varManageSubTab, "add")
+            X: =399
+            Y: =124
+            Width: =200
+            Height: =36
+      - btnLbTabPaste:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Replace all (paste)"
+            Visible: =varShowLightbox && varLightboxMode = "manage"
+            BasePaletteColor: =If(varManageSubTab = "paste", RGBA(0,78,66,1), RGBA(46,110,145,1))
+            OnSelect: =Set(varManageSubTab, "paste")
+            X: =615
+            Y: =124
+            Width: =220
+            Height: =36
+      - galLightboxHistory:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =If(varLightboxMode = "history" && !IsBlank(varManageGroupID), Sort(Filter('BM History', GroupName = LookUp(colGroups, ID = varManageGroupID).Title), Created, SortOrder.Descending), Filter('BM History', false))
+            Visible: =varShowLightbox && varLightboxMode = "history"
+            TemplateSize: =40
+            TemplatePadding: =0
+            X: =183
+            Y: =124
+            Width: =940
+            Height: =520
+          Children:
+            - lblLightboxHistoryRow:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title & "  ·  " & Text(ThisItem.Created, "d mmm yyyy")
+                  Color: =RGBA(50,50,50,1)
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =0
+                  Y: =4
+                  Width: =940
+                  Height: =32
       - galMembers:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: =If(IsBlank(varManageGroupID), Filter(colMemberships, false), Sort(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varManageGroupID).Title), Title, SortOrder.Ascending))
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "members"
             TemplateSize: =56
             TemplatePadding: =0
-            X: =20
-            Y: =824
-            Width: =620
-            Height: =420
+            X: =183
+            Y: =176
+            Width: =940
+            Height: =468
           Children:
             - lblMemberName:
                 Control: Label@2.5.1
@@ -503,7 +586,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =16
                   Y: =6
-                  Width: =380
+                  Width: =800
                   Height: =22
             - lblMemberEmail:
                 Control: Label@2.5.1
@@ -514,7 +597,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =16
                   Y: =28
-                  Width: =380
+                  Width: =800
                   Height: =20
             - icoRemove:
                 Control: Classic/Icon@2.5.0
@@ -527,7 +610,7 @@ Screens:
                     Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: LookUp(colGroups, ID = varManageGroupID).Title});
                     Patch('BM History', Defaults('BM History'), {Title: ThisItem.Title & " removed (" & ThisItem.Email & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Removed"}});
                     Notify("Removed " & ThisItem.Title & ".", NotificationType.Success)
-                  X: =560
+                  X: =880
                   Y: =14
                   Width: =28
                   Height: =28
@@ -535,23 +618,23 @@ Screens:
           Control: Label@2.5.1
           Properties:
             Text: ="Add from GAL"
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
             Size: =15
             Font: =Font.'Open Sans'
-            X: =680
-            Y: =792
-            Width: =620
+            X: =183
+            Y: =176
+            Width: =480
             Height: =24
       - txtGalSearch:
           Control: ModernTextInput@1.1.0
           Properties:
             Placeholder: ="Search GAL by name..."
-            Visible: =!IsBlank(varManageGroupID)
-            X: =680
-            Y: =824
-            Width: =620
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            X: =183
+            Y: =210
+            Width: =480
             Height: =44
       - galGalResults:
           Control: Gallery@2.15.0
@@ -559,13 +642,13 @@ Screens:
           Properties:
             Items: |-
               =Office365Users.SearchUserV2({searchTerm: txtGalSearch.Text, top: 10}).value
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             TemplateSize: =56
             TemplatePadding: =0
-            X: =680
-            Y: =876
-            Width: =620
-            Height: =160
+            X: =183
+            Y: =262
+            Width: =480
+            Height: =300
           Children:
             - lblResultName:
                 Control: Label@2.5.1
@@ -577,7 +660,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =16
                   Y: =6
-                  Width: =420
+                  Width: =300
                   Height: =22
             - lblResultEmail:
                 Control: Label@2.5.1
@@ -588,7 +671,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =16
                   Y: =28
-                  Width: =420
+                  Width: =300
                   Height: =20
             - recResultTap:
                 Control: Classic/Button@2.2.0
@@ -612,46 +695,46 @@ Screens:
                     )
                   X: =0
                   Y: =0
-                  Width: =620
+                  Width: =480
                   Height: =56
       - lblManualHeading:
           Control: Label@2.5.1
           Properties:
             Text: ="Add manually (non-GAL address)"
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
             Size: =15
             Font: =Font.'Open Sans'
-            X: =680
-            Y: =1050
-            Width: =620
+            X: =703
+            Y: =176
+            Width: =420
             Height: =24
       - txtManualName:
           Control: ModernTextInput@1.1.0
           Properties:
             Placeholder: ="Full name"
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: =Set(varErrManualName, false)
-            X: =680
-            Y: =1082
-            Width: =300
+            X: =703
+            Y: =210
+            Width: =420
             Height: =42
       - txtManualEmail:
           Control: ModernTextInput@1.1.0
           Properties:
             Placeholder: ="Email address"
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: =Set(varErrManualEmail, false)
-            X: =990
-            Y: =1082
-            Width: =300
+            X: =703
+            Y: =260
+            Width: =420
             Height: =42
       - btnManualAdd:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Add"
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
               =Set(varAddedName, Trim(txtManualName.Text));
@@ -671,35 +754,35 @@ Screens:
                   Reset(txtManualEmail);
                   Notify("Added " & varAddedName & ".", NotificationType.Success)
               )
-            X: =680
-            Y: =1134
-            Width: =300
+            X: =703
+            Y: =310
+            Width: =420
             Height: =48
       - lblPasteHeading:
           Control: Label@2.5.1
           Properties:
             Text: ="Replace entire membership (paste from Excel/CSV)"
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
             Size: =15
             Font: =Font.'Open Sans'
-            X: =20
-            Y: =1270
-            Width: =900
+            X: =183
+            Y: =176
+            Width: =940
             Height: =24
       - lblPasteHint:
           Control: Label@2.5.1
           Properties:
             Text: |-
               ="For the weekly refresh: select the roster in Excel (two columns, Name then Email), copy, and paste below. This replaces every current member of this group in one go."
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             Color: =RGBA(120,120,120,1)
             Size: =12
             Font: =Font.'Open Sans'
-            X: =20
-            Y: =1298
-            Width: =1000
+            X: =183
+            Y: =204
+            Width: =940
             Height: =36
       - txtPasteRoster:
           Control: Classic/TextInput@2.3.2
@@ -710,7 +793,7 @@ Screens:
             Font: =Font.'Open Sans'
             HoverBorderColor: =RGBA(0,18,107,1)
             HoverFill: =RGBA(186,202,226,1)
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             OnChange: |-
               =Set(varRosterLines, Filter(Split(txtPasteRoster.Text, Char(10)), Trim(Value) <> ""));
               ClearCollect(colParsedRoster,
@@ -729,27 +812,27 @@ Screens:
               Set(varParsedRosterCount, CountRows(colParsedRosterValid));
               Set(varParsedRosterSkipped, CountRows(colParsedRoster) - varParsedRosterCount);
               Set(varConfirmReplaceArmed, false)
-            X: =20
-            Y: =1338
-            Width: =900
-            Height: =100
+            X: =183
+            Y: =244
+            Width: =940
+            Height: =220
       - lblPastePreview:
           Control: Label@2.5.1
           Properties:
             Text: =If(varParsedRosterCount = 0 && varParsedRosterSkipped = 0, "", varParsedRosterCount & " valid row" & If(varParsedRosterCount = 1, "", "s") & " parsed" & If(varParsedRosterSkipped > 0, ", " & varParsedRosterSkipped & " line" & If(varParsedRosterSkipped = 1, "", "s") & " skipped (no valid email)", "") & ".")
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             Color: =RGBA(120,120,120,1)
             Size: =12
             Font: =Font.'Open Sans'
-            X: =20
-            Y: =1442
-            Width: =900
+            X: =183
+            Y: =472
+            Width: =940
             Height: =22
       - btnReplaceRoster:
           Control: ModernButton@1.0.0
           Properties:
             Text: =If(varConfirmReplaceArmed, "Tap again to confirm — replaces all " & CountRows(Filter(colMemberships, GroupName = If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title))) & " current members", "Replace membership from paste")
-            Visible: =!IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             BasePaletteColor: =RGBA(163,45,45,1)
             OnSelect: |-
               =If(
@@ -770,88 +853,7 @@ Screens:
                   Set(varConfirmReplaceArmed, false);
                   Notify("Replaced membership of " & varGroupTitle & ".", NotificationType.Success)
               )
-            X: =20
-            Y: =1470
-            Width: =900
+            X: =183
+            Y: =500
+            Width: =940
             Height: =44
-      - recLightboxBackdrop:
-          Control: Classic/Button@2.2.0
-          Properties:
-            Text: =""
-            DisplayMode: =DisplayMode.View
-            Visible: =varShowLightbox
-            Fill: =RGBA(15,25,20,0.45)
-            HoverFill: =Self.Fill
-            PressedFill: =Self.Fill
-            BorderThickness: =0
-            OnSelect: =Set(varShowLightbox, false)
-            X: =0
-            Y: =0
-            Width: =1366
-            Height: =768
-      - recLightboxPanel:
-          Control: Classic/Button@2.2.0
-          Properties:
-            Text: =""
-            DisplayMode: =DisplayMode.View
-            Visible: =varShowLightbox
-            Fill: =RGBA(255,255,255,1)
-            HoverFill: =Self.Fill
-            PressedFill: =Self.Fill
-            BorderThickness: =0
-            RadiusTopLeft: =14
-            RadiusTopRight: =14
-            RadiusBottomLeft: =14
-            RadiusBottomRight: =14
-            X: =383
-            Y: =84
-            Width: =600
-            Height: =600
-      - lblLightboxTitle:
-          Control: Label@2.5.1
-          Properties:
-            Text: =If(IsBlank(varLightboxGroupID), "", LookUp(colGroups, ID = varLightboxGroupID).Title & " — History")
-            Visible: =varShowLightbox
-            Color: =RGBA(31,58,95,1)
-            FontWeight: =FontWeight.Bold
-            Size: =18
-            Font: =Font.'Open Sans'
-            X: =413
-            Y: =110
-            Width: =500
-            Height: =32
-      - icoLightboxClose:
-          Control: Classic/Icon@2.5.0
-          Properties:
-            Icon: =Icon.Cancel
-            Visible: =varShowLightbox
-            Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowLightbox, false)
-            X: =933
-            Y: =110
-            Width: =28
-            Height: =28
-      - galLightboxHistory:
-          Control: Gallery@2.15.0
-          Variant: Vertical
-          Properties:
-            Items: =If(!IsBlank(varLightboxGroupID), Sort(Filter('BM History', GroupName = LookUp(colGroups, ID = varLightboxGroupID).Title), Created, SortOrder.Descending), Filter('BM History', false))
-            Visible: =varShowLightbox
-            TemplateSize: =40
-            TemplatePadding: =0
-            X: =413
-            Y: =160
-            Width: =540
-            Height: =480
-          Children:
-            - lblLightboxHistoryRow:
-                Control: Label@2.5.1
-                Properties:
-                  Text: =ThisItem.Title & "  ·  " & Text(ThisItem.Created, "d mmm yyyy")
-                  Color: =RGBA(50,50,50,1)
-                  Size: =13
-                  Font: =Font.'Open Sans'
-                  X: =0
-                  Y: =4
-                  Width: =540
-                  Height: =32
