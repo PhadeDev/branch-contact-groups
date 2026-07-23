@@ -31,7 +31,7 @@ Screens:
       - lblHeaderTitle:
           Control: Label@2.5.1
           Properties:
-            Text: ="Branch Mailer"
+            Text: ="Branch Contact Groups"
             Color: =RGBA(255,255,255,1)
             FontWeight: =FontWeight.Bold
             Size: =20

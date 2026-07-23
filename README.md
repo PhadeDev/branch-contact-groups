@@ -1,2 +1,2 @@
-# branch-mailer
-Power Apps canvas app — Branch Mailer
+# branch-contact-groups
+Power Apps canvas app — Branch Contact Groups

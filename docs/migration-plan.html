@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Branch Mailer — Migration Plan</title>
+<title>Branch Contact Groups — Migration Plan</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #e8e8f0; max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
@@ -22,7 +22,7 @@
 </style>
 </head>
 <body>
-<a class="back" href="index.html">← Branch Mailer</a>
+<a class="back" href="index.html">← Branch Contact Groups</a>
 <h1>Migration Plan — 50 Contact Groups → BM Memberships</h1>
 <p class="subtitle">Outlook contact groups have no export/API. This is copy-paste, done once per group, with a grid-view paste at the end to avoid adding ~500 rows by hand.</p>
 
@@ -62,11 +62,11 @@ Email: =TRIM(MID(A1,FIND("&lt;",A1)+1,FIND("&gt;",A1)-FIND("&lt;",A1)-1))</pre>
 
 <h2>Step 6 — Verify</h2>
 <ul>
-  <li>Open Branch Mailer, go to Screen 1, and compare the live "N members" count against the original Outlook contact group's member count — at minimum for the 7 Thursday groups, plus a random sample of 5–10 others.</li>
+  <li>Open Branch Contact Groups, go to Screen 1, and compare the live "N members" count against the original Outlook contact group's member count — at minimum for the 7 Thursday groups, plus a random sample of 5–10 others.</li>
   <li>Spot-check a couple of email addresses per group against the original for typos introduced by the Text-to-Columns/Transpose steps.</li>
 </ul>
 
 <h2>Step 7 — Don't delete the originals yet</h2>
-<div class="note">Keep the original Outlook contact groups in place for a few weeks while the branch transitions to using the app day-to-day. Once you're confident the counts and addresses match and people are actually using Branch Mailer, archive or delete the old contact groups — there's no rush and no downside to running both in parallel for a while.</div>
+<div class="note">Keep the original Outlook contact groups in place for a few weeks while the branch transitions to using the app day-to-day. Once you're confident the counts and addresses match and people are actually using Branch Contact Groups, archive or delete the old contact groups — there's no rush and no downside to running both in parallel for a while.</div>
 </body>
 </html>
