@@ -238,7 +238,7 @@ Screens:
             - drpEditThursdayBatch:
                 Control: ModernDropdown@1.0.1
                 Properties:
-                  Items: =["None", "Batch 1", "Batch 2"]
+                  Items: =colThursdayBatchOptions
                   Default: =ThisItem.ThursdayBatch
                   Visible: =varEditingGroupID = ThisItem.ID
                   X: =530
@@ -377,7 +377,7 @@ Screens:
       - drpNewThursdayBatch:
           Control: ModernDropdown@1.0.1
           Properties:
-            Items: =["None", "Batch 1", "Batch 2"]
+            Items: =colThursdayBatchOptions
             Default: '={Value: "None"}'
             Visible: =varShowCreateGroup
             X: =554
