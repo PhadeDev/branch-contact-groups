@@ -99,7 +99,7 @@
 
 <h2>Before You Start</h2>
 <ol>
-  <li>Create the three SharePoint lists below (all columns, exact names) on <code>https://modgovuk.sharepoint.com/teams/1598/</code>.</li>
+  <li>Create the three SharePoint lists below (all columns, exact names) on <code>&lt;your SharePoint site URL&gt;</code>.</li>
   <li>Add the two maintainer rows to <strong>BM Maintainers</strong> and your real group/member data (see the Migration Plan card below).</li>
   <li>Open Power Apps Studio → New blank canvas app (tablet layout).</li>
   <li>Add all data sources listed below (Data panel → Add data).</li>
@@ -159,8 +159,8 @@
 <table>
   <thead><tr><th>Title</th><th>Email</th></tr></thead>
   <tbody>
-    <tr><td>Allan Hamilton</td><td>allan.hamilton775@mod.gov.uk</td></tr>
-    <tr><td>Dan Smith</td><td>dan.smith391@mod.gov.uk</td></tr>
+    <tr><td>Maintainer 1</td><td>maintainer1@yourdomain</td></tr>
+    <tr><td>Maintainer 2</td><td>maintainer2@yourdomain</td></tr>
   </tbody>
 </table>
 <p><strong>Permissions:</strong> Edit access to this specific list should stay restricted to site owners/admins, not the maintainers themselves — it's the gate that decides who else can become a maintainer, so it shouldn't be self-service from inside the list. Read access for everyone on the site is fine (the app reads it to check <code>User().Email</code>).</p>
