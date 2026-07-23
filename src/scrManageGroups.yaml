@@ -715,7 +715,7 @@ Screens:
                       With(
                           {cols: If(Find(Char(9), ThisRecord.Result) > 0, Split(ThisRecord.Result, Char(9)), Split(ThisRecord.Result, ","))},
                           With(
-                              {emailVal: Trim(Last(FirstN(cols, CountRows(cols))).Result), nameVal: Trim(First(cols).Result)},
+                              {emailVal: Trim(Last(cols).Result), nameVal: Trim(First(cols).Result)},
                               {Name: nameVal, Email: Lower(emailVal)}
                           )
                       )

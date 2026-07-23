@@ -90,7 +90,7 @@ Screens:
           Properties:
             Items: |-
               =Sort(
-                  Filter(colPeople, IsBlank(Trim(txtPeopleSearch.Text)) || Name in txtPeopleSearch.Text || Email in txtPeopleSearch.Text || txtPeopleSearch.Text in Name || txtPeopleSearch.Text in Email),
+                  Filter(colPeople, IsBlank(Trim(txtPeopleSearch.Text)) || txtPeopleSearch.Text in Name || txtPeopleSearch.Text in Email),
                   Name,
                   SortOrder.Ascending
               )
