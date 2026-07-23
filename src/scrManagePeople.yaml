@@ -1,0 +1,452 @@
+Screens:
+  scrManagePeople:
+    Properties:
+      Fill: =RGBA(255,255,255,1)
+      OnVisible: |-
+        =If(
+            !varIsMaintainer,
+            Back(),
+            ClearCollect(colMemberships, 'BM Memberships');
+            ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+            Set(varSelectedPersonEmail, Blank());
+            Set(varConfirmPurgeArmed, false);
+            ClearCollect(colPersonGroupPicks, Filter(colGroups, false));
+            ClearCollect(colAddPersonPicks, AddColumns(colGroups, "Picked", false))
+        )
+    Children:
+      - recHeader:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(0,78,66,1)
+            HoverFill: =RGBA(0,78,66,1)
+            PressedFill: =RGBA(0,78,66,1)
+            BorderThickness: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =72
+      - icoBack:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.ChevronLeft
+            Color: =RGBA(230,241,251,1)
+            OnSelect: =Back()
+            X: =16
+            Y: =24
+            Width: =24
+            Height: =24
+      - lblHeaderTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Manage People"
+            Color: =RGBA(255,255,255,1)
+            FontWeight: =FontWeight.Bold
+            Size: =18
+            Font: =Font.'Open Sans'
+            X: =52
+            Y: =10
+            Width: =600
+            Height: =32
+      - lblHeaderSub:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="One record per person — tick the groups they belong to"
+            Color: =RGBA(214,232,227,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =52
+            Y: =44
+            Width: =600
+            Height: =22
+      - lblAllPeopleHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="All People"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =88
+            Width: =400
+            Height: =26
+      - txtPeopleSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search people by name or email..."
+            X: =20
+            Y: =126
+            Width: =620
+            Height: =44
+      - galPeopleList:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =Sort(
+                  Filter(colPeople, IsBlank(Trim(txtPeopleSearch.Text)) || Name in txtPeopleSearch.Text || Email in txtPeopleSearch.Text || txtPeopleSearch.Text in Name || txtPeopleSearch.Text in Email),
+                  Name,
+                  SortOrder.Ascending
+              )
+            TemplateSize: =72
+            TemplatePadding: =0
+            X: =20
+            Y: =180
+            Width: =620
+            Height: =540
+          Children:
+            - recPersonRowFrame:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =If(Lower(ThisItem.Email) = Lower(varSelectedPersonEmail), RGBA(234,243,225,1), RGBA(255,255,255,1))
+                  HoverFill: =RGBA(233,241,246,1)
+                  PressedFill: =RGBA(233,241,246,1)
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  OnSelect: |-
+                    =Set(varSelectedPersonEmail, ThisItem.Email);
+                    ClearCollect(colPersonGroupPicks, AddColumns(colGroups, "Picked", CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = Lower(ThisItem.Email))) > 0))
+                  X: =0
+                  Y: =0
+                  Width: =620
+                  Height: =66
+            - lblPersonRowName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Name
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =14
+                  Font: =Font.'Open Sans'
+                  X: =16
+                  Y: =6
+                  Width: =580
+                  Height: =22
+            - lblPersonRowEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email & "  ·  member of " & ThisItem.GroupCount & " group" & If(ThisItem.GroupCount = 1, "", "s")
+                  Color: =RGBA(120,120,120,1)
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =16
+                  Y: =30
+                  Width: =580
+                  Height: =20
+      - recPersonPanelBg:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(221,227,234,1)
+            BorderThickness: =1
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            X: =680
+            Y: =88
+            Width: =660
+            Height: =430
+      - icoClosePerson:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Cancel
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            Color: =RGBA(120,120,120,1)
+            OnSelect: =Set(varSelectedPersonEmail, Blank())
+            X: =1300
+            Y: =100
+            Width: =24
+            Height: =24
+      - txtPersonName:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Default: =If(IsBlank(varSelectedPersonEmail), "", LookUp(colPeople, Email = varSelectedPersonEmail).Name)
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            X: =700
+            Y: =108
+            Width: =500
+            Height: =40
+      - lblPersonEmail:
+          Control: Label@2.5.1
+          Properties:
+            Text: =varSelectedPersonEmail
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            Color: =RGBA(120,120,120,1)
+            Size: =13
+            Font: =Font.'Open Sans'
+            X: =700
+            Y: =152
+            Width: =500
+            Height: =24
+      - lblPersonGroupsHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Groups"
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =700
+            Y: =186
+            Width: =500
+            Height: =22
+      - galPersonGroupChecklist:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colPersonGroupPicks
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            TemplateSize: =36
+            TemplatePadding: =0
+            X: =700
+            Y: =212
+            Width: =600
+            Height: =180
+          Children:
+            - chkGroupMember:
+                Control: Classic/CheckBox@2.1.0
+                Properties:
+                  Text: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
+                  Default: =ThisItem.Picked
+                  OnCheck: |-
+                    =Patch(colPersonGroupPicks, ThisItem, {Picked: true})
+                  OnUncheck: |-
+                    =Patch(colPersonGroupPicks, ThisItem, {Picked: false})
+                  X: =0
+                  Y: =2
+                  Width: =580
+                  Height: =32
+      - btnSavePersonChanges:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Save changes"
+            Visible: =!IsBlank(varSelectedPersonEmail)
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =If(
+                  IsBlank(Trim(txtPersonName.Text)),
+                  Notify("Name can't be blank.", NotificationType.Warning),
+                  Set(varNewPersonName, Trim(txtPersonName.Text));
+                  ForAll(
+                      colPersonGroupPicks As grp,
+                      With(
+                          {existing: LookUp(colMemberships, GroupName = grp.Title, Lower(Email) = Lower(varSelectedPersonEmail))},
+                          If(
+                              grp.Picked && IsBlank(existing),
+                              Patch('BM Memberships', Defaults('BM Memberships'), {Title: varNewPersonName, Email: varSelectedPersonEmail, GroupName: grp.Title});
+                              Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
+                              Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " added (" & varSelectedPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}}),
+                              !grp.Picked && !IsBlank(existing),
+                              Remove('BM Memberships', existing);
+                              Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
+                              Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " removed (" & varSelectedPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Removed"}}),
+                              grp.Picked && !IsBlank(existing) && existing.Title <> varNewPersonName,
+                              Patch('BM Memberships', existing, {Title: varNewPersonName})
+                          )
+                      )
+                  );
+                  ClearCollect(colMemberships, 'BM Memberships');
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+                  Notify("Saved " & varNewPersonName & ".", NotificationType.Success)
+              )
+            X: =700
+            Y: =408
+            Width: =260
+            Height: =44
+      - lblAddPersonHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Add new person"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =680
+            Y: =538
+            Width: =400
+            Height: =26
+      - txtAddPersonName:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Full name"
+            X: =680
+            Y: =574
+            Width: =300
+            Height: =42
+      - txtAddPersonEmail:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Email address"
+            X: =990
+            Y: =574
+            Width: =300
+            Height: =42
+      - lblAddToGroupsHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Add to groups"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =680
+            Y: =626
+            Width: =400
+            Height: =22
+      - galAddPersonChecklist:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colAddPersonPicks
+            TemplateSize: =36
+            TemplatePadding: =0
+            X: =680
+            Y: =652
+            Width: =620
+            Height: =160
+          Children:
+            - chkAddPersonGroup:
+                Control: Classic/CheckBox@2.1.0
+                Properties:
+                  Text: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
+                  Default: =ThisItem.Picked
+                  OnCheck: |-
+                    =Patch(colAddPersonPicks, ThisItem, {Picked: true})
+                  OnUncheck: |-
+                    =Patch(colAddPersonPicks, ThisItem, {Picked: false})
+                  X: =0
+                  Y: =2
+                  Width: =600
+                  Height: =32
+      - btnAddPerson:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Add person"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varNewPersonEmail, Lower(Trim(txtAddPersonEmail.Text)));
+              Set(varNewPersonName, Trim(txtAddPersonName.Text));
+              If(
+                  IsBlank(varNewPersonName) || IsBlank(Find("@", varNewPersonEmail)) || IsBlank(Find(".", varNewPersonEmail)),
+                  Notify("Enter a name and a valid email address.", NotificationType.Warning),
+                  CountRows(Filter(colPeople, Lower(Email) = varNewPersonEmail)) > 0,
+                  Notify("This email already exists as " & LookUp(colPeople, Lower(Email) = varNewPersonEmail).Name & " — select them from the list to edit their groups instead.", NotificationType.Warning);
+                  Set(varSelectedPersonEmail, varNewPersonEmail);
+                  ClearCollect(colPersonGroupPicks, AddColumns(colGroups, "Picked", CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = varNewPersonEmail)) > 0)),
+                  CountRows(Filter(colAddPersonPicks, Picked = true)) = 0,
+                  Notify("Tick at least one group to add them to.", NotificationType.Warning),
+                  ForAll(
+                      Filter(colAddPersonPicks, Picked = true) As grp,
+                      Patch('BM Memberships', Defaults('BM Memberships'), {Title: varNewPersonName, Email: varNewPersonEmail, GroupName: grp.Title});
+                      Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
+                      Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " added (" & varNewPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}})
+                  );
+                  ClearCollect(colMemberships, 'BM Memberships');
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+                  Reset(txtAddPersonName);
+                  Reset(txtAddPersonEmail);
+                  ClearCollect(colAddPersonPicks, AddColumns(colGroups, "Picked", false));
+                  Notify("Added " & varNewPersonName & ".", NotificationType.Success)
+              )
+            X: =680
+            Y: =824
+            Width: =620
+            Height: =44
+      - lblPurgeHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Remove someone from every group"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =744
+            Width: =620
+            Height: =26
+      - lblPurgeHint:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="For when someone leaves the branch entirely — finds every group they're in and removes all of them in one go."
+            Color: =RGBA(120,120,120,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =772
+            Width: =620
+            Height: =22
+      - txtPurgeSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search by name or email..."
+            OnChange: =Set(varConfirmPurgeArmed, false)
+            X: =20
+            Y: =798
+            Width: =620
+            Height: =44
+      - lblPurgeMatch:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {p: LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email)},
+                  If(IsBlank(Trim(txtPurgeSearch.Text)), "", IsBlank(p), "No current member matches that.", p.Name & "  —  " & p.Email & "  —  member of " & p.GroupCount & " group" & If(p.GroupCount = 1, "", "s"))
+              )
+            Color: =RGBA(80,80,80,1)
+            Size: =13
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =850
+            Width: =620
+            Height: =50
+      - btnPurgeFromAll:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varConfirmPurgeArmed, "Tap again to confirm removal", "Remove from all groups")
+            Visible: =!IsBlank(Trim(txtPurgeSearch.Text)) && !IsBlank(LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email))
+            BasePaletteColor: =RGBA(163,45,45,1)
+            OnSelect: |-
+              =If(
+                  !varConfirmPurgeArmed,
+                  Set(varConfirmPurgeArmed, true),
+                  Set(varPurgeEmail, LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email).Email);
+                  Set(varPurgeName, LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email).Name);
+                  ClearCollect(colPurgeAffectedGroups, Distinct(Filter(colMemberships, Lower(Email) = Lower(varPurgeEmail)), GroupName));
+                  Set(varPurgeCount, CountRows(colPurgeAffectedGroups));
+                  ForAll(
+                      colPurgeAffectedGroups,
+                      Patch('BM Groups', LookUp('BM Groups', Title = Result), {Title: Result});
+                      Patch('BM History', Defaults('BM History'), {Title: varPurgeName & " removed (left branch — removed from all groups)", GroupName: Result, EventType: {Value: "Removed"}})
+                  );
+                  RemoveIf('BM Memberships', Lower(Email) = Lower(varPurgeEmail));
+                  ClearCollect(colMemberships, 'BM Memberships');
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, "Email", "Rows"), "Name", First(Rows).Title, "GroupCount", CountRows(Rows)));
+                  Reset(txtPurgeSearch);
+                  Set(varConfirmPurgeArmed, false);
+                  Set(varSelectedPersonEmail, Blank());
+                  Notify("Removed " & varPurgeName & " from " & varPurgeCount & " group" & If(varPurgeCount = 1, "", "s") & ".", NotificationType.Error)
+              )
+            X: =20
+            Y: =908
+            Width: =620
+            Height: =44

@@ -93,18 +93,18 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Mailer <span class="version">v1.0</span></h1>
-<p class="built">Built 23 Jul 2026  08:46 BST</p>
-<p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds.</p>
+<h1>Branch Mailer <span class="version">v2.0</span></h1>
+<p class="built">Built 23 Jul 2026 BST</p>
+<p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
 <h2>Before You Start</h2>
 <ol>
-  <li>Create the three SharePoint lists below (all columns, exact names) on <code>&lt;your SharePoint site URL&gt;</code>.</li>
+  <li>Create the four SharePoint lists below (all columns, exact names) on <code>&lt;your SharePoint site URL&gt;</code>.</li>
   <li>Add the two maintainer rows to <strong>BM Maintainers</strong> and your real group/member data (see the Migration Plan card below).</li>
   <li>Open Power Apps Studio → New blank canvas app (tablet layout).</li>
   <li>Add all data sources listed below (Data panel → Add data).</li>
   <li>Set App → OnStart using the code block below.</li>
-  <li>Create one blank screen per screen below (name them exactly as shown), then paste each YAML.</li>
+  <li>Create three blank screens (name them exactly as shown), then paste each YAML in order: scrSendEmail, scrManageGroups, scrManagePeople.</li>
 </ol>
 
 <h2>Data Connections</h2>
@@ -115,6 +115,7 @@
     <tr><td>'BM Groups'</td><td>SharePoint → your site → BM Groups</td></tr>
     <tr><td>'BM Memberships'</td><td>SharePoint → your site → BM Memberships</td></tr>
     <tr><td>'BM Maintainers'</td><td>SharePoint → your site → BM Maintainers</td></tr>
+    <tr><td>'BM History'</td><td>SharePoint → your site → BM History</td></tr>
     <tr><td>Office365Users</td><td>Office 365 Users connector</td></tr>
   </tbody>
 </table>
@@ -127,10 +128,15 @@
   <tbody>
     <tr><td>Title</td><td>Single line of text</td><td>Built-in — the group name, e.g. "All Branch Staff". Not Required.</td></tr>
     <tr><td>SortOrder</td><td>Number</td><td>Optional display order. Not Required.</td></tr>
-    <tr><td>Active</td><td>Yes/No</td><td>Default <strong>Yes</strong>. Set to No to retire a group without deleting it.</td></tr>
-    <tr><td>ThursdayGroup</td><td>Yes/No</td><td>Default <strong>No</strong>. Tick for the 7 groups included in the Thursday preset.</td></tr>
+    <tr><td>ThursdayBatch</td><td>Choice</td><td>Values: <code>None</code>, <code>Batch 1</code>, <code>Batch 2</code>. Default <strong>None</strong>. Replaces the old single Thursday flag — the weekly send is split into two independent batches because one BCC of everyone overloads some recipients' mail servers. A group can only be in one batch (or neither), so the two sends never share a recipient.</td></tr>
+    <tr><td>Private</td><td>Yes/No</td><td>Default <strong>No</strong>. Private groups are hidden from the Send Email screen for anyone not in BM Maintainers, but are still included in Thursday batch sends.</td></tr>
+    <tr><td>OfficialSensitiveApproved</td><td>Yes/No</td><td>Default <strong>No</strong>. Shown as a pill/tag to everyone, not just maintainers — lets anyone see at a glance whether OFFICIAL-SENSITIVE material can go to this group.</td></tr>
+    <tr><td>OfficialUseOnly</td><td>Yes/No</td><td>Default <strong>No</strong>. Independent of OfficialSensitiveApproved — a group can carry either, both, or neither.</td></tr>
+    <tr><td>Notes</td><td>Multiple lines of text (plain text, not rich text)</td><td>Optional. Shown on the group card and to everyone on the Send Email screen so people can sanity-check who they're about to email.</td></tr>
   </tbody>
 </table>
+<p>The old <strong>Active</strong> column has been removed entirely — it's not used anywhere in v2.0. If you built v1.0 already, delete that column.</p>
+<p><strong>"Last modified" note:</strong> the app shows SharePoint's built-in Modified date, and every formula that changes membership (add/remove/replace) also does a harmless self-Patch on the group's own Title so Modified reflects membership changes too, not just edits to the group record itself.</p>
 <p><strong>Versioning:</strong> List Settings → Versioning Settings → "Create a version each time you edit an item" = Yes.</p>
 <p><strong>Permissions:</strong> List Settings → Permissions for this list → Stop Inheriting Permissions → grant <strong>Edit</strong> to the two maintainers, <strong>Read</strong> to everyone else on the site.</p>
 
@@ -141,10 +147,11 @@
     <tr><td>Title</td><td>Single line of text</td><td>Built-in — display name of the person. Not Required.</td></tr>
     <tr><td>Email</td><td>Single line of text</td><td>Store lowercase. Not Required.</td></tr>
     <tr><td>GroupName</td><td>Single line of text</td><td>Must match a 'BM Groups'.Title value exactly. Plain text, not a Lookup column — this keeps every filter delegable and avoids the Lookup-column delegation issues this app family has hit before. Not Required.</td></tr>
+    <tr><td>Notes</td><td>Single line of text</td><td>Optional per-person note, editable from Manage Groups or Manage People.</td></tr>
   </tbody>
 </table>
-<p>One row per person-per-group (deliberately denormalised — a person in 3 groups is 3 rows). This mirrors how Outlook contact groups actually work and keeps every query in the app a plain, delegable <code>Filter</code>.</p>
-<p><strong>Versioning:</strong> enabled, same as BM Groups — gives you an audit trail of who was added/removed and when.</p>
+<p>One row per person-per-group (deliberately denormalised — a person in 3 groups is 3 rows). This mirrors how Outlook contact groups actually work and keeps every query in the app a plain, delegable <code>Filter</code>. The new <strong>Manage People</strong> screen is a view over this same table grouped by email — no separate "people" list needed.</p>
+<p><strong>Versioning:</strong> enabled, same as BM Groups — gives you a native audit trail as a backstop; the app-level <strong>BM History</strong> list below is the human-readable one you'll actually use day to day.</p>
 <p><strong>Permissions:</strong> same unique-permission pattern as BM Groups — Edit for the two maintainers, Read for everyone else.</p>
 
 <h3>List: <code>BM Maintainers</code></h3>
@@ -152,7 +159,7 @@
   <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
   <tbody>
     <tr><td>Title</td><td>Single line of text</td><td>Built-in — the maintainer's name.</td></tr>
-    <tr><td>Email</td><td>Single line of text</td><td>Store lowercase. This is what the app checks against the signed-in user to decide whether to show the Manage Groups screen.</td></tr>
+    <tr><td>Email</td><td>Single line of text</td><td>Store lowercase. This is what the app checks against the signed-in user to decide whether to show Manage Groups / Manage People.</td></tr>
   </tbody>
 </table>
 <p>This list exists specifically so <strong>adding a future maintainer is a one-row add to a SharePoint list, not an app edit</strong> — no formula change, no republish. Add the two starting rows yourself:</p>
@@ -165,36 +172,64 @@
 </table>
 <p><strong>Permissions:</strong> Edit access to this specific list should stay restricted to site owners/admins, not the maintainers themselves — it's the gate that decides who else can become a maintainer, so it shouldn't be self-service from inside the list. Read access for everyone on the site is fine (the app reads it to check <code>User().Email</code>).</p>
 
-<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all three lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
+<h3>List: <code>BM History</code> <span style="color:#4dafff; font-size:0.8em;">(new in v2.0)</span></h3>
+<table>
+  <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Title</td><td>Single line of text</td><td>Built-in — the human-readable event description, e.g. "Jane Doe added (jane.doe@mod.gov.uk)" or "Bulk replace via paste: 12 removed, 15 added".</td></tr>
+    <tr><td>GroupName</td><td>Single line of text</td><td>Matches a 'BM Groups'.Title value — which group this event belongs to.</td></tr>
+    <tr><td>EventType</td><td>Choice</td><td>Values: <code>Created</code>, <code>Added</code>, <code>Removed</code>, <code>Edited</code>, <code>Replaced</code>. Not currently displayed in the app UI but useful for future filtering/reporting.</td></tr>
+  </tbody>
+</table>
+<p>One row per membership/group event. The app writes to this list every time someone is added, removed, a group is created/edited, or a roster is bulk-replaced. The 🕘 history icon on each group reads this list filtered by GroupName, newest first — this is what answers "who was added or removed, and when" over time. No custom timestamp column needed; the built-in <strong>Created</strong> date is used directly.</p>
+<p><strong>Versioning:</strong> not needed — this list is itself the audit trail; individual rows are never edited after creation.</p>
+<p><strong>Permissions:</strong> same as BM Groups/BM Memberships — Edit for maintainers (the app writes here on their behalf), Read for everyone (the history icon is visible on the Send Email screen too, not just Manage Groups).</p>
+
+<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all four lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
 
 <h2>App.OnStart</h2>
-<p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML.</p>
+<p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong> — it's set to <code>mod.gov.uk</code> below.</p>
 <div class="code-block">
   <button class="copy-btn" onclick="copyBlock(this, 'on-start')">Copy</button>
-  <pre id="on-start">Set(varMyEmail, Lower(User().Email));
+  <pre id="on-start">Set(varModDomain, "mod.gov.uk");
+Set(varMyEmail, Lower(User().Email));
 ClearCollect(colMaintainers, 'BM Maintainers');
 Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
-ClearCollect(colGroupsRaw, Sort(Filter('BM Groups', Active = true), SortOrder, SortOrder.Ascending));
-ClearCollect(colGroups, AddColumns(colGroupsRaw, Ticked, false));
-ClearCollect(colMemberships, 'BM Memberships')</pre>
+ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+ClearCollect(colMemberships, 'BM Memberships');
+Set(varRecipientField, "bcc");
+Set(varBccForcedByBatch, false);
+Set(varBccForced, false);
+Set(varPreviewGroupID, Blank());
+Set(varShowLightbox, false);
+Set(varLightboxMode, "");
+Set(varLightboxGroupID, Blank())</pre>
 </div>
 
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrSendEmail.html?v=1.0">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.0">
     <div>
       <div class="screen-number">Screen 1</div>
       <div class="screen-name">scrSendEmail</div>
-      <div class="screen-desc">Tick groups, see live recipient count, open a BCC'd Outlook draft or copy addresses to clipboard. Thursday preset button.</div>
+      <div class="screen-desc">Tick groups (clicking a card just previews it on the right — only the checkbox ticks it), live recipient count, To/CC/BCC toggle that auto-locks to BCC for external addresses or Thursday batches, two independent Thursday Batch buttons, member/history/batch-preview popup.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=1.0">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.0">
     <div>
       <div class="screen-number">Screen 2</div>
       <div class="screen-name">scrManageGroups</div>
-      <div class="screen-desc">Maintainer-only. Pick a group, remove members, add from the GAL or type a manual address. Gated on BM Maintainers.</div>
+      <div class="screen-desc">Maintainer-only. Create/edit groups inline (pencil icon toggles the row editable), manage membership per group, add from GAL or manually, and paste-replace an entire roster from Excel in one confirmed action.</div>
+    </div>
+    <div class="screen-cta">Open and copy →</div>
+  </a>
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.0">
+    <div>
+      <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
+      <div class="screen-name">scrManagePeople</div>
+      <div class="screen-desc">Maintainer-only. One record per person — tick every group they belong to and save in one action instead of adding them group-by-group. Duplicate-email protection routes you to the existing person instead of creating a copy. Includes "remove from every group" for leavers.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>

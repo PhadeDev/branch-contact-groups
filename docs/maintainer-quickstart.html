@@ -31,43 +31,79 @@
 <body>
 <a class="back" href="index.html">← Branch Mailer</a>
 <h1>Branch Mailer — Maintainer Quickstart</h1>
-<p class="subtitle">One page. Print it or keep it pinned — everything a maintainer needs day to day.</p>
+<p class="subtitle">One page. Print it or keep it pinned — everything a maintainer needs day to day. Covers v2.0.</p>
+
+<h2>Create a brand new group</h2>
+<ol>
+  <li>Open Branch Mailer → tap <strong>Manage Groups</strong> (top right — only visible to maintainers).</li>
+  <li>Tap <strong>+ New Group</strong>.</li>
+  <li>Type the name, optional notes, pick a Thursday batch if it should be part of the weekly send, and tick Private / Official Sensitive Approved / Official Use Only as needed.</li>
+  <li>Tap <strong>Create group</strong>. It's live immediately — no SharePoint trip needed any more.</li>
+</ol>
+
+<h2>Edit an existing group's details</h2>
+<ol>
+  <li>On its card in Manage Groups, tap the pencil icon. The card becomes editable in place.</li>
+  <li>Change name, notes, Thursday batch, or any of the three tick-box flags.</li>
+  <li>Tap <strong>Save</strong> (or <strong>Cancel</strong> to discard).</li>
+</ol>
 
 <h2>Add someone from the GAL to a group</h2>
 <ol>
-  <li>Open Branch Mailer → tap <strong>Manage Groups</strong> (top right — only visible to maintainers).</li>
-  <li>Pick the group from the dropdown.</li>
+  <li>On the group's card, tap <strong>Manage members</strong>.</li>
   <li>Type their name into the <strong>Search GAL by name</strong> box.</li>
-  <li>Tap their name in the results list. They're added straight away — no save button needed.</li>
+  <li>Tap their name in the results list. They're added straight away — no save button needed. If they're already in that group you'll get a warning instead of a duplicate.</li>
 </ol>
 
 <h2>Add someone who isn't in the GAL (external/contractor)</h2>
 <ol>
-  <li>Same screen, same group selected.</li>
+  <li>Same Manage members panel.</li>
   <li>Under <strong>Add manually</strong>, type their full name and email address.</li>
   <li>Tap <strong>Add</strong>.</li>
 </ol>
+<p class="note">If anyone in the group you're about to send to has a non-branch email address (a contractor, a manually-added external contact), the Send Email screen automatically locks that send to BCC only — you don't need to remember to do this yourself.</p>
 
-<h2>Remove someone from a group</h2>
+<h2>Remove someone from one group</h2>
 <ol>
-  <li>Pick the group from the dropdown.</li>
-  <li>Find their row in the member list.</li>
-  <li>Tap the bin icon next to their name. They're removed straight away.</li>
+  <li>Open that group's Manage members panel.</li>
+  <li>Find their row in the member list, tap the bin icon. They're removed straight away.</li>
 </ol>
-<p class="note">Removing someone only takes them out of <strong>that one group</strong>. If they're in other groups too, those are untouched.</p>
+<p class="note">This only takes them out of <strong>that one group</strong>. If they're in others too, those are untouched.</p>
 
-<h2>Add a brand new group</h2>
-<p>This one step can't be done from inside the app — it needs a quick trip to the SharePoint list directly:</p>
+<h2>Add one person to several groups at once</h2>
+<p>This is what the new <strong>Manage People</strong> screen is for — faster than opening each group separately:</p>
 <ol>
-  <li>Go to the <code>BM Groups</code> list on the branch SharePoint site.</li>
-  <li>Click <strong>+ New</strong>, type the group name in the Title field.</li>
-  <li>Leave <strong>Active</strong> as Yes.</li>
-  <li>Tick <strong>ThursdayGroup</strong> only if this group should be included when the Thursday preset button is used.</li>
-  <li>Save. It appears in the app straight away (close and reopen the app if it doesn't show immediately).</li>
+  <li>Tap <strong>Manage People</strong> (top right of Manage Groups).</li>
+  <li>Search for them in the list on the left and tap their row — or, if they're not in the system yet, use <strong>Add new person</strong> on the right.</li>
+  <li>Tick every group they should belong to.</li>
+  <li>Tap <strong>Save changes</strong>. Groups you ticked get them added, groups you unticked get them removed — all in one go.</li>
 </ol>
 
-<h2>Retire a group without losing its history</h2>
-<p>Don't delete the group row. Instead open it in <code>BM Groups</code> and set <strong>Active</strong> to No. It disappears from the app immediately, but its members and the list's version history are kept.</p>
+<h2>Someone's leaving the branch — clear them out everywhere</h2>
+<ol>
+  <li>On <strong>Manage People</strong>, use the <strong>Remove someone from every group</strong> search box at the bottom.</li>
+  <li>Find them, tap <strong>Remove from all groups</strong>, tap it again to confirm.</li>
+  <li>They're gone from every group in one action — no need to hunt through each one.</li>
+</ol>
+
+<h2>Replace an entire group's membership from an Excel list (weekly refresh)</h2>
+<p>This is the fast path for a roster that changes every week — no need to add/remove people one at a time:</p>
+<ol>
+  <li>In Excel, select the Name and Email columns (with or without a header row) and copy.</li>
+  <li>In Manage members for that group, paste into the box under <strong>Replace entire membership</strong>.</li>
+  <li>Check the preview line — it tells you how many rows parsed and how many were skipped.</li>
+  <li>Tap <strong>Replace membership from paste</strong>, then tap it again to confirm — this wipes everyone currently in the group and replaces them with exactly what you pasted.</li>
+</ol>
+<p class="note">There's no undo button for this one — it's a full replace, not a merge. If you're not sure, check the preview count matches what you expect before confirming.</p>
+
+<h2>See who's actually in a group before sending</h2>
+<p>On the Send Email screen, tap the 👁 icon on any group row to see its full member list without ticking it, or tap the card itself to preview it in the panel on the right — either way, nothing gets added to your send by just looking.</p>
+
+<h2>See a group's history</h2>
+<p>Tap the 🕘 icon (next to 👁 on Send Email, or on the card in Manage Groups) to see a timeline of who was added, removed, or when the group was created/edited/bulk-replaced.</p>
+
+<h2>The Thursday send — now two batches</h2>
+<p>One BCC of everyone overloads some recipients' mail servers, so the weekly send is split into <strong>Thursday Batch 1</strong> and <strong>Thursday Batch 2</strong> — always different people. Tap one button, it ticks exactly that batch's groups and locks the send to BCC automatically. Copy or open in Outlook, then repeat with the other batch button for a second email. Use the 👁 icon next to each batch button to preview exactly who's in it before you send.</p>
 
 <h2>Who can do all this?</h2>
 <p>Only the people listed in the <code>BM Maintainers</code> list. To add another maintainer, a site owner adds a row there (name + email) — nothing in the app itself needs to change.</p>

@@ -28,7 +28,7 @@
 <body>
 <a class="back" href="index.html">← Branch Mailer</a>
 <h1>Power Automate — Thursday Draft Flow</h1>
-<p class="subtitle">Phase 2, optional. Builds a single BCC'd draft (or, if DLP blocks that, sends individually) to the 7 Thursday groups without you having to rebuild the recipient list by hand every week.</p>
+<p class="subtitle">Phase 2, optional. Builds a single BCC'd draft (or, if DLP blocks that, sends individually) to whichever Thursday batch you specify, without you having to rebuild the recipient list by hand every week. <strong>v2.0:</strong> the Thursday send is split into two independent batches (server-load reasons — see the app's own Send Email screen), so this flow now takes a Batch input and you run it twice, once per batch, reviewing/sending each draft separately.</p>
 
 <h2>Why an Instant flow, not scheduled</h2>
 <p>You want to review subject/body/attachments before anything goes out, and you may want to run it on a day other than Thursday occasionally. A manually-triggered flow (run from Power Automate's mobile app, the web portal, or a button added to the canvas app later) gives you that control. Nothing here auto-sends on a timer.</p>
@@ -38,6 +38,7 @@
 <table>
   <thead><tr><th>Input</th><th>Type</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr><td>Batch</td><td>Choice (Batch 1 / Batch 2)</td><td>Which Thursday batch to build this run. Run the flow twice, once per batch — the two batches are always disjoint groups, so this never double-emails anyone.</td></tr>
     <tr><td>Subject</td><td>Text</td><td>Default value you set once, editable each run.</td></tr>
     <tr><td>Body</td><td>Text (multi-line)</td><td>Plain text or simple HTML — used as-is in the draft body.</td></tr>
     <tr><td>ConfirmSend</td><td>Yes/No</td><td>Default <strong>No</strong>. Safety gate — the flow stops early unless this is explicitly set to Yes on the run.</td></tr>
@@ -46,7 +47,7 @@
 
 <h2>Steps</h2>
 <ol>
-  <li><strong>Get items</strong> — <code>BM Groups</code>, Filter Query: <code>ThursdayGroup eq 1</code></li>
+  <li><strong>Get items</strong> — <code>BM Groups</code>, Filter Query: <code>ThursdayBatch eq '@{triggerBody()['Batch']}'</code> (test this exact syntax against your tenant's Choice-column OData behaviour first — some environments want <code>ThursdayBatch/Value eq '...'</code> instead; if the filter comes back empty, that's the first thing to try)</li>
   <li><strong>Compose — "Build OData filter"</strong>, to turn those group names into a filter string for the next step:
     <pre>join(select(body('Get_items')?['value'], concat('GroupName eq ''', item()?['Title'], '''')), ' or ')</pre>
   </li>
@@ -82,6 +83,7 @@
   "bccRecipients": @{outputs('BCC_recipient_objects')},
   "attachments": @{body('Select_attachment_objects')}
 }</pre>
+        <p>Nothing here needs to mention which batch it is — the recipient list itself is already scoped to the chosen batch from step 1. If you want the batch visible at a glance in your Drafts folder, add it to the Subject input yourself each run (e.g. "Weekly Update — Batch 1").</p>
       </li>
     </ul>
   </li>
@@ -104,6 +106,6 @@
 </ol>
 <p>This sends one individual email per recipient (mail-merge style) rather than one BCC'd draft — no BCC needed since each message has exactly one real recipient. Keep the same <code>ConfirmSend</code> gate in front of this loop. For ~130 recipients per group, this is well within Exchange Online's per-flow-run sending limits, but consider adding a short <strong>Delay</strong> (1–2 seconds) inside the loop if you see throttling errors on a live run.</p>
 
-<div class="warning">Test which variant your tenant allows with a <strong>single test recipient</strong> (your own email in <code>BM Memberships</code> temporarily, or a one-off manual test group) before running either version against the full 260-person distribution.</div>
+<div class="warning">Test which variant your tenant allows with a <strong>single test recipient</strong> (your own email in <code>BM Memberships</code> temporarily, or a one-off manual test group) before running either version against a full batch. Also confirm the <code>ThursdayBatch</code> filter query in step 1 actually returns the right groups for each batch before your first real run — a wrong filter here silently sends to the wrong (or zero) people rather than erroring.</div>
 </body>
 </html>

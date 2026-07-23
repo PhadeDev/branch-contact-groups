@@ -27,7 +27,7 @@
 <p class="subtitle">Outlook contact groups have no export/API. This is copy-paste, done once per group, with a grid-view paste at the end to avoid adding ~500 rows by hand.</p>
 
 <h2>Step 1 — Create the group shells first</h2>
-<p>Before touching any members, create all 50 rows in <code>BM Groups</code> (just the group names). This is small enough to do as a single grid-view paste: type your 50 group names into one column in Excel, open <code>BM Groups</code> in the browser, switch to grid view (the grid/pencil icon above the list, or View → "Edit in grid view"), and paste the column straight into the Title column. Tick <code>ThursdayGroup</code> for the known 7 afterwards.</p>
+<p>Before touching any members, create all 50 rows in <code>BM Groups</code> (just the group names). This is small enough to do as a single grid-view paste: type your 50 group names into one column in Excel, open <code>BM Groups</code> in the browser, switch to grid view (the grid/pencil icon above the list, or View → "Edit in grid view"), and paste the column straight into the Title column. Set <code>ThursdayBatch</code> to Batch 1 or Batch 2 for the known Thursday groups afterwards — either in grid view, or faster, just use the app's own Manage Groups screen once it's built (pencil icon → pick the batch from the dropdown).</p>
 
 <h2>Step 2 — Extract members from one contact group</h2>
 <ol>
@@ -58,6 +58,7 @@ Email: =TRIM(MID(A1,FIND("&lt;",A1)+1,FIND("&gt;",A1)-FIND("&lt;",A1)-1))</pre>
   <li>Add empty rows in the grid roughly matching your row count first (grid view usually only shows a handful of blank rows at a time — scroll down or add more as needed, or paste in batches of ~100 rows).</li>
   <li>Copy your three-column Excel range (<strong>no header row</strong>) and paste directly into the Title/Email/GroupName columns of the grid. SharePoint grid view accepts a multi-row, multi-column clipboard paste and creates new rows as needed.</li>
 </ol>
+<p class="note"><strong>Alternative once the app is built:</strong> for each group, copy just its Name+Email columns (from Step 3, no GroupName column needed) and use the app's own <strong>Replace membership from paste</strong> button on Manage Groups → Manage members instead of the SharePoint grid-view paste. It's scoped to the right group automatically, does its own email validation, and logs the import as a history entry — arguably safer than a single giant 500-row grid paste, just done 50 times instead of once. Either path ends at the same result.</p>
 
 <h2>Step 6 — Verify</h2>
 <ul>
