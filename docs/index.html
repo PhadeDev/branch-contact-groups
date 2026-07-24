@@ -105,7 +105,7 @@
   <li>Add all data sources listed below (Data panel → Add data).</li>
   <li>Set App → OnStart using the code block below.</li>
   <li>Create three blank screens (name them exactly as shown), then paste each YAML in order: scrSendEmail, scrManageGroups, scrManagePeople.</li>
-  <li>These screens use manual X/Y positioning throughout and rely on scrolling for the taller panels (e.g. Manage Groups' member panel). If a panel ever renders with everything bunched together regardless of the screen's Height, check <strong>App settings → Display → Scale to fit</strong> — turn it off, since it overrides scrolling by proportionally shrinking the whole screen to the device frame instead.</li>
+  <li>These screens use manual X/Y positioning throughout. Anything too tall to fit on one screen (Manage Groups' member panel, Manage People's Add Person/Remove Leaver panels) is a centered lightbox instead of a scrolling section — see <strong>Manual Fixes</strong> below for small property-level tweaks that don't need a full re-paste.</li>
 </ol>
 
 <h2>Data Connections</h2>
@@ -236,6 +236,23 @@ Set(varLightboxGroupID, Blank())</pre>
     <div class="screen-cta">Open and copy →</div>
   </a>
 </div>
+
+<h2>Manual Fixes</h2>
+<p>Small property-level tweaks that are quicker to make directly in Studio than to re-paste a whole screen for. Select the named control, open its property list (Advanced tab, or the dropdown at the top of the formula bar), and edit only the property named — leave everything else on the control alone. This list grows as new ones come up; check it before doing a full delete-and-repaste for something small.</p>
+
+<h3>v2.8 — Dead click: <code>DisplayMode.View</code> combined with <code>OnSelect</code></h3>
+<p><code>DisplayMode.View</code> disables interaction entirely on a <code>Classic/Button</code>, not just its hover/press styling — a button with both properties set looks completely normal but never responds to a tap, with no error anywhere. Fix: select the control, delete its <strong>DisplayMode</strong> property so it goes back to default. Nothing else on the control needs to change.</p>
+<table>
+  <thead><tr><th>Screen</th><th>Control</th><th>What it's for</th></tr></thead>
+  <tbody>
+    <tr><td>scrSendEmail</td><td><code>recCheckBox</code></td><td>Group-tick checkbox overlay on each card</td></tr>
+    <tr><td>scrSendEmail</td><td><code>recLightboxBackdrop</code></td><td>Click outside the preview/history/batch popup to close it</td></tr>
+    <tr><td>scrManageGroups</td><td><code>recResultTap</code></td><td>Tapping a GAL search result to add them</td></tr>
+    <tr><td>scrManageGroups</td><td><code>recLightboxBackdrop</code></td><td>Click outside the Manage Members lightbox to close it</td></tr>
+    <tr><td>scrManagePeople</td><td><code>recPersonRowFrame</code></td><td>Tapping a person row to select them</td></tr>
+    <tr><td>scrManagePeople</td><td><code>recLightboxBackdrop</code></td><td>Click outside the Add Person/Remove Leaver lightbox to close it</td></tr>
+  </tbody>
+</table>
 
 <h2>Further Reading</h2>
 <div class="doc-grid">
