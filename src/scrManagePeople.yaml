@@ -194,6 +194,62 @@ Screens:
                   Y: =0
                   Width: =620
                   Height: =66
+      - recLightboxBackdrop:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            Visible: =varShowLightbox
+            Fill: =RGBA(15,25,20,0.45)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank())
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =768
+      - recLightboxPanel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =varShowLightbox
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =14
+            RadiusTopRight: =14
+            RadiusBottomLeft: =14
+            RadiusBottomRight: =14
+            X: =233
+            Y: =94
+            Width: =900
+            Height: =580
+      - lblLightboxTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Switch(varPeopleLightboxMode, "addPerson", "Add new person", "editPerson", "Edit person", "purge", "Remove someone from every group", "")
+            Visible: =varShowLightbox
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =18
+            Font: =Font.'Open Sans'
+            X: =263
+            Y: =118
+            Width: =760
+            Height: =32
+      - icoLightboxClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Cancel
+            Visible: =varShowLightbox
+            Color: =RGBA(120,120,120,1)
+            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank())
+            X: =1093
+            Y: =118
+            Width: =28
+            Height: =28
       - txtAddPersonName:
           Control: ModernTextInput@1.1.0
           Properties:
@@ -468,59 +524,3 @@ Screens:
             Y: =320
             Width: =820
             Height: =44
-      - recLightboxBackdrop:
-          Control: Classic/Button@2.2.0
-          Properties:
-            Text: =""
-            Visible: =varShowLightbox
-            Fill: =RGBA(15,25,20,0.45)
-            HoverFill: =Self.Fill
-            PressedFill: =Self.Fill
-            BorderThickness: =0
-            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank())
-            X: =0
-            Y: =0
-            Width: =1366
-            Height: =768
-      - recLightboxPanel:
-          Control: Classic/Button@2.2.0
-          Properties:
-            Text: =""
-            DisplayMode: =DisplayMode.View
-            Visible: =varShowLightbox
-            Fill: =RGBA(255,255,255,1)
-            HoverFill: =Self.Fill
-            PressedFill: =Self.Fill
-            BorderThickness: =0
-            RadiusTopLeft: =14
-            RadiusTopRight: =14
-            RadiusBottomLeft: =14
-            RadiusBottomRight: =14
-            X: =233
-            Y: =94
-            Width: =900
-            Height: =580
-      - lblLightboxTitle:
-          Control: Label@2.5.1
-          Properties:
-            Text: =Switch(varPeopleLightboxMode, "addPerson", "Add new person", "editPerson", "Edit person", "purge", "Remove someone from every group", "")
-            Visible: =varShowLightbox
-            Color: =RGBA(31,58,95,1)
-            FontWeight: =FontWeight.Bold
-            Size: =18
-            Font: =Font.'Open Sans'
-            X: =263
-            Y: =118
-            Width: =760
-            Height: =32
-      - icoLightboxClose:
-          Control: Classic/Icon@2.5.0
-          Properties:
-            Icon: =Icon.Cancel
-            Visible: =varShowLightbox
-            Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank())
-            X: =1093
-            Y: =118
-            Width: =28
-            Height: =28
