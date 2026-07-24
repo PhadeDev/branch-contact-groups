@@ -161,20 +161,16 @@ Screens:
                   Width: =700
                   Height: =110
             - recCheckBox:
-                Control: Classic/Button@2.2.0
+                Control: Classic/CheckBox@2.1.0
                 Properties:
                   Text: =""
-                  Fill: =If(ThisItem.Ticked, RGBA(59,109,17,1), RGBA(255,255,255,1))
-                  HoverFill: =Self.Fill
-                  PressedFill: =Self.Fill
-                  BorderColor: =If(ThisItem.Ticked, RGBA(59,109,17,1), RGBA(150,160,175,1))
-                  BorderThickness: =2
-                  RadiusTopLeft: =4
-                  RadiusTopRight: =4
-                  RadiusBottomLeft: =4
-                  RadiusBottomRight: =4
-                  OnSelect: |-
-                    =Patch(colGroups, ThisItem, {Ticked: !ThisItem.Ticked});
+                  Default: =ThisItem.Ticked
+                  OnCheck: |-
+                    =Patch(colGroups, ThisItem, {Ticked: true});
+                    Set(varBccForcedByBatch, false);
+                    Set(varBccForced, CountRows(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title, !EndsWith(Lower(Email), "@" & varModDomain))) > 0 || varBccForcedByBatch)
+                  OnUncheck: |-
+                    =Patch(colGroups, ThisItem, {Ticked: false});
                     Set(varBccForcedByBatch, false);
                     Set(varBccForced, CountRows(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title, !EndsWith(Lower(Email), "@" & varModDomain))) > 0 || varBccForcedByBatch)
                   X: =20
