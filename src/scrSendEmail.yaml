@@ -114,7 +114,8 @@ Screens:
             - lblGroupName:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Title
+                  Text: =If(Len(ThisItem.Title) > 58, Left(ThisItem.Title, 58) & "...", ThisItem.Title)
+                  Tooltip: =ThisItem.Title
                   Wrap: =false
                   Color: =RGBA(31,58,95,1)
                   FontWeight: =FontWeight.Semibold
@@ -304,7 +305,7 @@ Screens:
             X: =760
             Y: =88
             Width: =560
-            Height: =260
+            Height: =160
       - lblPreviewTitle:
           Control: Label@2.5.1
           Properties:
@@ -377,30 +378,6 @@ Screens:
             Y: =188
             Width: =260
             Height: =40
-      - galPreviewMembers:
-          Control: Gallery@2.15.0
-          Variant: Vertical
-          Properties:
-            Items: =If(IsBlank(varPreviewGroupID), Filter(colMemberships, false), Sort(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varPreviewGroupID).Title), Title, SortOrder.Ascending))
-            Visible: =!IsBlank(varPreviewGroupID)
-            TemplateSize: =32
-            TemplatePadding: =0
-            X: =778
-            Y: =238
-            Width: =524
-            Height: =100
-          Children:
-            - lblPreviewMemberRow:
-                Control: Label@2.5.1
-                Properties:
-                  Text: =ThisItem.Title & "  —  " & ThisItem.Email
-                  Color: =RGBA(50,50,50,1)
-                  Size: =12
-                  Font: =Font.'Open Sans'
-                  X: =0
-                  Y: =4
-                  Width: =524
-                  Height: =24
       - lblSummaryHeading:
           Control: Label@2.5.1
           Properties:
@@ -629,9 +606,9 @@ Screens:
             RadiusTopRight: =14
             RadiusBottomLeft: =14
             RadiusBottomRight: =14
-            X: =383
+            X: =333
             Y: =84
-            Width: =600
+            Width: =700
             Height: =600
       - lblLightboxTitle:
           Control: Label@2.5.1
@@ -649,9 +626,9 @@ Screens:
             FontWeight: =FontWeight.Bold
             Size: =18
             Font: =Font.'Open Sans'
-            X: =413
+            X: =363
             Y: =110
-            Width: =500
+            Width: =600
             Height: =32
       - icoLightboxClose:
           Control: Classic/Icon@2.5.0
@@ -660,7 +637,7 @@ Screens:
             Visible: =varShowLightbox
             Color: =RGBA(120,120,120,1)
             OnSelect: =Set(varShowLightbox, false)
-            X: =933
+            X: =983
             Y: =110
             Width: =28
             Height: =28
@@ -678,9 +655,9 @@ Screens:
             Visible: =varShowLightbox && (varLightboxMode = "members" || varLightboxMode = "batch1" || varLightboxMode = "batch2")
             TemplateSize: =32
             TemplatePadding: =0
-            X: =413
+            X: =363
             Y: =160
-            Width: =540
+            Width: =640
             Height: =480
           Children:
             - lblLightboxMemberRow:
@@ -692,7 +669,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =0
                   Y: =4
-                  Width: =540
+                  Width: =640
                   Height: =26
       - galLightboxHistory:
           Control: Gallery@2.15.0
@@ -702,9 +679,9 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "history"
             TemplateSize: =40
             TemplatePadding: =0
-            X: =413
+            X: =363
             Y: =160
-            Width: =540
+            Width: =640
             Height: =480
           Children:
             - lblLightboxHistoryRow:
@@ -716,5 +693,5 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =0
                   Y: =4
-                  Width: =540
+                  Width: =640
                   Height: =32

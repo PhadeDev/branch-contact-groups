@@ -153,7 +153,8 @@ Screens:
             - lblRowTitle:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Title
+                  Text: =If(Len(ThisItem.Title) > 50, Left(ThisItem.Title, 50) & "...", ThisItem.Title)
+                  Tooltip: =ThisItem.Title
                   Wrap: =false
                   Color: =RGBA(31,58,95,1)
                   FontWeight: =FontWeight.Semibold
@@ -348,9 +349,9 @@ Screens:
             RadiusTopRight: =14
             RadiusBottomLeft: =14
             RadiusBottomRight: =14
-            X: =143
+            X: =113
             Y: =54
-            Width: =1080
+            Width: =1140
             Height: =660
       - lblLightboxTitle:
           Control: Label@2.5.1
@@ -368,7 +369,7 @@ Screens:
             Font: =Font.'Open Sans'
             X: =183
             Y: =78
-            Width: =940
+            Width: =1000
             Height: =32
       - icoLightboxClose:
           Control: Classic/Icon@2.5.0
@@ -377,7 +378,7 @@ Screens:
             Visible: =varShowLightbox
             Color: =RGBA(120,120,120,1)
             OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
-            X: =1179
+            X: =1209
             Y: =78
             Width: =28
             Height: =28
@@ -389,7 +390,7 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =124
-            Width: =940
+            Width: =1000
             Height: =42
       - txtEditNotes:
           Control: ModernTextInput@1.1.0
@@ -399,7 +400,7 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =176
-            Width: =940
+            Width: =1000
             Height: =42
       - drpEditThursdayBatch:
           Control: ModernDropdown@1.0.1
@@ -565,7 +566,7 @@ Screens:
             TemplatePadding: =0
             X: =183
             Y: =124
-            Width: =940
+            Width: =1000
             Height: =520
           Children:
             - lblLightboxHistoryRow:
@@ -577,7 +578,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =0
                   Y: =4
-                  Width: =940
+                  Width: =1000
                   Height: =32
       - galMembers:
           Control: Gallery@2.15.0
@@ -589,7 +590,7 @@ Screens:
             TemplatePadding: =0
             X: =183
             Y: =176
-            Width: =940
+            Width: =1000
             Height: =468
           Children:
             - lblMemberName:
@@ -799,7 +800,7 @@ Screens:
             Font: =Font.'Open Sans'
             X: =183
             Y: =176
-            Width: =940
+            Width: =1000
             Height: =24
       - lblPasteHint:
           Control: Label@2.5.1
@@ -812,7 +813,7 @@ Screens:
             Font: =Font.'Open Sans'
             X: =183
             Y: =204
-            Width: =940
+            Width: =1000
             Height: =36
       - txtPasteRoster:
           Control: Classic/TextInput@2.3.2
@@ -844,7 +845,7 @@ Screens:
               Set(varConfirmReplaceArmed, false)
             X: =183
             Y: =244
-            Width: =940
+            Width: =1000
             Height: =220
       - lblPastePreview:
           Control: Label@2.5.1
@@ -856,7 +857,7 @@ Screens:
             Font: =Font.'Open Sans'
             X: =183
             Y: =472
-            Width: =940
+            Width: =1000
             Height: =22
       - btnReplaceRoster:
           Control: ModernButton@1.0.0
@@ -885,5 +886,5 @@ Screens:
               )
             X: =183
             Y: =500
-            Width: =940
+            Width: =1000
             Height: =44
