@@ -189,15 +189,23 @@ Screens:
                         {personEmail: ThisItem.Email},
                         ClearCollect(
                             colPersonGroupPicks,
-                            AddColumns(
-                                colGroups As grp,
+                            Sort(
+                                Sort(
+                                    AddColumns(
+                                        colGroups As grp,
+                                        Picked,
+                                        CountRows(
+                                            Filter(
+                                                colMemberships As mem,
+                                                Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = Lower(personEmail)
+                                            )
+                                        ) > 0
+                                    ),
+                                    Title,
+                                    SortOrder.Ascending
+                                ),
                                 Picked,
-                                CountRows(
-                                    Filter(
-                                        colMemberships As mem,
-                                        Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = Lower(personEmail)
-                                    )
-                                ) > 0
+                                SortOrder.Descending
                             )
                         )
                     );
@@ -341,15 +349,23 @@ Screens:
                   Set(varPeopleLightboxMode, "editPerson");
                   ClearCollect(
                       colPersonGroupPicks,
-                      AddColumns(
-                          colGroups As grp,
+                      Sort(
+                          Sort(
+                              AddColumns(
+                                  colGroups As grp,
+                                  Picked,
+                                  CountRows(
+                                      Filter(
+                                          colMemberships As mem,
+                                          Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = varNewPersonEmail
+                                      )
+                                  ) > 0
+                              ),
+                              Title,
+                              SortOrder.Ascending
+                          ),
                           Picked,
-                          CountRows(
-                              Filter(
-                                  colMemberships As mem,
-                                  Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = varNewPersonEmail
-                              )
-                          ) > 0
+                          SortOrder.Descending
                       )
                   );
                   Reset(txtPersonName);
