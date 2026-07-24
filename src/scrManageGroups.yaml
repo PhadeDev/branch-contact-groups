@@ -245,7 +245,7 @@ Screens:
                 Control: ModernDropdown@1.0.1
                 Properties:
                   Items: =colThursdayBatchOptions
-                  Default: =ThisItem.ThursdayBatch
+                  Default: =LookUp(colThursdayBatchOptions, Value = ThisItem.ThursdayBatch.Value)
                   Visible: =varEditingGroupID = ThisItem.ID
                   X: =530
                   Y: =8
@@ -384,7 +384,7 @@ Screens:
           Control: ModernDropdown@1.0.1
           Properties:
             Items: =colThursdayBatchOptions
-            Default: '={Value: "None"}'
+            Default: =LookUp(colThursdayBatchOptions, Value = "None")
             Visible: =varShowCreateGroup
             X: =554
             Y: =550
