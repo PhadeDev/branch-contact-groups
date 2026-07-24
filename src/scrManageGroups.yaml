@@ -10,8 +10,6 @@ Screens:
             Set(varErrManualName, false);
             Set(varErrManualEmail, false);
             Set(varManageGroupID, Blank());
-            Set(varEditingGroupID, Blank());
-            Set(varShowCreateGroup, false);
             Set(varShowLightbox, false);
             Set(varLightboxMode, "history");
             Set(varManageSubTab, "members");
@@ -98,24 +96,43 @@ Screens:
           Properties:
             Text: ="+ New Group"
             BasePaletteColor: =RGBA(46,110,145,1)
-            OnSelect: =Set(varShowCreateGroup, true)
+            OnSelect: |-
+              =Set(varManageGroupID, Blank());
+              Set(varLightboxMode, "edit");
+              Reset(txtEditTitle);
+              Reset(txtEditNotes);
+              Reset(drpEditThursdayBatch);
+              Reset(chkEditPrivate);
+              Reset(chkEditSensitive);
+              Reset(chkEditOfficialUse);
+              Reset(chkOverrideDate);
+              Reset(datEditManualDate);
+              Set(varShowLightbox, true)
             X: =1150
             Y: =84
             Width: =190
             Height: =36
+      - txtGroupSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search groups by name..."
+            X: =20
+            Y: =126
+            Width: =620
+            Height: =44
       - galAllGroups:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: =colGroups
-            TemplateSize: =140
+            Items: =Filter(colGroups, IsBlank(Trim(txtGroupSearch.Text)) || txtGroupSearch.Text in Title)
+            TemplateSize: =60
             TemplatePadding: =4
             X: =20
-            Y: =130
+            Y: =182
             Width: =1320
-            Height: =360
+            Height: =560
           Children:
-            - recCardFrame:
+            - recRowBg:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
@@ -123,96 +140,140 @@ Screens:
                   Fill: =If(ThisItem.Private, RGBA(241,236,248,1), RGBA(255,255,255,1))
                   HoverFill: =Self.Fill
                   PressedFill: =Self.Fill
-                  BorderColor: =If(varManageGroupID = ThisItem.ID, RGBA(0,78,66,1), If(ThisItem.Private, RGBA(107,79,160,1), RGBA(221,227,234,1)))
-                  BorderThickness: =If(varManageGroupID = ThisItem.ID, 2, 1)
-                  RadiusTopLeft: =10
-                  RadiusTopRight: =10
-                  RadiusBottomLeft: =10
-                  RadiusBottomRight: =10
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
                   X: =0
                   Y: =0
                   Width: =1320
-                  Height: =132
-            - lblCardTitleView:
+                  Height: =56
+            - lblRowTitle:
                 Control: Label@2.5.1
                 Properties:
-                  Text: |-
-                    =ThisItem.Title
-                    & If(ThisItem.ThursdayBatch.Value = "Batch 1", "  [Thursday · Batch 1]", If(ThisItem.ThursdayBatch.Value = "Batch 2", "  [Thursday · Batch 2]", ""))
-                    & If(ThisItem.Private, "  [Private]", "")
-                    & If(ThisItem.OfficialSensitiveApproved, "  [🔒 Official Sensitive Approved]", "")
-                    & If(ThisItem.OfficialUseOnly, "  [📄 Official Use]", "")
-                  Visible: =varEditingGroupID <> ThisItem.ID
+                  Text: =ThisItem.Title
+                  Wrap: =false
                   Color: =RGBA(31,58,95,1)
-                  FontWeight: =FontWeight.Bold
-                  Size: =15
+                  FontWeight: =FontWeight.Semibold
+                  Size: =14
                   Font: =Font.'Open Sans'
                   X: =16
-                  Y: =10
-                  Width: =900
+                  Y: =16
+                  Width: =440
                   Height: =26
-            - icoEditGroup:
-                Control: Classic/Icon@2.5.0
+            - pilSensitive:
+                Control: Classic/Button@2.2.0
                 Properties:
-                  Icon: =Icon.Edit
-                  Visible: =varEditingGroupID <> ThisItem.ID
-                  Color: =RGBA(46,110,145,1)
-                  OnSelect: =Set(varEditingGroupID, ThisItem.ID)
-                  X: =1260
-                  Y: =12
-                  Width: =28
-                  Height: =28
-            - icoHistoryGroup:
-                Control: Classic/Icon@2.5.0
+                  Text: ="🔒 Sensitive"
+                  DisplayMode: =DisplayMode.View
+                  Visible: =ThisItem.OfficialSensitiveApproved
+                  Fill: =RGBA(252,231,231,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(163,45,45,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =10
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  X: =470
+                  Y: =17
+                  Width: =130
+                  Height: =24
+            - pilOfficialUse:
+                Control: Classic/Button@2.2.0
                 Properties:
-                  Icon: =Icon.History
-                  Visible: =varEditingGroupID <> ThisItem.ID
+                  Text: ="📄 Official Use"
+                  DisplayMode: =DisplayMode.View
+                  Visible: =ThisItem.OfficialUseOnly
+                  Fill: =RGBA(224,238,250,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
                   Color: =RGBA(46,110,145,1)
-                  OnSelect: |-
-                    =Set(varManageGroupID, ThisItem.ID);
-                    Set(varLightboxMode, "history");
-                    Set(varShowLightbox, true)
-                  X: =1220
-                  Y: =12
-                  Width: =28
-                  Height: =28
-            - lblCardMetaView:
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =10
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  X: =610
+                  Y: =17
+                  Width: =130
+                  Height: =24
+            - pilPrivate:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Private"
+                  DisplayMode: =DisplayMode.View
+                  Visible: =ThisItem.Private
+                  Fill: =RGBA(233,225,245,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(107,79,160,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =10
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  X: =750
+                  Y: =17
+                  Width: =90
+                  Height: =24
+            - lblRowMeta:
                 Control: Label@2.5.1
                 Properties:
                   Text: |-
                     =With(
                         {effectiveDate: Coalesce(ThisItem.ManuallySetModified, ThisItem.Modified)},
-                        With(
-                            {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(effectiveDate, Now(), "Days")},
-                            n & " member" & If(n = 1, "", "s") & " · Last modified " & Text(effectiveDate, "d mmm yyyy") & " (" & If(d <= 0, "today", d & If(d = 1, " day ago", " days ago")) & ")"
-                        )
+                        CountRows(Filter(colMemberships, GroupName = ThisItem.Title)) & " members · " & Text(effectiveDate, "d mmm yy")
                     )
-                  Visible: =varEditingGroupID <> ThisItem.ID
+                  Wrap: =false
                   Color: =RGBA(120,120,120,1)
-                  Size: =12
+                  Size: =11
                   Font: =Font.'Open Sans'
-                  X: =16
-                  Y: =38
-                  Width: =900
-                  Height: =20
-            - lblCardNotesView:
-                Control: Label@2.5.1
+                  X: =860
+                  Y: =18
+                  Width: =300
+                  Height: =22
+            - recRowClickCatcher:
+                Control: Classic/Button@2.2.0
                 Properties:
-                  Text: =ThisItem.Notes
-                  Visible: =varEditingGroupID <> ThisItem.ID && !IsBlank(ThisItem.Notes)
-                  Color: =RGBA(120,120,120,1)
-                  Size: =12
-                  Font: =Font.'Open Sans'
-                  X: =16
-                  Y: =60
-                  Width: =900
-                  Height: =20
-            - btnManageMembers:
-                Control: ModernButton@1.0.0
+                  Text: =""
+                  Fill: =RGBA(0,0,0,0)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  OnSelect: |-
+                    =Set(varManageGroupID, ThisItem.ID);
+                    Set(varLightboxMode, "edit");
+                    Reset(txtEditTitle);
+                    Reset(txtEditNotes);
+                    Reset(drpEditThursdayBatch);
+                    Reset(chkEditPrivate);
+                    Reset(chkEditSensitive);
+                    Reset(chkEditOfficialUse);
+                    Reset(chkOverrideDate);
+                    Reset(datEditManualDate);
+                    Set(varShowLightbox, true)
+                  X: =0
+                  Y: =0
+                  Width: =1320
+                  Height: =56
+            - icoRowManageMembers:
+                Control: Classic/Icon@2.5.0
                 Properties:
-                  Text: ="Manage members"
-                  Visible: =varEditingGroupID <> ThisItem.ID
-                  BasePaletteColor: =RGBA(46,110,145,1)
+                  Icon: =Icon.People
+                  Color: =RGBA(46,110,145,1)
                   OnSelect: |-
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "manage");
@@ -221,266 +282,44 @@ Screens:
                     Set(varParsedRosterCount, 0);
                     Set(varConfirmReplaceArmed, false);
                     Set(varShowLightbox, true)
-                  X: =16
-                  Y: =88
-                  Width: =220
-                  Height: =36
-            - txtEditTitle:
-                Control: ModernTextInput@1.1.0
+                  X: =1180
+                  Y: =16
+                  Width: =28
+                  Height: =28
+            - icoRowHistory:
+                Control: Classic/Icon@2.5.0
                 Properties:
-                  Default: =ThisItem.Title
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =16
-                  Y: =8
-                  Width: =500
-                  Height: =40
-            - txtEditNotes:
-                Control: ModernTextInput@1.1.0
-                Properties:
-                  Default: =ThisItem.Notes
-                  Placeholder: ="Notes"
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =16
-                  Y: =52
-                  Width: =500
-                  Height: =40
-            - drpEditThursdayBatch:
-                Control: ModernDropdown@1.0.1
-                Properties:
-                  Items: =colThursdayBatchOptions
-                  Default: =LookUp(colThursdayBatchOptions, Value = ThisItem.ThursdayBatch.Value)
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =530
-                  Y: =8
-                  Width: =180
-                  Height: =40
-            - chkOverrideDate:
-                Control: Classic/CheckBox@2.1.0
-                Properties:
-                  Text: ="Override last modified date"
-                  Default: =!IsBlank(ThisItem.ManuallySetModified)
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =730
-                  Y: =12
-                  Width: =210
-                  Height: =32
-            - datEditManualDate:
-                Control: Classic/DatePicker@2.6.0
-                Properties:
-                  DefaultDate: =If(IsBlank(ThisItem.ManuallySetModified), Today(), ThisItem.ManuallySetModified)
-                  Visible: =varEditingGroupID = ThisItem.ID && chkOverrideDate.Value
-                  X: =950
-                  Y: =6
-                  Width: =160
-                  Height: =40
-            - chkEditPrivate:
-                Control: Classic/CheckBox@2.1.0
-                Properties:
-                  Text: ="Private (maintainers only)"
-                  Default: =ThisItem.Private
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =530
-                  Y: =52
-                  Width: =260
-                  Height: =32
-            - chkEditSensitive:
-                Control: Classic/CheckBox@2.1.0
-                Properties:
-                  Text: ="Official Sensitive Approved"
-                  Default: =ThisItem.OfficialSensitiveApproved
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =790
-                  Y: =52
-                  Width: =260
-                  Height: =32
-            - chkEditOfficialUse:
-                Control: Classic/CheckBox@2.1.0
-                Properties:
-                  Text: ="Official Use Only"
-                  Default: =ThisItem.OfficialUseOnly
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  X: =1050
-                  Y: =52
-                  Width: =240
-                  Height: =32
-            - btnSaveGroupEdit:
-                Control: ModernButton@1.0.0
-                Properties:
-                  Text: ="Save"
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  BasePaletteColor: =RGBA(0,78,66,1)
+                  Icon: =Icon.History
+                  Color: =RGBA(46,110,145,1)
                   OnSelect: |-
-                    =If(
-                        IsBlank(Trim(txtEditTitle.Text)),
-                        Notify("Group name can't be blank.", NotificationType.Warning),
-                        With(
-                            {oldTitle: ThisItem.Title, newTitle: Trim(txtEditTitle.Text)},
-                            Patch('BM Groups', LookUp('BM Groups', ID = ThisItem.ID), {
-                                Title: newTitle,
-                                Notes: Trim(txtEditNotes.Text),
-                                ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
-                                Private: chkEditPrivate.Value,
-                                OfficialSensitiveApproved: chkEditSensitive.Value,
-                                OfficialUseOnly: chkEditOfficialUse.Value,
-                                ManuallySetModified: If(chkOverrideDate.Value, datEditManualDate.SelectedDate, Blank())
-                            });
-                            If(
-                                newTitle <> oldTitle,
-                                UpdateIf('BM Memberships', GroupName = oldTitle, {GroupName: newTitle});
-                                UpdateIf('BM History', GroupName = oldTitle, {GroupName: newTitle});
-                                ClearCollect(colMemberships, 'BM Memberships')
-                            );
-                            Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
-                            ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                            Set(varEditingGroupID, Blank());
-                            Notify("Saved.", NotificationType.Success)
-                        )
-                    )
-                  X: =16
-                  Y: =92
-                  Width: =140
-                  Height: =36
-            - btnCancelGroupEdit:
-                Control: ModernButton@1.0.0
+                    =Set(varManageGroupID, ThisItem.ID);
+                    Set(varLightboxMode, "history");
+                    Set(varShowLightbox, true)
+                  X: =1220
+                  Y: =16
+                  Width: =28
+                  Height: =28
+            - icoRowEdit:
+                Control: Classic/Icon@2.5.0
                 Properties:
-                  Text: ="Cancel"
-                  Visible: =varEditingGroupID = ThisItem.ID
-                  BasePaletteColor: =RGBA(120,120,120,1)
-                  OnSelect: =Set(varEditingGroupID, Blank())
-                  X: =166
-                  Y: =92
-                  Width: =140
-                  Height: =36
-      - recCreatePanelBg:
-          Control: Classic/Button@2.2.0
-          Properties:
-            Text: =""
-            DisplayMode: =DisplayMode.View
-            Visible: =varShowCreateGroup
-            Fill: =RGBA(255,255,255,1)
-            HoverFill: =Self.Fill
-            PressedFill: =Self.Fill
-            BorderColor: =RGBA(221,227,234,1)
-            BorderThickness: =1
-            RadiusTopLeft: =10
-            RadiusTopRight: =10
-            RadiusBottomLeft: =10
-            RadiusBottomRight: =10
-            X: =20
-            Y: =500
-            Width: =1320
-            Height: =190
-      - lblCreateHeading:
-          Control: Label@2.5.1
-          Properties:
-            Text: ="New group"
-            Visible: =varShowCreateGroup
-            Color: =RGBA(31,58,95,1)
-            FontWeight: =FontWeight.Bold
-            Size: =16
-            Font: =Font.'Open Sans'
-            X: =40
-            Y: =514
-            Width: =400
-            Height: =26
-      - icoCloseCreate:
-          Control: Classic/Icon@2.5.0
-          Properties:
-            Icon: =Icon.Cancel
-            Visible: =varShowCreateGroup
-            Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowCreateGroup, false)
-            X: =1300
-            Y: =514
-            Width: =24
-            Height: =24
-      - txtNewGroupTitle:
-          Control: ModernTextInput@1.1.0
-          Properties:
-            Placeholder: ="Group name"
-            Visible: =varShowCreateGroup
-            X: =40
-            Y: =550
-            Width: =500
-            Height: =40
-      - txtNewGroupNotes:
-          Control: ModernTextInput@1.1.0
-          Properties:
-            Placeholder: ="Notes (optional)"
-            Visible: =varShowCreateGroup
-            X: =40
-            Y: =594
-            Width: =500
-            Height: =40
-      - drpNewThursdayBatch:
-          Control: ModernDropdown@1.0.1
-          Properties:
-            Items: =colThursdayBatchOptions
-            Default: =LookUp(colThursdayBatchOptions, Value = "None")
-            Visible: =varShowCreateGroup
-            X: =554
-            Y: =550
-            Width: =180
-            Height: =40
-      - chkNewPrivate:
-          Control: Classic/CheckBox@2.1.0
-          Properties:
-            Text: ="Private (maintainers only)"
-            Default: =false
-            Visible: =varShowCreateGroup
-            X: =554
-            Y: =594
-            Width: =260
-            Height: =32
-      - chkNewSensitive:
-          Control: Classic/CheckBox@2.1.0
-          Properties:
-            Text: ="Official Sensitive Approved"
-            Default: =false
-            Visible: =varShowCreateGroup
-            X: =814
-            Y: =594
-            Width: =260
-            Height: =32
-      - chkNewOfficialUse:
-          Control: Classic/CheckBox@2.1.0
-          Properties:
-            Text: ="Official Use Only"
-            Default: =false
-            Visible: =varShowCreateGroup
-            X: =1074
-            Y: =594
-            Width: =240
-            Height: =32
-      - btnCreateGroup:
-          Control: ModernButton@1.0.0
-          Properties:
-            Text: ="Create group"
-            Visible: =varShowCreateGroup
-            BasePaletteColor: =RGBA(0,78,66,1)
-            OnSelect: |-
-              =If(
-                  IsBlank(Trim(txtNewGroupTitle.Text)),
-                  Notify("Enter a group name.", NotificationType.Warning),
-                  Patch('BM Groups', Defaults('BM Groups'), {
-                      Title: Trim(txtNewGroupTitle.Text),
-                      Notes: Trim(txtNewGroupNotes.Text),
-                      ThursdayBatch: {Value: drpNewThursdayBatch.Selected.Value},
-                      Private: chkNewPrivate.Value,
-                      OfficialSensitiveApproved: chkNewSensitive.Value,
-                      OfficialUseOnly: chkNewOfficialUse.Value
-                  });
-                  Patch('BM History', Defaults('BM History'), {Title: "Group created", GroupName: Trim(txtNewGroupTitle.Text), EventType: {Value: "Created"}});
-                  ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                  Reset(txtNewGroupTitle);
-                  Reset(txtNewGroupNotes);
-                  Set(varShowCreateGroup, false);
-                  Notify("Created " & Trim(txtNewGroupTitle.Text) & ".", NotificationType.Success)
-              )
-            X: =40
-            Y: =638
-            Width: =220
-            Height: =40
+                  Icon: =Icon.Edit
+                  Color: =RGBA(46,110,145,1)
+                  OnSelect: |-
+                    =Set(varManageGroupID, ThisItem.ID);
+                    Set(varLightboxMode, "edit");
+                    Reset(txtEditTitle);
+                    Reset(txtEditNotes);
+                    Reset(drpEditThursdayBatch);
+                    Reset(chkEditPrivate);
+                    Reset(chkEditSensitive);
+                    Reset(chkEditOfficialUse);
+                    Reset(chkOverrideDate);
+                    Reset(datEditManualDate);
+                    Set(varShowLightbox, true)
+                  X: =1260
+                  Y: =16
+                  Width: =28
+                  Height: =28
       - recLightboxBackdrop:
           Control: Classic/Button@2.2.0
           Properties:
@@ -516,7 +355,12 @@ Screens:
       - lblLightboxTitle:
           Control: Label@2.5.1
           Properties:
-            Text: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " — History", ""))
+            Text: |-
+              =If(
+                  varLightboxMode = "edit",
+                  If(IsBlank(varManageGroupID), "New group", "Edit group"),
+                  If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " — History", ""))
+              )
             Visible: =varShowLightbox
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
@@ -537,6 +381,147 @@ Screens:
             Y: =78
             Width: =28
             Height: =28
+      - txtEditTitle:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Default: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)
+            Placeholder: ="Group name"
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =124
+            Width: =940
+            Height: =42
+      - txtEditNotes:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Default: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Notes)
+            Placeholder: ="Notes (optional)"
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =176
+            Width: =940
+            Height: =42
+      - drpEditThursdayBatch:
+          Control: ModernDropdown@1.0.1
+          Properties:
+            Items: =colThursdayBatchOptions
+            Default: =If(IsBlank(varManageGroupID), LookUp(colThursdayBatchOptions, Value = "None"), LookUp(colThursdayBatchOptions, Value = LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value))
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =228
+            Width: =200
+            Height: =42
+      - chkEditPrivate:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            Text: ="Private (maintainers only)"
+            Default: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).Private)
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =403
+            Y: =232
+            Width: =260
+            Height: =32
+      - chkEditSensitive:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            Text: ="Official Sensitive Approved"
+            Default: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =683
+            Y: =232
+            Width: =260
+            Height: =32
+      - chkEditOfficialUse:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            Text: ="Official Use Only"
+            Default: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =943
+            Y: =232
+            Width: =180
+            Height: =32
+      - chkOverrideDate:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            Text: ="Override last modified date"
+            Default: =If(IsBlank(varManageGroupID), false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =284
+            Width: =220
+            Height: =32
+      - datEditManualDate:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            DefaultDate: =If(IsBlank(varManageGroupID) || IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified), Today(), LookUp(colGroups, ID = varManageGroupID).ManuallySetModified)
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkOverrideDate.Value
+            X: =413
+            Y: =280
+            Width: =160
+            Height: =40
+      - btnSaveGroupEdit:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(IsBlank(varManageGroupID), "Create group", "Save")
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =If(
+                  IsBlank(Trim(txtEditTitle.Text)),
+                  Notify("Group name can't be blank.", NotificationType.Warning),
+                  IsBlank(varManageGroupID),
+                  Patch('BM Groups', Defaults('BM Groups'), {
+                      Title: Trim(txtEditTitle.Text),
+                      Notes: Trim(txtEditNotes.Text),
+                      ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
+                      Private: chkEditPrivate.Value,
+                      OfficialSensitiveApproved: chkEditSensitive.Value,
+                      OfficialUseOnly: chkEditOfficialUse.Value,
+                      ManuallySetModified: If(chkOverrideDate.Value, datEditManualDate.SelectedDate, Blank())
+                  });
+                  Patch('BM History', Defaults('BM History'), {Title: "Group created", GroupName: Trim(txtEditTitle.Text), EventType: {Value: "Created"}});
+                  ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                  Set(varShowLightbox, false);
+                  Notify("Created " & Trim(txtEditTitle.Text) & ".", NotificationType.Success),
+                  With(
+                      {oldTitle: LookUp(colGroups, ID = varManageGroupID).Title, newTitle: Trim(txtEditTitle.Text)},
+                      Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {
+                          Title: newTitle,
+                          Notes: Trim(txtEditNotes.Text),
+                          ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
+                          Private: chkEditPrivate.Value,
+                          OfficialSensitiveApproved: chkEditSensitive.Value,
+                          OfficialUseOnly: chkEditOfficialUse.Value,
+                          ManuallySetModified: If(chkOverrideDate.Value, datEditManualDate.SelectedDate, Blank())
+                      });
+                      If(
+                          newTitle <> oldTitle,
+                          UpdateIf('BM Memberships', GroupName = oldTitle, {GroupName: newTitle});
+                          UpdateIf('BM History', GroupName = oldTitle, {GroupName: newTitle});
+                          ClearCollect(colMemberships, 'BM Memberships')
+                      );
+                      Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
+                      ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                      Set(varShowLightbox, false);
+                      Notify("Saved.", NotificationType.Success)
+                  )
+              )
+            X: =183
+            Y: =340
+            Width: =160
+            Height: =44
+      - btnCancelGroupEdit:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Cancel"
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            BasePaletteColor: =RGBA(120,120,120,1)
+            OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
+            X: =353
+            Y: =340
+            Width: =160
+            Height: =44
       - btnLbTabMembers:
           Control: ModernButton@1.0.0
           Properties:
