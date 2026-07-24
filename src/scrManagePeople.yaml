@@ -185,7 +185,7 @@ Screens:
                   OnSelect: |-
                     =Set(varSelectedPersonEmail, ThisItem.Email);
                     Set(varPeopleLightboxMode, "editPerson");
-                    ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = Lower(ThisItem.Email))) > 0));
+                    ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(Title)), Lower(Email) = Lower(ThisItem.Email))) > 0));
                     Reset(txtPersonName);
                     Reset(txtPersonEmail);
                     Set(varShowLightbox, true)
@@ -296,6 +296,8 @@ Screens:
             - chkAddPersonGroup:
                 Control: CheckBox@0.0.30
                 Properties:
+                  BasePaletteColor: =RGBA(156, 220, 79, 1)
+                  CheckboxSize: =22
                   Label: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
                   Checked: =ThisItem.Picked
                   OnCheck: |-
@@ -394,6 +396,8 @@ Screens:
             - chkGroupMember:
                 Control: CheckBox@0.0.30
                 Properties:
+                  BasePaletteColor: =RGBA(156, 220, 79, 1)
+                  CheckboxSize: =22
                   Label: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
                   Checked: =ThisItem.Picked
                   OnCheck: |-
