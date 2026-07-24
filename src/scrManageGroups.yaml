@@ -8,11 +8,15 @@ Screens:
             Back(),
             ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
             ClearCollect(colMemberships, 'BM Memberships');
+            ClearCollect(colMaintainers, 'BM Maintainers');
             Set(varErrManualName, false);
             Set(varErrManualEmail, false);
+            Set(varErrMaintainerName, false);
+            Set(varErrMaintainerEmail, false);
             Set(varManageGroupID, Blank());
             Set(varEditingMemberID, Blank());
             Set(varPendingRemoveMemberID, 0);
+            Set(varPendingRemoveMaintainerID, 0);
             Set(varShowLightbox, false);
             Set(varLightboxMode, "history");
             Set(varManageSubTab, "members");
@@ -76,11 +80,30 @@ Screens:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Manage People"
-            BasePaletteColor: =RGBA(46,110,145,1)
+            BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: =Navigate(scrManagePeople, ScreenTransition.Cover)
             X: =1180
             Y: =16
             Width: =160
+            Height: =40
+      - btnMaintainersNav:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Manage Maintainers"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =ClearCollect(colMaintainers, 'BM Maintainers');
+              Set(varLightboxMode, "adminMaintainers");
+              Set(varPendingRemoveMaintainerID, 0);
+              Set(varErrMaintainerName, false);
+              Set(varErrMaintainerEmail, false);
+              Reset(txtMaintainerSearch);
+              Reset(txtMaintainerName);
+              Reset(txtMaintainerEmail);
+              Set(varShowLightbox, true)
+            X: =990
+            Y: =16
+            Width: =180
             Height: =40
       - lblAllGroupsHeading:
           Control: Label@2.5.1
@@ -98,7 +121,7 @@ Screens:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="+ New Group"
-            BasePaletteColor: =RGBA(46,110,145,1)
+            BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
               =Set(varManageGroupID, Blank());
               Set(varLightboxMode, "edit");
@@ -362,9 +385,10 @@ Screens:
           Control: Label@2.5.1
           Properties:
             Text: |-
-              =If(
-                  varLightboxMode = "edit",
-                  If(IsBlank(varManageGroupID), "New group", "Edit group"),
+              =Switch(
+                  varLightboxMode,
+                  "edit", If(IsBlank(varManageGroupID), "New group", "Edit group"),
+                  "adminMaintainers", "Manage maintainers",
                   If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " - History", ""))
               )
             Visible: =varShowLightbox
@@ -606,6 +630,257 @@ Screens:
                   Y: =4
                   Width: =1000
                   Height: =32
+      - lblMaintainersCurrent:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Current maintainers"
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =15
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =124
+            Width: =480
+            Height: =24
+      - galMaintainers:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =Sort(colMaintainers, Title, SortOrder.Ascending)
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            TemplateSize: =56
+            TemplatePadding: =0
+            X: =183
+            Y: =160
+            Width: =480
+            Height: =460
+          Children:
+            - recMaintainerBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(248,250,252,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =0
+                  Width: =480
+                  Height: =50
+            - lblMaintainerName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =12
+                  Y: =4
+                  Width: =380
+                  Height: =22
+            - lblMaintainerEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email
+                  Wrap: =false
+                  Color: =RGBA(120,120,120,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =12
+                  Y: =26
+                  Width: =380
+                  Height: =20
+            - icoRemoveMaintainer:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  Icon: =Icon.Trash
+                  Color: =If(varPendingRemoveMaintainerID = ThisItem.ID, RGBA(255,255,255,1), RGBA(163,45,45,1))
+                  Fill: =If(varPendingRemoveMaintainerID = ThisItem.ID, RGBA(163,45,45,1), RGBA(255,255,255,1))
+                  Tooltip: =If(varPendingRemoveMaintainerID = ThisItem.ID, "Tap again to remove", "Remove maintainer")
+                  OnSelect: |-
+                    =If(
+                        Lower(ThisItem.Email) = varMyEmail,
+                        Notify("You can't remove yourself as a maintainer.", NotificationType.Warning),
+                        CountRows(colMaintainers) <= 1,
+                        Notify("You must keep at least one maintainer.", NotificationType.Warning),
+                        varPendingRemoveMaintainerID <> ThisItem.ID,
+                        Set(varPendingRemoveMaintainerID, ThisItem.ID);
+                        Notify("Tap the red trash icon again to remove " & ThisItem.Title & ".", NotificationType.Warning),
+                        Remove('BM Maintainers', LookUp('BM Maintainers', ID = ThisItem.ID));
+                        ClearCollect(colMaintainers, 'BM Maintainers');
+                        Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
+                        Set(varPendingRemoveMaintainerID, 0);
+                        Notify("Removed " & ThisItem.Title & " from maintainers.", NotificationType.Success)
+                    )
+                  X: =428
+                  Y: =11
+                  Width: =28
+                  Height: =28
+      - lblMaintainersAdd:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Add maintainer from GAL"
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =15
+            Font: =Font.'Open Sans'
+            X: =703
+            Y: =124
+            Width: =420
+            Height: =24
+      - txtMaintainerSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search GAL by name..."
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            X: =703
+            Y: =160
+            Width: =420
+            Height: =42
+      - galMaintainerGalResults:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =If(
+                  IsBlank(Trim(txtMaintainerSearch.Text)),
+                  Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false),
+                  Office365Users.SearchUserV2({searchTerm: txtMaintainerSearch.Text, top: 5}).value
+              )
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers" && !IsBlank(Trim(txtMaintainerSearch.Text))
+            TemplateSize: =54
+            TemplatePadding: =0
+            X: =703
+            Y: =212
+            Width: =420
+            Height: =168
+          Children:
+            - recMaintainerGalBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(248,250,252,1)
+                  HoverFill: =RGBA(233,241,246,1)
+                  PressedFill: =RGBA(233,241,246,1)
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =0
+                  Width: =420
+                  Height: =48
+            - lblMaintainerGalName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.DisplayName
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =12
+                  Y: =3
+                  Width: =270
+                  Height: =20
+            - lblMaintainerGalEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Mail
+                  Wrap: =false
+                  Color: =RGBA(120,120,120,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =12
+                  Y: =24
+                  Width: =270
+                  Height: =18
+            - btnUseMaintainerGal:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Text: ="Add"
+                  BasePaletteColor: =RGBA(0,78,66,1)
+                  OnSelect: |-
+                    =If(
+                        IsBlank(ThisItem.Mail),
+                        Notify("That GAL result does not include an email address.", NotificationType.Warning),
+                        CountRows(Filter(colMaintainers, Lower(Email) = Lower(ThisItem.Mail))) > 0,
+                        Notify(ThisItem.DisplayName & " is already a maintainer.", NotificationType.Warning),
+                        Patch('BM Maintainers', Defaults('BM Maintainers'), {Title: ThisItem.DisplayName, Email: Lower(ThisItem.Mail)});
+                        ClearCollect(colMaintainers, 'BM Maintainers');
+                        Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
+                        Reset(txtMaintainerSearch);
+                        Notify("Added " & ThisItem.DisplayName & " as a maintainer.", NotificationType.Success)
+                    )
+                  X: =320
+                  Y: =7
+                  Width: =80
+                  Height: =34
+      - lblMaintainerManual:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Add manually"
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =15
+            Font: =Font.'Open Sans'
+            X: =703
+            Y: =408
+            Width: =420
+            Height: =24
+      - txtMaintainerName:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Full name"
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            OnChange: =Set(varErrMaintainerName, false)
+            X: =703
+            Y: =444
+            Width: =420
+            Height: =42
+      - txtMaintainerEmail:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Email address"
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            OnChange: =Set(varErrMaintainerEmail, false)
+            X: =703
+            Y: =496
+            Width: =420
+            Height: =42
+      - btnAddMaintainerManual:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Add maintainer"
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varNewMaintainerName, Trim(txtMaintainerName.Text));
+              Set(varNewMaintainerEmail, Lower(Trim(txtMaintainerEmail.Text)));
+              Set(varErrMaintainerName, IsBlank(varNewMaintainerName));
+              Set(varErrMaintainerEmail, IsBlank(varNewMaintainerEmail) || IsBlank(Find("@", varNewMaintainerEmail)) || IsBlank(Find(".", varNewMaintainerEmail)));
+              If(
+                  varErrMaintainerName || varErrMaintainerEmail,
+                  Notify("Enter a name and a valid email address.", NotificationType.Warning),
+                  CountRows(Filter(colMaintainers, Lower(Email) = varNewMaintainerEmail)) > 0,
+                  Notify("That email is already a maintainer.", NotificationType.Warning),
+                  Patch('BM Maintainers', Defaults('BM Maintainers'), {Title: varNewMaintainerName, Email: varNewMaintainerEmail});
+                  ClearCollect(colMaintainers, 'BM Maintainers');
+                  Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
+                  Reset(txtMaintainerName);
+                  Reset(txtMaintainerEmail);
+                  Notify("Added " & varNewMaintainerName & " as a maintainer.", NotificationType.Success)
+              )
+            X: =703
+            Y: =556
+            Width: =420
+            Height: =44
       - galMembers:
           Control: Gallery@2.15.0
           Variant: Vertical

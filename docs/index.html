@@ -93,7 +93,7 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.28</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.29</span></h1>
 <p class="built">Built 24 Jul 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
@@ -172,7 +172,7 @@
     <tr><td>Maintainer 2</td><td>maintainer2@yourdomain</td></tr>
   </tbody>
 </table>
-<p><strong>Permissions:</strong> Edit access to this specific list should stay restricted to site owners/admins, not the maintainers themselves — it's the gate that decides who else can become a maintainer, so it shouldn't be self-service from inside the list. Read access for everyone on the site is fine (the app reads it to check <code>User().Email</code>).</p>
+<p><strong>Permissions:</strong> anyone who should use the in-app <strong>Manage Maintainers</strong> button needs Edit access to this list, because Power Apps cannot bypass SharePoint list permissions. Everyone else only needs Read access so the app can check <code>User().Email</code>. The app blocks removing yourself and blocks removing the final maintainer, but SharePoint permissions are still the hard gate.</p>
 
 <h3>List: <code>BM History</code> <span style="color:#4dafff; font-size:0.8em;">(new in v2.0)</span></h3>
 <table>
@@ -212,7 +212,7 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.18">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.19">
     <div>
       <div class="screen-number">Screen 1</div>
       <div class="screen-name">scrSendEmail</div>
@@ -220,11 +220,11 @@ Set(varLightboxGroupID, Blank())</pre>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.16">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.17">
     <div>
       <div class="screen-number">Screen 2</div>
       <div class="screen-name">scrManageGroups</div>
-      <div class="screen-desc">Maintainer-only. Compact searchable table of groups — sensitivity/official-use/private shown as small pills, not appended to the title. Create/edit a group (rename safely cascades to every linked member and history entry), manage membership, add from GAL or manually, and paste-replace an entire roster from Excel — all via lightboxes, nothing expands inline.</div>
+      <div class="screen-desc">Maintainer-only. Compact searchable table of groups — sensitivity/official-use/private shown as small pills, not appended to the title. Create/edit a group, manage membership, add from GAL or manually, paste-replace rosters from Excel, and manage the BM Maintainers list from the app.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>

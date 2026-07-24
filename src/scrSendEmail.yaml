@@ -55,7 +55,7 @@ Screens:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Manage Groups"
-            BasePaletteColor: =RGBA(46,110,145,1)
+            BasePaletteColor: =RGBA(0,78,66,1)
             Visible: =varIsMaintainer
             OnSelect: =Navigate(scrManageGroups, ScreenTransition.Cover)
             X: =1180
