@@ -267,7 +267,7 @@ Screens:
             - datEditManualDate:
                 Control: Classic/DatePicker@2.6.0
                 Properties:
-                  SelectedDate: =If(IsBlank(ThisItem.ManuallySetModified), Today(), ThisItem.ManuallySetModified)
+                  DefaultDate: =If(IsBlank(ThisItem.ManuallySetModified), Today(), ThisItem.ManuallySetModified)
                   Visible: =varEditingGroupID = ThisItem.ID && chkOverrideDate.Value
                   X: =950
                   Y: =6
