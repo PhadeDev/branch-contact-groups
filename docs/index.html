@@ -93,7 +93,7 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.9</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.11</span></h1>
 <p class="built">Built 23 Jul 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
@@ -211,7 +211,7 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.9">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.11">
     <div>
       <div class="screen-number">Screen 1</div>
       <div class="screen-name">scrSendEmail</div>
@@ -227,7 +227,7 @@ Set(varLightboxGroupID, Blank())</pre>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.8">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.11">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
       <div class="screen-name">scrManagePeople</div>
@@ -255,8 +255,19 @@ Set(varLightboxGroupID, Blank())</pre>
 </table>
 
 <h3>v2.9 — Clicking a group card on Send Email did nothing</h3>
-<p><code>galAllGroups</code>' own <code>OnSelect</code> (<code>Set(varPreviewGroupID, ThisItem.ID)</code>) never fires, because its child <code>recRowFrame</code> covers the entire card and — even with no <code>OnSelect</code> of its own — still absorbs the tap before it can reach the gallery underneath. A gallery's own <code>OnSelect</code> only fires on template area with no child control covering it at all, so a full-size background control like this one always wins.</p>
-<p>Fix on <strong>scrSendEmail</strong>, gallery <code>galAllGroups</code> → child <code>recRowFrame</code>: add a new <strong>OnSelect</strong> property with the formula <code>Set(varPreviewGroupID, ThisItem.ID)</code>. The gallery's own (now-dead) OnSelect can be deleted, but leaving it doesn't hurt anything.</p>
+<p><code>galGroups</code>' own <code>OnSelect</code> (<code>Set(varPreviewGroupID, ThisItem.ID)</code>) never fired, because its child <code>recRowFrame</code> covers the entire card. <strong>Correction, found in v2.10 below:</strong> the real reason was that <code>recRowFrame</code> still had <code>DisplayMode: =DisplayMode.View</code> left over from before this app's DisplayMode scrub — it hadn't been caught earlier because at scrub time it had no <code>OnSelect</code> yet, so it didn't match the "View + OnSelect" search. It still fully absorbed the tap (per the v2.8 entry above) without being able to act on it, which is why the gallery's own OnSelect never got a chance to fire either.</p>
+<p>Fix on <strong>scrSendEmail</strong>, gallery <code>galGroups</code> → child <code>recRowFrame</code>: add a new <strong>OnSelect</strong> property with the formula <code>Set(varPreviewGroupID, ThisItem.ID)</code>, <strong>and</strong> delete its <strong>DisplayMode</strong> property if it's still set to View. Both steps are needed together. The gallery's own (now-dead) OnSelect can be deleted, but leaving it doesn't hurt anything.</p>
+
+<h3>v2.10 — Tapping the visible text on a card/row does nothing, only the blank margins respond</h3>
+<p>Once a background control like <code>recRowFrame</code> has a working <code>OnSelect</code>, any Label sitting on top of it (group name, member count, notes line, etc.) still blocks the tap from reaching it — in Power Apps, a control fully occupies its own space for hit-testing regardless of whether it has any click behavior of its own, so a Label with no <code>OnSelect</code> does not let clicks pass through to whatever's behind it. The practical result: only the empty gaps around the text respond, not the text itself.</p>
+<p><strong>Fix (built into the YAML as of v2.10, no manual action needed if you re-paste)</strong>: rather than repeating the same <code>OnSelect</code> on every Label — fragile, easy to miss one — a single fully transparent Button (<code>Fill: =RGBA(0,0,0,0)</code>, no border, full row size) sits <em>in front of</em> the Labels but <em>behind</em> any small control that needs its own distinct click (a checkbox, an icon). Being transparent, it doesn't hide anything visually; being in front of the Labels, it catches every tap across the whole row regardless of where the text sits. Z-order in this app's YAML is simple: later children render in front of earlier ones, so the order that makes this work is: decorative background → Labels → transparent click-catcher → any small distinct-action controls (checkbox/icons) last.</p>
+<table>
+  <thead><tr><th>Screen</th><th>New control</th><th>Sits in front of</th><th>Sits behind</th></tr></thead>
+  <tbody>
+    <tr><td>scrSendEmail</td><td><code>recRowClickCatcher</code></td><td><code>recRowFrame</code>, <code>lblGroupName</code>, <code>lblMemberMeta</code>, <code>lblGroupNotesLine</code></td><td><code>recCheckBox</code>, <code>icoViewMembers</code>, <code>icoViewHistory</code> (unaffected, still independently clickable)</td></tr>
+    <tr><td>scrManagePeople</td><td><code>recPersonRowClickCatcher</code></td><td><code>recPersonRowFrame</code>, <code>lblPersonRowName</code>, <code>lblPersonRowEmail</code></td><td>nothing else in this row — it's the frontmost control</td></tr>
+  </tbody>
+</table>
 
 <h2>Further Reading</h2>
 <div class="doc-grid">
