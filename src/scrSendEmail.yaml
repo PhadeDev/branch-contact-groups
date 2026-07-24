@@ -653,24 +653,39 @@ Screens:
                   Filter(colMemberships, false)
               )
             Visible: =varShowLightbox && (varLightboxMode = "members" || varLightboxMode = "batch1" || varLightboxMode = "batch2")
-            TemplateSize: =32
+            TemplateSize: =56
             TemplatePadding: =0
             X: =363
             Y: =160
             Width: =640
-            Height: =480
+            Height: =500
           Children:
-            - lblLightboxMemberRow:
+            - lblLightboxMemberName:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Title & "  —  " & ThisItem.Email
-                  Color: =RGBA(50,50,50,1)
-                  Size: =13
+                  Text: =If(Len(ThisItem.Title) > 60, Left(ThisItem.Title, 60) & "...", ThisItem.Title)
+                  Tooltip: =ThisItem.Title
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =14
                   Font: =Font.'Open Sans'
                   X: =0
-                  Y: =4
+                  Y: =6
                   Width: =640
-                  Height: =26
+                  Height: =22
+            - lblLightboxMemberEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email
+                  Wrap: =false
+                  Color: =RGBA(120,120,120,1)
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =0
+                  Y: =28
+                  Width: =640
+                  Height: =20
       - galLightboxHistory:
           Control: Gallery@2.15.0
           Variant: Vertical

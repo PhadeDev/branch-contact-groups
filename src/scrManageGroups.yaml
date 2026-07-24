@@ -10,6 +10,7 @@ Screens:
             Set(varErrManualName, false);
             Set(varErrManualEmail, false);
             Set(varManageGroupID, Blank());
+            Set(varEditingMemberID, Blank());
             Set(varShowLightbox, false);
             Set(varLightboxMode, "history");
             Set(varManageSubTab, "members");
@@ -279,6 +280,7 @@ Screens:
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "manage");
                     Set(varManageSubTab, "members");
+                    Set(varEditingMemberID, Blank());
                     Reset(txtPasteRoster);
                     Set(varParsedRosterCount, 0);
                     Set(varConfirmReplaceArmed, false);
@@ -616,6 +618,20 @@ Screens:
                   Y: =28
                   Width: =800
                   Height: =20
+            - icoEditMember:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  Icon: =Icon.Edit
+                  Color: =RGBA(46,110,145,1)
+                  OnSelect: |-
+                    =Set(varEditingMemberID, ThisItem.ID);
+                    Set(varManageSubTab, "add");
+                    Reset(txtManualName);
+                    Reset(txtManualEmail)
+                  X: =880
+                  Y: =14
+                  Width: =28
+                  Height: =28
             - icoRemove:
                 Control: Classic/Icon@2.5.0
                 Properties:
@@ -627,7 +643,7 @@ Screens:
                     Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: LookUp(colGroups, ID = varManageGroupID).Title});
                     Patch('BM History', Defaults('BM History'), {Title: ThisItem.Title & " removed (" & ThisItem.Email & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Removed"}});
                     Notify("Removed " & ThisItem.Title & ".", NotificationType.Success)
-                  X: =880
+                  X: =920
                   Y: =14
                   Width: =28
                   Height: =28
@@ -731,7 +747,7 @@ Screens:
       - lblManualHeading:
           Control: Label@2.5.1
           Properties:
-            Text: ="Add manually (non-GAL address)"
+            Text: =If(IsBlank(varEditingMemberID), "Add manually (non-GAL address)", "Edit member")
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
@@ -744,6 +760,7 @@ Screens:
       - txtManualName:
           Control: ModernTextInput@1.1.0
           Properties:
+            Default: =If(IsBlank(varEditingMemberID), "", LookUp(colMemberships, ID = varEditingMemberID).Title)
             Placeholder: ="Full name"
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: =Set(varErrManualName, false)
@@ -754,6 +771,7 @@ Screens:
       - txtManualEmail:
           Control: ModernTextInput@1.1.0
           Properties:
+            Default: =If(IsBlank(varEditingMemberID), "", LookUp(colMemberships, ID = varEditingMemberID).Email)
             Placeholder: ="Email address"
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: =Set(varErrManualEmail, false)
@@ -764,7 +782,7 @@ Screens:
       - btnManualAdd:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Add"
+            Text: =If(IsBlank(varEditingMemberID), "Add", "Update")
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
@@ -775,6 +793,14 @@ Screens:
               If(
                   varErrManualName || varErrManualEmail,
                   Notify("Enter a name and a valid email address.", NotificationType.Warning),
+                  !IsBlank(varEditingMemberID),
+                  Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Email: varAddedEmail});
+                  Patch('BM History', Defaults('BM History'), {Title: "Member updated (" & varAddedEmail & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Edited"}});
+                  ClearCollect(colMemberships, 'BM Memberships');
+                  Reset(txtManualName);
+                  Reset(txtManualEmail);
+                  Set(varEditingMemberID, Blank());
+                  Notify("Updated " & varAddedName & ".", NotificationType.Success),
                   CountRows(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varManageGroupID).Title, Lower(Email) = varAddedEmail)) > 0,
                   Notify("That email is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
                   Set(varNewRow, Patch('BM Memberships', Defaults('BM Memberships'), {Title: varAddedName, Email: varAddedEmail, GroupName: LookUp(colGroups, ID = varManageGroupID).Title}));
@@ -789,6 +815,20 @@ Screens:
             Y: =310
             Width: =420
             Height: =48
+      - btnCancelMemberEdit:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Cancel edit"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && !IsBlank(varEditingMemberID)
+            BasePaletteColor: =RGBA(120,120,120,1)
+            OnSelect: |-
+              =Set(varEditingMemberID, Blank());
+              Reset(txtManualName);
+              Reset(txtManualEmail)
+            X: =703
+            Y: =364
+            Width: =420
+            Height: =36
       - lblPasteHeading:
           Control: Label@2.5.1
           Properties:
