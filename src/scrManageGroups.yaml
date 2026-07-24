@@ -649,36 +649,51 @@ Screens:
             Width: =480
             Height: =300
           Children:
+            - recResultHoverBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(0,0,0,0)
+                  HoverFill: =RGBA(233,241,246,1)
+                  PressedFill: =RGBA(233,241,246,1)
+                  BorderThickness: =0
+                  X: =0
+                  Y: =0
+                  Width: =480
+                  Height: =56
             - lblResultName:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.DisplayName
+                  Wrap: =false
                   Color: =RGBA(31,58,95,1)
                   FontWeight: =FontWeight.Semibold
                   Size: =13
                   Font: =Font.'Open Sans'
                   X: =16
                   Y: =6
-                  Width: =300
+                  Width: =440
                   Height: =22
             - lblResultEmail:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.Mail
+                  Wrap: =false
                   Color: =RGBA(120,120,120,1)
                   Size: =12
                   Font: =Font.'Open Sans'
                   X: =16
                   Y: =28
-                  Width: =300
+                  Width: =440
                   Height: =20
             - recResultTap:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
                   Fill: =RGBA(0,0,0,0)
-                  HoverFill: =RGBA(233,241,246,1)
-                  PressedFill: =RGBA(233,241,246,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
                   BorderThickness: =0
                   OnSelect: |-
                     =If(
