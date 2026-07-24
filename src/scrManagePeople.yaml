@@ -186,7 +186,6 @@ Screens:
                     =Set(varSelectedPersonEmail, ThisItem.Email);
                     Set(varPeopleLightboxMode, "editPerson");
                     ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = Lower(ThisItem.Email))) > 0));
-                    Reset(chkGroupMember);
                     Reset(txtPersonName);
                     Reset(txtPersonEmail);
                     Set(varShowLightbox, true)
@@ -295,10 +294,10 @@ Screens:
             Height: =260
           Children:
             - chkAddPersonGroup:
-                Control: Classic/CheckBox@2.1.0
+                Control: CheckBox@0.0.30
                 Properties:
-                  Text: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
-                  Default: =ThisItem.Picked
+                  Label: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
+                  Checked: =ThisItem.Picked
                   OnCheck: |-
                     =Patch(colAddPersonPicks, ThisItem, {Picked: true})
                   OnUncheck: |-
@@ -324,7 +323,6 @@ Screens:
                   Set(varSelectedPersonEmail, varNewPersonEmail);
                   Set(varPeopleLightboxMode, "editPerson");
                   ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = varNewPersonEmail)) > 0));
-                  Reset(chkGroupMember);
                   Reset(txtPersonName);
                   Reset(txtPersonEmail),
                   CountRows(Filter(colAddPersonPicks, Picked = true)) = 0,
@@ -394,10 +392,10 @@ Screens:
             Height: =320
           Children:
             - chkGroupMember:
-                Control: Classic/CheckBox@2.1.0
+                Control: CheckBox@0.0.30
                 Properties:
-                  Text: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
-                  Default: =ThisItem.Picked
+                  Label: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
+                  Checked: =ThisItem.Picked
                   OnCheck: |-
                     =Patch(colPersonGroupPicks, ThisItem, {Picked: true})
                   OnUncheck: |-
