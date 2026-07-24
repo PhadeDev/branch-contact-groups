@@ -181,8 +181,11 @@ Screens:
                 Properties:
                   Text: |-
                     =With(
-                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(ThisItem.Modified, Now(), "Days")},
-                        n & " member" & If(n = 1, "", "s") & " · Last modified " & Text(ThisItem.Modified, "d mmm yyyy") & " (" & If(d <= 0, "today", d & If(d = 1, " day ago", " days ago")) & ")"
+                        {effectiveDate: Coalesce(ThisItem.ManuallySetModified, ThisItem.Modified)},
+                        With(
+                            {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title)), d: DateDiff(effectiveDate, Now(), "Days")},
+                            n & " member" & If(n = 1, "", "s") & " · Last modified " & Text(effectiveDate, "d mmm yyyy") & " (" & If(d <= 0, "today", d & If(d = 1, " day ago", " days ago")) & ")"
+                        )
                     )
                   Visible: =varEditingGroupID <> ThisItem.ID
                   Color: =RGBA(120,120,120,1)
@@ -251,6 +254,25 @@ Screens:
                   Y: =8
                   Width: =180
                   Height: =40
+            - chkOverrideDate:
+                Control: Classic/CheckBox@2.1.0
+                Properties:
+                  Text: ="Override last modified date"
+                  Default: =!IsBlank(ThisItem.ManuallySetModified)
+                  Visible: =varEditingGroupID = ThisItem.ID
+                  X: =730
+                  Y: =12
+                  Width: =210
+                  Height: =32
+            - datEditManualDate:
+                Control: Classic/DatePicker@2.6.0
+                Properties:
+                  SelectedDate: =If(IsBlank(ThisItem.ManuallySetModified), Today(), ThisItem.ManuallySetModified)
+                  Visible: =varEditingGroupID = ThisItem.ID && chkOverrideDate.Value
+                  X: =950
+                  Y: =6
+                  Width: =160
+                  Height: =40
             - chkEditPrivate:
                 Control: Classic/CheckBox@2.1.0
                 Properties:
@@ -291,18 +313,28 @@ Screens:
                     =If(
                         IsBlank(Trim(txtEditTitle.Text)),
                         Notify("Group name can't be blank.", NotificationType.Warning),
-                        Patch('BM Groups', LookUp('BM Groups', ID = ThisItem.ID), {
-                            Title: Trim(txtEditTitle.Text),
-                            Notes: Trim(txtEditNotes.Text),
-                            ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
-                            Private: chkEditPrivate.Value,
-                            OfficialSensitiveApproved: chkEditSensitive.Value,
-                            OfficialUseOnly: chkEditOfficialUse.Value
-                        });
-                        Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: Trim(txtEditTitle.Text), EventType: {Value: "Edited"}});
-                        ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                        Set(varEditingGroupID, Blank());
-                        Notify("Saved.", NotificationType.Success)
+                        With(
+                            {oldTitle: ThisItem.Title, newTitle: Trim(txtEditTitle.Text)},
+                            Patch('BM Groups', LookUp('BM Groups', ID = ThisItem.ID), {
+                                Title: newTitle,
+                                Notes: Trim(txtEditNotes.Text),
+                                ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
+                                Private: chkEditPrivate.Value,
+                                OfficialSensitiveApproved: chkEditSensitive.Value,
+                                OfficialUseOnly: chkEditOfficialUse.Value,
+                                ManuallySetModified: If(chkOverrideDate.Value, datEditManualDate.SelectedDate, Blank())
+                            });
+                            If(
+                                newTitle <> oldTitle,
+                                UpdateIf('BM Memberships', GroupName = oldTitle, {GroupName: newTitle});
+                                UpdateIf('BM History', GroupName = oldTitle, {GroupName: newTitle});
+                                ClearCollect(colMemberships, 'BM Memberships')
+                            );
+                            Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
+                            ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                            Set(varEditingGroupID, Blank());
+                            Notify("Saved.", NotificationType.Success)
+                        )
                     )
                   X: =16
                   Y: =92

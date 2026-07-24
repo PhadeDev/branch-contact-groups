@@ -93,7 +93,7 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.15</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.16</span></h1>
 <p class="built">Built 23 Jul 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
@@ -134,6 +134,7 @@
     <tr><td>OfficialSensitiveApproved</td><td>Yes/No</td><td>Default <strong>No</strong>. Shown as a pill/tag to everyone, not just maintainers — lets anyone see at a glance whether OFFICIAL-SENSITIVE material can go to this group.</td></tr>
     <tr><td>OfficialUseOnly</td><td>Yes/No</td><td>Default <strong>No</strong>. Independent of OfficialSensitiveApproved — a group can carry either, both, or neither.</td></tr>
     <tr><td>Notes</td><td>Multiple lines of text (plain text, not rich text)</td><td>Optional. Shown on the group card and to everyone on the Send Email screen so people can sanity-check who they're about to email.</td></tr>
+    <tr><td>ManuallySetModified</td><td>Date and Time (new)</td><td>Not Required, leave blank by default. Lets a maintainer override the "Last modified" shown on the card — useful for groups migrated from an old system where the real last-changed date predates this app. Tick "Override last modified date" when editing a group to set it; untick to go back to using SharePoint's own Modified date automatically.</td></tr>
   </tbody>
 </table>
 <p>The old <strong>Active</strong> column has been removed entirely — it's not used anywhere in v2.0. If you built v1.0 already, delete that column.</p>
@@ -219,7 +220,7 @@ Set(varLightboxGroupID, Blank())</pre>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.10">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.11">
     <div>
       <div class="screen-number">Screen 2</div>
       <div class="screen-name">scrManageGroups</div>
