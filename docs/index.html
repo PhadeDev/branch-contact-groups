@@ -93,7 +93,7 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.8</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.9</span></h1>
 <p class="built">Built 23 Jul 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
@@ -211,7 +211,7 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.8">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.9">
     <div>
       <div class="screen-number">Screen 1</div>
       <div class="screen-name">scrSendEmail</div>
@@ -253,6 +253,10 @@ Set(varLightboxGroupID, Blank())</pre>
     <tr><td>scrManagePeople</td><td><code>recLightboxBackdrop</code></td><td>Click outside the Add Person/Remove Leaver lightbox to close it</td></tr>
   </tbody>
 </table>
+
+<h3>v2.9 — Clicking a group card on Send Email did nothing</h3>
+<p><code>galAllGroups</code>' own <code>OnSelect</code> (<code>Set(varPreviewGroupID, ThisItem.ID)</code>) never fires, because its child <code>recRowFrame</code> covers the entire card and — even with no <code>OnSelect</code> of its own — still absorbs the tap before it can reach the gallery underneath. A gallery's own <code>OnSelect</code> only fires on template area with no child control covering it at all, so a full-size background control like this one always wins.</p>
+<p>Fix on <strong>scrSendEmail</strong>, gallery <code>galAllGroups</code> → child <code>recRowFrame</code>: add a new <strong>OnSelect</strong> property with the formula <code>Set(varPreviewGroupID, ThisItem.ID)</code>. The gallery's own (now-dead) OnSelect can be deleted, but leaving it doesn't hurt anything.</p>
 
 <h2>Further Reading</h2>
 <div class="doc-grid">

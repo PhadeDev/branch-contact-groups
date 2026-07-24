@@ -81,8 +81,6 @@ Screens:
             Items: =Filter(colGroups, !Private || varIsMaintainer)
             TemplateSize: =116
             TemplatePadding: =0
-            OnSelect: |-
-              =Set(varPreviewGroupID, ThisItem.ID)
             X: =20
             Y: =126
             Width: =700
@@ -92,7 +90,6 @@ Screens:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
-                  DisplayMode: =DisplayMode.View
                   Fill: =If(ThisItem.Ticked, RGBA(234,243,225,1), RGBA(255,255,255,1))
                   HoverFill: =Self.Fill
                   PressedFill: =Self.Fill
@@ -102,6 +99,7 @@ Screens:
                   RadiusTopRight: =10
                   RadiusBottomLeft: =10
                   RadiusBottomRight: =10
+                  OnSelect: =Set(varPreviewGroupID, ThisItem.ID)
                   X: =0
                   Y: =0
                   Width: =700
