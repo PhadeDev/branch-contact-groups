@@ -163,8 +163,10 @@ Screens:
             - recCheckBox:
                 Control: CheckBox@0.0.30
                 Properties:
-                  Label: =""
+                  BasePaletteColor: =RGBA(156, 220, 79, 1)
+                  CheckboxSize: =22
                   Checked: =ThisItem.Ticked
+                  Label: =""
                   OnCheck: |-
                     =Patch(colGroups, ThisItem, {Ticked: true});
                     Set(varBccForcedByBatch, false);
@@ -175,8 +177,8 @@ Screens:
                     Set(varBccForced, CountRows(Filter(colMemberships, GroupName in Filter(colGroups, Ticked=true).Title, !EndsWith(Lower(Email), "@" & varModDomain))) > 0 || varBccForcedByBatch)
                   X: =20
                   Y: =20
-                  Width: =28
-                  Height: =28
+                  Width: =38
+                  Height: =38
             - icoViewMembers:
                 Control: Classic/Icon@2.5.0
                 Properties:
