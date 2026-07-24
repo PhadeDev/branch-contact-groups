@@ -6,11 +6,13 @@ Screens:
         =If(
             !varIsMaintainer,
             Back(),
+            ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
             ClearCollect(colMemberships, 'BM Memberships');
             Set(varErrManualName, false);
             Set(varErrManualEmail, false);
             Set(varManageGroupID, Blank());
             Set(varEditingMemberID, Blank());
+            Set(varPendingRemoveMemberID, 0);
             Set(varShowLightbox, false);
             Set(varLightboxMode, "history");
             Set(varManageSubTab, "members");
@@ -168,7 +170,7 @@ Screens:
             - pilSensitive:
                 Control: Classic/Button@2.2.0
                 Properties:
-                  Text: ="🔒 Sensitive"
+                  Text: ="Official Sensitive Approved"
                   DisplayMode: =DisplayMode.View
                   Visible: =ThisItem.OfficialSensitiveApproved
                   Fill: =RGBA(252,231,231,1)
@@ -178,19 +180,19 @@ Screens:
                   Color: =RGBA(163,45,45,1)
                   Font: =Font.'Open Sans'
                   FontWeight: =FontWeight.Semibold
-                  Size: =10
+                  Size: =9
                   RadiusTopLeft: =12
                   RadiusTopRight: =12
                   RadiusBottomLeft: =12
                   RadiusBottomRight: =12
                   X: =470
                   Y: =17
-                  Width: =130
+                  Width: =190
                   Height: =24
             - pilOfficialUse:
                 Control: Classic/Button@2.2.0
                 Properties:
-                  Text: ="📄 Official Use"
+                  Text: ="Official Use Only"
                   DisplayMode: =DisplayMode.View
                   Visible: =ThisItem.OfficialUseOnly
                   Fill: =RGBA(224,238,250,1)
@@ -205,9 +207,9 @@ Screens:
                   RadiusTopRight: =12
                   RadiusBottomLeft: =12
                   RadiusBottomRight: =12
-                  X: =610
+                  X: =670
                   Y: =17
-                  Width: =130
+                  Width: =150
                   Height: =24
             - pilPrivate:
                 Control: Classic/Button@2.2.0
@@ -227,7 +229,7 @@ Screens:
                   RadiusTopRight: =12
                   RadiusBottomLeft: =12
                   RadiusBottomRight: =12
-                  X: =750
+                  X: =830
                   Y: =17
                   Width: =90
                   Height: =24
@@ -237,15 +239,15 @@ Screens:
                   Text: |-
                     =With(
                         {effectiveDate: Coalesce(ThisItem.ManuallySetModified, ThisItem.Modified)},
-                        CountRows(Filter(colMemberships, GroupName = ThisItem.Title)) & " members · " & Text(effectiveDate, "d mmm yy")
+                        CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(ThisItem.Title)))) & " members · " & Text(effectiveDate, "d mmm yy")
                     )
                   Wrap: =false
                   Color: =RGBA(120,120,120,1)
                   Size: =11
                   Font: =Font.'Open Sans'
-                  X: =860
+                  X: =930
                   Y: =18
-                  Width: =300
+                  Width: =220
                   Height: =22
             - recRowClickCatcher:
                 Control: Classic/Button@2.2.0
@@ -281,6 +283,7 @@ Screens:
                     Set(varLightboxMode, "manage");
                     Set(varManageSubTab, "members");
                     Set(varEditingMemberID, Blank());
+                    Set(varPendingRemoveMemberID, 0);
                     Reset(txtPasteRoster);
                     Set(varParsedRosterCount, 0);
                     Set(varConfirmReplaceArmed, false);
@@ -362,7 +365,7 @@ Screens:
               =If(
                   varLightboxMode = "edit",
                   If(IsBlank(varManageGroupID), "New group", "Edit group"),
-                  If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " — History", ""))
+                  If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " - History", ""))
               )
             Visible: =varShowLightbox
             Color: =RGBA(31,58,95,1)
@@ -415,53 +418,61 @@ Screens:
             Width: =200
             Height: =42
       - chkEditPrivate:
-          Control: Classic/CheckBox@2.1.0
+          Control: CheckBox@0.0.30
           Properties:
-            Text: ="Private (maintainers only)"
-            Default: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).Private)
-            Visible: =varShowLightbox && varLightboxMode = "edit"
-            X: =403
-            Y: =232
-            Width: =260
-            Height: =32
-      - chkEditSensitive:
-          Control: Classic/CheckBox@2.1.0
-          Properties:
-            Text: ="Official Sensitive Approved"
-            Default: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
-            Visible: =varShowLightbox && varLightboxMode = "edit"
-            X: =683
-            Y: =232
-            Width: =260
-            Height: =32
-      - chkEditOfficialUse:
-          Control: Classic/CheckBox@2.1.0
-          Properties:
-            Text: ="Official Use Only"
-            Default: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
-            Visible: =varShowLightbox && varLightboxMode = "edit"
-            X: =943
-            Y: =232
-            Width: =180
-            Height: =32
-      - chkOverrideDate:
-          Control: Classic/CheckBox@2.1.0
-          Properties:
-            Text: ="Override last modified date"
-            Default: =If(IsBlank(varManageGroupID), false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Private (maintainers only)"
+            Checked: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).Private)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
-            Y: =284
-            Width: =220
+            Y: =282
+            Width: =420
+            Height: =32
+      - chkEditSensitive:
+          Control: CheckBox@0.0.30
+          Properties:
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Official Sensitive Approved"
+            Checked: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =322
+            Width: =420
+            Height: =32
+      - chkEditOfficialUse:
+          Control: CheckBox@0.0.30
+          Properties:
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Official Use Only"
+            Checked: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =362
+            Width: =420
+            Height: =32
+      - chkOverrideDate:
+          Control: CheckBox@0.0.30
+          Properties:
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Override last modified date"
+            Checked: =If(IsBlank(varManageGroupID), false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =183
+            Y: =402
+            Width: =420
             Height: =32
       - datEditManualDate:
           Control: Classic/DatePicker@2.6.0
           Properties:
             DefaultDate: =If(IsBlank(varManageGroupID) || IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified), Today(), LookUp(colGroups, ID = varManageGroupID).ManuallySetModified)
-            Visible: =varShowLightbox && varLightboxMode = "edit" && chkOverrideDate.Value
-            X: =413
-            Y: =280
-            Width: =160
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkOverrideDate.Checked
+            X: =603
+            Y: =398
+            Width: =220
             Height: =40
       - btnSaveGroupEdit:
           Control: ModernButton@1.0.0
@@ -470,38 +481,43 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "edit"
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
-              =If(
-                  IsBlank(Trim(txtEditTitle.Text)),
-                  Notify("Group name can't be blank.", NotificationType.Warning),
-                  IsBlank(varManageGroupID),
-                  Patch('BM Groups', Defaults('BM Groups'), {
-                      Title: Trim(txtEditTitle.Text),
-                      Notes: Trim(txtEditNotes.Text),
-                      ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
-                      Private: chkEditPrivate.Value,
-                      OfficialSensitiveApproved: chkEditSensitive.Value,
-                      OfficialUseOnly: chkEditOfficialUse.Value,
-                      ManuallySetModified: If(chkOverrideDate.Value, datEditManualDate.SelectedDate, Blank())
-                  });
-                  Patch('BM History', Defaults('BM History'), {Title: "Group created", GroupName: Trim(txtEditTitle.Text), EventType: {Value: "Created"}});
-                  ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                  Set(varShowLightbox, false);
-                  Notify("Created " & Trim(txtEditTitle.Text) & ".", NotificationType.Success),
-                  With(
-                      {oldTitle: LookUp(colGroups, ID = varManageGroupID).Title, newTitle: Trim(txtEditTitle.Text)},
+              =With(
+                  {
+                      newTitle: Trim(txtEditTitle.Text),
+                      oldTitle: If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)
+                  },
+                  If(
+                      IsBlank(newTitle),
+                      Notify("Group name can't be blank.", NotificationType.Warning),
+                      CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(newTitle) && (IsBlank(varManageGroupID) || ID <> varManageGroupID))) > 0,
+                      Notify("A group with that name already exists.", NotificationType.Warning),
+                      IsBlank(varManageGroupID),
+                      Patch('BM Groups', Defaults('BM Groups'), {
+                          Title: newTitle,
+                          Notes: Trim(txtEditNotes.Text),
+                          ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
+                          Private: chkEditPrivate.Checked,
+                          OfficialSensitiveApproved: chkEditSensitive.Checked,
+                          OfficialUseOnly: chkEditOfficialUse.Checked,
+                          ManuallySetModified: If(chkOverrideDate.Checked, datEditManualDate.SelectedDate, Blank())
+                      });
+                      Patch('BM History', Defaults('BM History'), {Title: "Group created", GroupName: newTitle, EventType: {Value: "Created"}});
+                      ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                      Set(varShowLightbox, false);
+                      Notify("Created " & newTitle & ".", NotificationType.Success),
                       Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {
                           Title: newTitle,
                           Notes: Trim(txtEditNotes.Text),
                           ThursdayBatch: {Value: drpEditThursdayBatch.Selected.Value},
-                          Private: chkEditPrivate.Value,
-                          OfficialSensitiveApproved: chkEditSensitive.Value,
-                          OfficialUseOnly: chkEditOfficialUse.Value,
-                          ManuallySetModified: If(chkOverrideDate.Value, datEditManualDate.SelectedDate, Blank())
+                          Private: chkEditPrivate.Checked,
+                          OfficialSensitiveApproved: chkEditSensitive.Checked,
+                          OfficialUseOnly: chkEditOfficialUse.Checked,
+                          ManuallySetModified: If(chkOverrideDate.Checked, datEditManualDate.SelectedDate, Blank())
                       });
                       If(
-                          newTitle <> oldTitle,
-                          UpdateIf('BM Memberships', GroupName = oldTitle, {GroupName: newTitle});
-                          UpdateIf('BM History', GroupName = oldTitle, {GroupName: newTitle});
+                          Lower(Trim(newTitle)) <> Lower(Trim(oldTitle)),
+                          UpdateIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
+                          UpdateIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
                           ClearCollect(colMemberships, 'BM Memberships')
                       );
                       Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
@@ -511,7 +527,7 @@ Screens:
                   )
               )
             X: =183
-            Y: =340
+            Y: =466
             Width: =160
             Height: =44
       - btnCancelGroupEdit:
@@ -522,7 +538,7 @@ Screens:
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
             X: =353
-            Y: =340
+            Y: =466
             Width: =160
             Height: =44
       - btnLbTabMembers:
@@ -562,7 +578,15 @@ Screens:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: =If(varLightboxMode = "history" && !IsBlank(varManageGroupID), Sort(Filter('BM History', GroupName = LookUp(colGroups, ID = varManageGroupID).Title), Created, SortOrder.Descending), Filter('BM History', false))
+            Items: |-
+              =If(
+                  varLightboxMode = "history" && !IsBlank(varManageGroupID),
+                  With(
+                      {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
+                      Sort(Filter('BM History', Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Created, SortOrder.Descending)
+                  ),
+                  Filter('BM History', false)
+              )
             Visible: =varShowLightbox && varLightboxMode = "history"
             TemplateSize: =40
             TemplatePadding: =0
@@ -586,7 +610,15 @@ Screens:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: =If(IsBlank(varManageGroupID), Filter(colMemberships, false), Sort(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varManageGroupID).Title), Title, SortOrder.Ascending))
+            Items: |-
+              =If(
+                  IsBlank(varManageGroupID),
+                  Filter(colMemberships, false),
+                  With(
+                      {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
+                      Sort(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Title, SortOrder.Ascending)
+                  )
+              )
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "members"
             TemplateSize: =56
             TemplatePadding: =0
@@ -636,13 +668,21 @@ Screens:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   Icon: =Icon.Trash
-                  Color: =RGBA(163,45,45,1)
+                  Color: =If(varPendingRemoveMemberID = ThisItem.ID, RGBA(255,255,255,1), RGBA(163,45,45,1))
+                  Fill: =If(varPendingRemoveMemberID = ThisItem.ID, RGBA(163,45,45,1), RGBA(255,255,255,1))
+                  Tooltip: =If(varPendingRemoveMemberID = ThisItem.ID, "Tap again to remove", "Remove member")
                   OnSelect: |-
-                    =Remove('BM Memberships', LookUp('BM Memberships', ID = ThisItem.ID));
-                    Remove(colMemberships, ThisItem);
-                    Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: LookUp(colGroups, ID = varManageGroupID).Title});
-                    Patch('BM History', Defaults('BM History'), {Title: ThisItem.Title & " removed (" & ThisItem.Email & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Removed"}});
-                    Notify("Removed " & ThisItem.Title & ".", NotificationType.Success)
+                    =If(
+                        varPendingRemoveMemberID <> ThisItem.ID,
+                        Set(varPendingRemoveMemberID, ThisItem.ID);
+                        Notify("Tap the red trash icon again to remove " & ThisItem.Title & ".", NotificationType.Warning),
+                        Remove('BM Memberships', LookUp('BM Memberships', ID = ThisItem.ID));
+                        Remove(colMemberships, ThisItem);
+                        Set(varPendingRemoveMemberID, 0);
+                        Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: LookUp(colGroups, ID = varManageGroupID).Title});
+                        Patch('BM History', Defaults('BM History'), {Title: ThisItem.Title & " removed (" & ThisItem.Email & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Removed"}});
+                        Notify("Removed " & ThisItem.Title & ".", NotificationType.Success)
+                    )
                   X: =920
                   Y: =14
                   Width: =28
@@ -731,7 +771,10 @@ Screens:
                   BorderThickness: =0
                   OnSelect: |-
                     =If(
-                        CountRows(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varManageGroupID).Title, Lower(Email) = Lower(ThisItem.Mail))) > 0,
+                        With(
+                            {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
+                            CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle)) && Lower(Email) = Lower(ThisItem.Mail))) > 0
+                        ),
                         Notify(ThisItem.DisplayName & " is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
                         Set(varNewRow, Patch('BM Memberships', Defaults('BM Memberships'), {Title: ThisItem.DisplayName, Email: Lower(ThisItem.Mail), GroupName: LookUp(colGroups, ID = varManageGroupID).Title}));
                         Collect(colMemberships, varNewRow);
@@ -790,18 +833,23 @@ Screens:
               Set(varAddedEmail, Lower(Trim(txtManualEmail.Text)));
               Set(varErrManualName, IsBlank(varAddedName));
               Set(varErrManualEmail, IsBlank(varAddedEmail) || IsBlank(Find("@", varAddedEmail)) || IsBlank(Find(".", varAddedEmail)));
-              If(
-                  varErrManualName || varErrManualEmail,
-                  Notify("Enter a name and a valid email address.", NotificationType.Warning),
-                  !IsBlank(varEditingMemberID),
-                  Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Email: varAddedEmail});
+                  If(
+                      varErrManualName || varErrManualEmail,
+                      Notify("Enter a name and a valid email address.", NotificationType.Warning),
+                      !IsBlank(varEditingMemberID) && CountRows(Filter(colMemberships, ID <> varEditingMemberID, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)), Lower(Email) = varAddedEmail)) > 0,
+                      Notify("That email is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
+                      !IsBlank(varEditingMemberID),
+                      Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Email: varAddedEmail});
                   Patch('BM History', Defaults('BM History'), {Title: "Member updated (" & varAddedEmail & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Edited"}});
                   ClearCollect(colMemberships, 'BM Memberships');
                   Reset(txtManualName);
                   Reset(txtManualEmail);
                   Set(varEditingMemberID, Blank());
                   Notify("Updated " & varAddedName & ".", NotificationType.Success),
-                  CountRows(Filter(colMemberships, GroupName = LookUp(colGroups, ID = varManageGroupID).Title, Lower(Email) = varAddedEmail)) > 0,
+                  With(
+                      {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
+                      CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle)) && Lower(Email) = varAddedEmail)) > 0
+                  ),
                   Notify("That email is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
                   Set(varNewRow, Patch('BM Memberships', Defaults('BM Memberships'), {Title: varAddedName, Email: varAddedEmail, GroupName: LookUp(colGroups, ID = varManageGroupID).Title}));
                   Collect(colMemberships, varNewRow);
@@ -858,7 +906,7 @@ Screens:
       - txtPasteRoster:
           Control: Classic/TextInput@2.3.2
           Properties:
-            HintText: ="Paste rows here — Name (Tab) Email, one person per line"
+            HintText: ="Paste rows here - Name (Tab) Email, one person per line"
             Mode: =TextMode.MultiLine
             BorderColor: =RGBA(0,18,107,1)
             Font: =Font.'Open Sans'
@@ -902,7 +950,16 @@ Screens:
       - btnReplaceRoster:
           Control: ModernButton@1.0.0
           Properties:
-            Text: =If(varConfirmReplaceArmed, "Tap again to confirm — replaces all " & CountRows(Filter(colMemberships, GroupName = If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title))) & " current members", "Replace membership from paste")
+            Text: |-
+              =If(
+                  varConfirmReplaceArmed,
+                  "Tap again to confirm - replaces all " &
+                      With(
+                          {groupTitle: If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)},
+                          CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle))))
+                      ) & " current members",
+                  "Replace membership from paste"
+              )
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             BasePaletteColor: =RGBA(163,45,45,1)
             OnSelect: |-
@@ -912,8 +969,8 @@ Screens:
                   !varConfirmReplaceArmed,
                   Set(varConfirmReplaceArmed, true),
                   Set(varGroupTitle, LookUp(colGroups, ID = varManageGroupID).Title);
-                  Set(varOldRosterCount, CountRows(Filter(colMemberships, GroupName = varGroupTitle)));
-                  RemoveIf('BM Memberships', GroupName = varGroupTitle);
+                  Set(varOldRosterCount, CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)))));
+                  RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
                   ForAll(colParsedRosterValid, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Email: Email, GroupName: varGroupTitle}));
                   ClearCollect(colMemberships, 'BM Memberships');
                   Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: varGroupTitle});
