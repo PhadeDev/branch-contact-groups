@@ -110,7 +110,6 @@ Screens:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
-                  DisplayMode: =DisplayMode.View
                   Fill: =If(ThisItem.Ticked, RGBA(59,109,17,1), RGBA(255,255,255,1))
                   HoverFill: =Self.Fill
                   PressedFill: =Self.Fill
@@ -517,7 +516,6 @@ Screens:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
-            DisplayMode: =DisplayMode.View
             Visible: =varShowLightbox
             Fill: =RGBA(15,25,20,0.45)
             HoverFill: =Self.Fill

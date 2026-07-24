@@ -136,7 +136,6 @@ Screens:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
-                  DisplayMode: =DisplayMode.View
                   Fill: =If(Lower(ThisItem.Email) = Lower(varSelectedPersonEmail), RGBA(234,243,225,1), RGBA(255,255,255,1))
                   HoverFill: =RGBA(233,241,246,1)
                   PressedFill: =RGBA(233,241,246,1)
@@ -472,7 +471,6 @@ Screens:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
-            DisplayMode: =DisplayMode.View
             Visible: =varShowLightbox
             Fill: =RGBA(15,25,20,0.45)
             HoverFill: =Self.Fill

@@ -453,7 +453,6 @@ Screens:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
-            DisplayMode: =DisplayMode.View
             Visible: =varShowLightbox
             Fill: =RGBA(15,25,20,0.45)
             HoverFill: =Self.Fill
@@ -677,7 +676,6 @@ Screens:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
-                  DisplayMode: =DisplayMode.View
                   Fill: =RGBA(0,0,0,0)
                   HoverFill: =RGBA(233,241,246,1)
                   PressedFill: =RGBA(233,241,246,1)
