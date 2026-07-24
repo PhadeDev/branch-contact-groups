@@ -185,7 +185,22 @@ Screens:
                   OnSelect: |-
                     =Set(varSelectedPersonEmail, ThisItem.Email);
                     Set(varPeopleLightboxMode, "editPerson");
-                    ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(Title)), Lower(Email) = Lower(ThisItem.Email))) > 0));
+                    With(
+                        {personEmail: ThisItem.Email},
+                        ClearCollect(
+                            colPersonGroupPicks,
+                            AddColumns(
+                                colGroups As grp,
+                                Picked,
+                                CountRows(
+                                    Filter(
+                                        colMemberships As mem,
+                                        Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = Lower(personEmail)
+                                    )
+                                ) > 0
+                            )
+                        )
+                    );
                     Reset(txtPersonName);
                     Reset(txtPersonEmail);
                     Set(varShowLightbox, true)
@@ -324,7 +339,19 @@ Screens:
                   Notify("This email already exists as " & LookUp(colPeople, Lower(Email) = varNewPersonEmail).Name & " — editing them instead.", NotificationType.Warning);
                   Set(varSelectedPersonEmail, varNewPersonEmail);
                   Set(varPeopleLightboxMode, "editPerson");
-                  ClearCollect(colPersonGroupPicks, AddColumns(colGroups, Picked, CountRows(Filter(colMemberships, GroupName = Title, Lower(Email) = varNewPersonEmail)) > 0));
+                  ClearCollect(
+                      colPersonGroupPicks,
+                      AddColumns(
+                          colGroups As grp,
+                          Picked,
+                          CountRows(
+                              Filter(
+                                  colMemberships As mem,
+                                  Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = varNewPersonEmail
+                              )
+                          ) > 0
+                      )
+                  );
                   Reset(txtPersonName);
                   Reset(txtPersonEmail),
                   CountRows(Filter(colAddPersonPicks, Picked = true)) = 0,
@@ -430,7 +457,7 @@ Screens:
                       ForAll(
                           colPersonGroupPicks As grp,
                           With(
-                              {existing: LookUp(colMemberships, GroupName = grp.Title && Lower(Email) = newEmail)},
+                              {existing: LookUp(colMemberships As mem, Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = newEmail)},
                               If(
                                   grp.Picked && IsBlank(existing),
                                   Patch('BM Memberships', Defaults('BM Memberships'), {Title: newName, Email: newEmail, GroupName: grp.Title});
