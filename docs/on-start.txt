@@ -3,7 +3,7 @@ Set(varMyEmail, Lower(User().Email));
 ClearCollect(colMaintainers, 'BM Maintainers');
 Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
 ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-ClearCollect(colMemberships, 'BM Memberships');
+ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
 ClearCollect(colThursdayBatchOptions, ["None", "Batch 1", "Batch 2"]);
 Set(varRecipientField, "bcc");
 Set(varBccForcedByBatch, false);
