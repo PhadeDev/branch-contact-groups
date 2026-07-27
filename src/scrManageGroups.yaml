@@ -7,7 +7,7 @@ Screens:
             !varIsMaintainer,
             Back(),
             ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-            ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+            ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
             ClearCollect(colMaintainers, 'BM Maintainers');
             Set(varErrManualName, false);
             Set(varErrManualEmail, false);
@@ -542,7 +542,7 @@ Screens:
                           Lower(Trim(newTitle)) <> Lower(Trim(oldTitle)),
                           UpdateIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
                           UpdateIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
-                          ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))))
+                          ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)))
                       );
                       Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
                       ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
@@ -1116,7 +1116,7 @@ Screens:
                       !IsBlank(varEditingMemberID),
                       Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Email: varAddedEmail});
                   Patch('BM History', Defaults('BM History'), {Title: "Member updated (" & varAddedEmail & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Edited"}});
-                  ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                   Reset(txtManualName);
                   Reset(txtManualEmail);
                   Set(varEditingMemberID, Blank());
@@ -1247,7 +1247,7 @@ Screens:
                   Set(varOldRosterCount, CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)))));
                   RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
                   ForAll(colParsedRosterValid, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Email: Email, GroupName: varGroupTitle}));
-                  ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                   Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: varGroupTitle});
                   Patch('BM History', Defaults('BM History'), {Title: "Bulk replace via paste: " & varOldRosterCount & " removed, " & varParsedRosterCount & " added", GroupName: varGroupTitle, EventType: {Value: "Replaced"}});
                   Reset(txtPasteRoster);

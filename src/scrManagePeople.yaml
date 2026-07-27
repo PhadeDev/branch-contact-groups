@@ -7,7 +7,7 @@ Screens:
             !varIsMaintainer,
             Back(),
             ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-            ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+            ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
             ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
             Set(varSelectedPersonEmail, Blank());
             Set(varAddPersonNamePrefill, "");
@@ -516,7 +516,7 @@ Screens:
                       Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
                       Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " added (" & varNewPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}})
                   );
-                  ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                   ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
                   Set(varAddPersonNamePrefill, "");
                   Set(varAddPersonEmailPrefill, "");
@@ -633,7 +633,7 @@ Screens:
                       If(
                           newEmail <> oldEmail,
                           UpdateIf('BM Memberships', Lower(Email) = oldEmail, {Email: newEmail});
-                          ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))))
+                          ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)))
                       );
                       ForAll(
                           colPersonGroupPicks As grp,
@@ -653,7 +653,7 @@ Screens:
                               )
                           )
                       );
-                      ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+                      ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                       ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
                       Set(varSelectedPersonEmail, newEmail);
                       Set(varShowLightbox, false);
@@ -723,7 +723,7 @@ Screens:
                       Patch('BM History', Defaults('BM History'), {Title: varPurgeName & " removed (left branch - removed from all groups)", GroupName: Value, EventType: {Value: "Removed"}})
                   );
                   RemoveIf('BM Memberships', Lower(Email) = Lower(varPurgeEmail));
-                  ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                   ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Title, GroupCount, CountRows(Rows)));
                   Reset(txtPurgeSearch);
                   Set(varConfirmPurgeArmed, false);

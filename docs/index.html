@@ -93,7 +93,7 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.31</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.32</span></h1>
 <p class="built">Built 24 Jul 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
@@ -191,6 +191,7 @@
 
 <h2>App.OnStart</h2>
 <p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong> — it's set to <code>mod.gov.uk</code> below.</p>
+<div class="note">v2.32 loads <strong>BM Memberships</strong> group-by-group from SharePoint instead of trying to cache the whole list by item ID. That avoids the row-limit/item-ID problem where later alphabetic groups could show as 0 members even when SharePoint had rows.</div>
 <div class="code-block">
   <button class="copy-btn" onclick="copyBlock(this, 'on-start')">Copy</button>
   <pre id="on-start">Set(varModDomain, "mod.gov.uk");
@@ -198,7 +199,7 @@ Set(varMyEmail, Lower(User().Email));
 ClearCollect(colMaintainers, 'BM Maintainers');
 Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
 ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-ClearCollect(colMemberships, Filter('BM Memberships', ID <= 500)); ForAll(Sequence(39) As rng, With({lo: rng.Value * 500, hi: (rng.Value + 1) * 500}, Collect(colMemberships, Filter('BM Memberships', ID > lo && ID <= hi))));
+ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
 ClearCollect(colThursdayBatchOptions, ["None", "Batch 1", "Batch 2"]);
 Set(varRecipientField, "bcc");
 Set(varBccForcedByBatch, false);
@@ -212,7 +213,7 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.21">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.22">
     <div>
       <div class="screen-number">Screen 1</div>
       <div class="screen-name">scrSendEmail</div>
@@ -220,7 +221,7 @@ Set(varLightboxGroupID, Blank())</pre>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.18">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.19">
     <div>
       <div class="screen-number">Screen 2</div>
       <div class="screen-name">scrManageGroups</div>
@@ -228,7 +229,7 @@ Set(varLightboxGroupID, Blank())</pre>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.20">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.21">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
       <div class="screen-name">scrManagePeople</div>
