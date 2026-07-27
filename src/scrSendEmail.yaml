@@ -554,11 +554,14 @@ Screens:
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
               =Set(varEffectiveField, If(varBccForced, "bcc", varRecipientField));
+              Set(varSelectedGroupCount, CountRows(Filter(colGroups, Ticked = true)));
               Set(varRecipients, Distinct(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email));
               Set(varAddressString, Concat(varRecipients, Value, "; "));
               If(
-                  CountRows(varRecipients) = 0,
+                  varSelectedGroupCount = 0,
                   Notify("Tick at least one group first.", NotificationType.Warning),
+                  CountRows(varRecipients) = 0,
+                  Notify("The selected group has no member email addresses.", NotificationType.Warning),
                   Len(EncodeUrl(varAddressString)) > 1800,
                   Copy(varAddressString);
                   Notify("Address list is too long for a mailto link (" & CountRows(varRecipients) & " recipients). Copied to clipboard instead - paste into the " & Upper(varEffectiveField) & " field.", NotificationType.Warning),
@@ -574,11 +577,14 @@ Screens:
             Text: ="Copy Addresses to Clipboard"
             BasePaletteColor: =RGBA(46,110,145,1)
             OnSelect: |-
-              =Set(varRecipients, Distinct(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email));
+              =Set(varSelectedGroupCount, CountRows(Filter(colGroups, Ticked = true)));
+              Set(varRecipients, Distinct(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email));
               Set(varAddressString, Concat(varRecipients, Value, "; "));
               If(
-                  CountRows(varRecipients) = 0,
+                  varSelectedGroupCount = 0,
                   Notify("Tick at least one group first.", NotificationType.Warning),
+                  CountRows(varRecipients) = 0,
+                  Notify("The selected group has no member email addresses.", NotificationType.Warning),
                   Copy(varAddressString);
                   Notify("Copied " & CountRows(varRecipients) & " addresses to clipboard.", NotificationType.Success)
               )
