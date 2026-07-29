@@ -93,7 +93,7 @@
 <body>
 
 <a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.32</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.34</span></h1>
 <p class="built">Built 24 Jul 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
@@ -146,15 +146,35 @@
 <table>
   <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td>Title</td><td>Single line of text</td><td>Built-in — display name of the person. Not Required.</td></tr>
+    <tr><td>Title</td><td>Single line of text</td><td>Built-in — kept as a mirror of <strong>Name</strong> purely so SharePoint's own default list view still shows something meaningful. <strong>The app itself never reads Title</strong> — as of v2.34, <strong>Name</strong> is the real field the app uses everywhere (display, search, sort, rename-cascade). Not Required.</td></tr>
+    <tr><td>Name</td><td>Single line of text <span style="color:#4dafff; font-size:0.8em;">(new in v2.34)</span></td><td>The person's display name — the field the app actually reads and writes. Not Required.</td></tr>
+    <tr><td>JMC</td><td>Single line of text <span style="color:#4dafff; font-size:0.8em;">(new in v2.34)</span></td><td>Bde/Area from the standard import sheet. Optional — blank hides the field on cards. Not Required.</td></tr>
+    <tr><td>County/Contingent</td><td>Single line of text <span style="color:#4dafff; font-size:0.8em;">(new in v2.34)</span></td><td>County/District from the standard import sheet. The column name itself contains a slash, so in Power Fx it must be referenced as <code>ThisItem.'County/Contingent'</code> (quoted). Optional — blank hides the field on cards. Not Required.</td></tr>
     <tr><td>Email</td><td>Single line of text</td><td>Store lowercase. Not Required.</td></tr>
     <tr><td>GroupName</td><td>Single line of text</td><td>Must match a 'BM Groups'.Title value exactly. Plain text, not a Lookup column — this keeps every filter delegable and avoids the Lookup-column delegation issues this app family has hit before. Not Required.</td></tr>
     <tr><td>Notes</td><td>Single line of text</td><td>Optional per-person note, editable from Manage Groups or Manage People.</td></tr>
   </tbody>
 </table>
-<p>One row per person-per-group (deliberately denormalised — a person in 3 groups is 3 rows). This mirrors how Outlook contact groups actually work and keeps every query in the app a plain, delegable <code>Filter</code>. The new <strong>Manage People</strong> screen is a view over this same table grouped by email — no separate "people" list needed.</p>
+<p>One row per person-per-group (deliberately denormalised — a person in 3 groups is 3 rows). This mirrors how Outlook contact groups actually work and keeps every query in the app a plain, delegable <code>Filter</code>. The new <strong>Manage People</strong> screen is a view over this same table grouped by email — no separate "people" list needed. <strong>JMC</strong> and <strong>County/Contingent</strong> genuinely belong to the membership row (not the person), since the same person could have different regional metadata in different groups — Manage People's per-person card picks whichever membership row happens to be found first as a reasonable approximation.</p>
+<div class="warning"><strong>v2.34 migration step:</strong> after adding the new <code>Name</code> column, existing membership rows still have their old display name in <code>Title</code> and a blank <code>Name</code>. Backfill <code>Name</code> from <code>Title</code> once before testing the new screens, otherwise Manage People rows, member popups, search, and name sorting can appear blank even though the membership rows still exist.</div>
 <p><strong>Versioning:</strong> enabled, same as BM Groups — gives you a native audit trail as a backstop; the app-level <strong>BM History</strong> list below is the human-readable one you'll actually use day to day.</p>
 <p><strong>Permissions:</strong> same unique-permission pattern as BM Groups — Edit for the two maintainers, Read for everyone else.</p>
+
+<h4>Pasting the standard import sheet (v2.34)</h4>
+<p>The <strong>Replace all (paste)</strong> tab inside Manage Members now recognises two formats automatically, based on how many tab-separated columns each pasted row has:</p>
+<table>
+  <thead><tr><th>Sheet column</th><th>Maps to</th></tr></thead>
+  <tbody>
+    <tr><td>Bde / Area</td><td>JMC</td></tr>
+    <tr><td>County / District</td><td>County/Contingent</td></tr>
+    <tr><td>Rank</td><td>kept as-is, first word of Name</td></tr>
+    <tr><td>First Name</td><td>normalised to Proper Case, second part of Name</td></tr>
+    <tr><td>Surname</td><td>forced to UPPERCASE, third part of Name</td></tr>
+    <tr><td>Appointment</td><td>ignored on import</td></tr>
+    <tr><td>Email</td><td>Email</td></tr>
+  </tbody>
+</table>
+<p>Example: <code>Maj / Victor / HUGHES</code> → Name = "Maj Victor HUGHES". A header row is fine to include in the paste — it fails the email-format check and gets silently skipped, the same way blank/invalid rows always have. The old two-column Name/Email paste still works exactly as before for groups that don't have this structured data — the parser just checks the column count per pasted block and picks the matching format.</p>
 
 <h3>List: <code>BM Maintainers</code></h3>
 <table>
@@ -187,7 +207,18 @@
 <p><strong>Versioning:</strong> not needed — this list is itself the audit trail; individual rows are never edited after creation.</p>
 <p><strong>Permissions:</strong> same as BM Groups/BM Memberships — Edit for maintainers (the app writes here on their behalf), Read for everyone (the history icon is visible on the Send Email screen too, not just Manage Groups).</p>
 
-<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all four lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
+<h3>List: <code>BM Saved Selections</code> <span style="color:#4dafff; font-size:0.8em;">(new in v2.35)</span></h3>
+<table>
+  <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Title</td><td>Single line of text</td><td>Readable mirror only, written as selection name plus group name.</td></tr>
+    <tr><td>SelectionName</td><td>Single line of text</td><td>Name of the reusable saved send set.</td></tr>
+    <tr><td>GroupName</td><td>Single line of text</td><td>One row per group included in that saved set. Must match a BM Groups title.</td></tr>
+  </tbody>
+</table>
+<p>The Send Email screen uses this list to save, load, and delete reusable group selections. Add this SharePoint list as a data source before pasting <strong>scrSendEmail v2.26</strong>.</p>
+
+<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all five lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
 
 <h2>App.OnStart</h2>
 <p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong> — it's set to <code>mod.gov.uk</code> below.</p>
@@ -213,27 +244,27 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.22">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.26">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail</div>
-      <div class="screen-desc">Tick groups (clicking a card just previews it on the right — only the checkbox ticks it), live recipient count, To/CC/BCC toggle that auto-locks to BCC for external addresses or Thursday batches, two independent Thursday Batch buttons, member/history/batch-preview popup.</div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.26</span></div>
+      <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, Thursday Batch shortcuts, member/history/batch-preview popup, clear-search button, manual Refresh, last-loaded timestamp, and reusable saved selections stored in BM Saved Selections.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.19">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.23">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups</div>
-      <div class="screen-desc">Maintainer-only. Compact searchable table of groups — sensitivity/official-use/private shown as small pills, not appended to the title. Create/edit a group, manage membership, add from GAL or manually, paste-replace rosters from Excel, and manage the BM Maintainers list from the app.</div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.23</span></div>
+      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check, and manually refresh the loaded SharePoint cache.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.21">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.25">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
-      <div class="screen-name">scrManagePeople</div>
-      <div class="screen-desc">Maintainer-only. One record per person — tick every group they belong to and save in one action instead of adding them group-by-group. Duplicate-email protection routes you to the existing person instead of creating a copy. Includes "remove from every group" for leavers.</div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.25</span></div>
+      <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
@@ -270,6 +301,121 @@ Set(varLightboxGroupID, Blank())</pre>
     <tr><td>scrManagePeople</td><td><code>recPersonRowClickCatcher</code></td><td><code>recPersonRowFrame</code>, <code>lblPersonRowName</code>, <code>lblPersonRowEmail</code></td><td>nothing else in this row — it's the frontmost control</td></tr>
   </tbody>
 </table>
+
+<h3>v2.33 — Six fixes, as hand-applied edits (no full-screen re-paste needed)</h3>
+<p>These are written as targeted property edits on named controls (find the control in the tree, open its formula bar, paste in just the one property) plus a short list of brand-new controls to insert. Nothing here requires deleting or re-pasting a whole screen, so any manual text-size/spacing tweaks you've already made elsewhere are untouched.</p>
+
+<h4>1. scrSendEmail — Thursday Batch buttons ticking nothing</h4>
+<p>Cause: the buttons always forced BCC-locked mode even when zero groups actually had that Thursday Batch set, which read as "broken" rather than "nothing to select yet."</p>
+<table>
+  <thead><tr><th>Control</th><th>Property</th><th>New formula</th></tr></thead>
+  <tbody>
+    <tr><td><code>btnThursdayBatch1</code></td><td>OnSelect</td><td><code>=If(CountRows(Filter(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 1")) = 0, Notify("No groups are currently set to Thursday Batch 1. Set a group's Thursday Batch in Manage Groups first.", NotificationType.Warning), UpdateIf(colGroups, true, {Ticked: false}); UpdateIf(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 1", {Ticked: true}); Set(varBccForcedByBatch, true); Set(varBccForced, true))</code></td></tr>
+    <tr><td><code>btnThursdayBatch2</code></td><td>OnSelect</td><td>Same shape as above with every <code>"batch 1"</code> → <code>"batch 2"</code> and the notify text saying "Batch 2".</td></tr>
+    <tr><td><code>galLightboxMembers</code></td><td>Items</td><td>In the existing <code>Switch(varLightboxMode, ...)</code> formula, in the <code>"batch1"</code> and <code>"batch2"</code> branches, change <code>grp.ThursdayBatch.Value = "Batch 1"</code> (and <code>"Batch 2"</code>) to <code>Lower(Trim(grp.ThursdayBatch.Value)) = "batch 1"</code> (and <code>"batch 2"</code>) — same trim/case-insensitive treatment, for the batch-preview popup to match what the buttons now select.</td></tr>
+  </tbody>
+</table>
+
+<h4>2. scrSendEmail — clear (X) button on group search</h4>
+<p>New control to insert: an Icon, positioned just inside the right edge of <code>txtGroupSearch</code>.</p>
+<table>
+  <thead><tr><th>Property</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td><code>icoClearGroupSearch</code></td></tr>
+    <tr><td>Icon</td><td><code>=Icon.Cancel</code></td></tr>
+    <tr><td>Visible</td><td><code>=!IsBlank(Trim(txtGroupSearch.Text))</code></td></tr>
+    <tr><td>Color</td><td><code>=RGBA(160,160,160,1)</code></td></tr>
+    <tr><td>Tooltip</td><td><code>="Clear search"</code></td></tr>
+    <tr><td>OnSelect</td><td><code>=Reset(txtGroupSearch)</code></td></tr>
+    <tr><td>X / Y / Width / Height</td><td><code>668 / 131 / 22 / 22</code></td></tr>
+  </tbody>
+</table>
+
+<h4>3. scrManageGroups — Delete group button</h4>
+<p>New control in the edit-group lightbox, next to Cancel. Uses the same tap-twice-to-confirm pattern as the member/maintainer trash icons already in this app.</p>
+<table>
+  <thead><tr><th>Property</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td><code>btnDeleteGroup</code> (ModernButton)</td></tr>
+    <tr><td>Text</td><td><code>=If(varConfirmDeleteGroupArmed, "Tap again to confirm - deletes " & CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)))) & " member(s)", "Delete group")</code></td></tr>
+    <tr><td>Visible</td><td><code>=varShowLightbox && varLightboxMode = "edit" && !IsBlank(varManageGroupID)</code></td></tr>
+    <tr><td>BasePaletteColor</td><td><code>=RGBA(163,45,45,1)</code></td></tr>
+    <tr><td>OnSelect</td><td><code>=If(!varConfirmDeleteGroupArmed, Set(varConfirmDeleteGroupArmed, true), With({deletedTitle: LookUp(colGroups, ID = varManageGroupID).Title}, RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(deletedTitle))); RemoveIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(deletedTitle))); Remove('BM Groups', LookUp('BM Groups', ID = varManageGroupID)); ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false)); ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title))); Set(varConfirmDeleteGroupArmed, false); Set(varShowLightbox, false); Set(varManageGroupID, Blank()); Notify("Deleted " & deletedTitle & ".", NotificationType.Error)))</code></td></tr>
+    <tr><td>X / Y / Width / Height</td><td><code>523 / 466 / 300 / 44</code></td></tr>
+  </tbody>
+</table>
+<p>Also add a new global variable — it needs initialising to <code>false</code> somewhere it's set before first use. Simplest: add <code>Set(varConfirmDeleteGroupArmed, false);</code> as one more line in the <strong>Screen's own OnVisible</strong> property (select the screen itself in the tree, not a control), and again at the end of each of these three existing OnSelect formulas so the confirm-state resets whenever a different group's edit lightbox opens: <code>btnNewGroup</code>, the group row's <code>recRowClickCatcher</code>, and <code>icoRowEdit</code> — in each, add <code>Set(varConfirmDeleteGroupArmed, false);</code> right before the final <code>Set(varShowLightbox, true)</code> line.</p>
+
+<h4>4. scrManageGroups — GAL search flicker fix (two search boxes)</h4>
+<p>Same cause as the Manage People one below — <code>Office365Users.SearchUserV2(...)</code> was called directly in a gallery's <code>Items</code>, causing background flicker. Fix for the "Add people" tab's GAL search:</p>
+<table>
+  <thead><tr><th>Control</th><th>Property</th><th>New formula</th></tr></thead>
+  <tbody>
+    <tr><td><code>txtGalSearch</code></td><td>OnChange (new property)</td><td><code>=If(IsBlank(Trim(txtGalSearch.Text)), ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)), ClearCollect(colGalSearchResults, Office365Users.SearchUserV2({searchTerm: txtGalSearch.Text, top: 10}).value))</code></td></tr>
+    <tr><td><code>galGalResults</code></td><td>Items</td><td><code>=colGalSearchResults</code></td></tr>
+    <tr><td><code>txtMaintainerSearch</code></td><td>OnChange (new property)</td><td>Same shape, <code>colMaintainerGalSearchResults</code>, <code>top: 5</code>.</td></tr>
+    <tr><td><code>galMaintainerGalResults</code></td><td>Items</td><td><code>=colMaintainerGalSearchResults</code></td></tr>
+  </tbody>
+</table>
+<p>Because <code>Reset()</code> doesn't fire <code>OnChange</code>, also add a line re-seeding the empty-result collection wherever these two search boxes get <code>Reset()</code>'d: <code>icoRowManageMembers.OnSelect</code> (after <code>Reset(txtGalSearch)</code>, add <code>ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));</code>), the "add from GAL" tile's tap handler (same line, after its own <code>Reset(txtGalSearch)</code>), <code>btnMaintainersNav.OnSelect</code> and <code>btnUseMaintainerGal.OnSelect</code> (same pattern with <code>colMaintainerGalSearchResults</code>). Also seed both collections once in the <strong>Screen's OnVisible</strong>, same empty-filter formula.</p>
+
+<h4>5. scrManageGroups — clear (X) buttons</h4>
+<table>
+  <thead><tr><th>Name</th><th>Icon</th><th>Visible</th><th>OnSelect</th><th>X / Y / W / H</th></tr></thead>
+  <tbody>
+    <tr><td><code>icoClearGroupSearch</code></td><td>Icon.Cancel</td><td><code>=!IsBlank(Trim(txtGroupSearch.Text))</code></td><td><code>=Reset(txtGroupSearch)</code></td><td>588 / 137 / 22 / 22</td></tr>
+    <tr><td><code>icoClearGalSearch</code></td><td>Icon.Cancel</td><td><code>=varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && !IsBlank(Trim(txtGalSearch.Text))</code></td><td><code>=Reset(txtGalSearch); ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))</code></td><td>571 / 220 / 22 / 22</td></tr>
+    <tr><td><code>icoClearMaintainerSearch</code></td><td>Icon.Cancel</td><td><code>=varShowLightbox && varLightboxMode = "adminMaintainers" && !IsBlank(Trim(txtMaintainerSearch.Text))</code></td><td><code>=Reset(txtMaintainerSearch); ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))</code></td><td>1091 / 170 / 22 / 22</td></tr>
+  </tbody>
+</table>
+<p>All three: <code>Color: =RGBA(160,160,160,1)</code>, <code>Tooltip: ="Clear search"</code>.</p>
+
+<h4>6. scrManagePeople — Remove Leaver group list, clear buttons, and its own GAL search flicker fix</h4>
+<p><strong>Remove Leaver group list</strong>: new Gallery inserted between the existing <code>lblPurgeMatch</code> label and the <code>btnPurgeFromAll</code> button.</p>
+<table>
+  <thead><tr><th>Property</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td><code>galPurgeMatchGroups</code> (Vertical Gallery)</td></tr>
+    <tr><td>Items</td><td><code>=With({p: LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email)}, If(IsBlank(Trim(txtPurgeSearch.Text)) || IsBlank(p), Filter(colMemberships, false), Sort(Distinct(Filter(colMemberships, Lower(Email) = Lower(p.Email)), GroupName), Value, SortOrder.Ascending)))</code></td></tr>
+    <tr><td>Visible</td><td><code>=varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text)) && !IsBlank(LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email))</code></td></tr>
+    <tr><td>TemplateSize / X / Y / Width / Height</td><td>28 / 283 / 294 / 780 / 130</td></tr>
+    <tr><td>Child label <code>lblPurgeMatchGroupRow</code></td><td>Text: <code>="•  " & ThisItem.Value</code>, size 12, colour <code>RGBA(120,120,120,1)</code></td></tr>
+  </tbody>
+</table>
+<p>Then two small existing-control edits: shrink <code>lblPurgeMatch</code>'s Height from 50 to 30 (its X/Y stay the same, it just no longer needs room for a second line), and move <code>btnPurgeFromAll</code>'s Y from 320 down to 436 so it sits below the new list.</p>
+
+<p><strong>Clear (X) buttons:</strong></p>
+<table>
+  <thead><tr><th>Name</th><th>Visible</th><th>OnSelect</th><th>X / Y / W / H</th></tr></thead>
+  <tbody>
+    <tr><td><code>icoClearPeopleSearch</code></td><td><code>=!IsBlank(Trim(txtPeopleSearch.Text))</code></td><td><code>=Reset(txtPeopleSearch)</code></td><td>588 / 137 / 22 / 22</td></tr>
+    <tr><td><code>icoClearPurgeSearch</code></td><td><code>=varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text))</code></td><td><code>=Reset(txtPurgeSearch); Set(varConfirmPurgeArmed, false)</code></td><td>1051 / 217 / 22 / 22</td></tr>
+    <tr><td><code>icoClearAddPersonSearch</code></td><td><code>=varShowLightbox && varPeopleLightboxMode = "addPerson" && !IsBlank(Trim(txtAddPersonSearch.Text))</code></td><td><code>=Reset(txtAddPersonSearch); ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))</code></td><td>1051 / 158 / 22 / 22</td></tr>
+  </tbody>
+</table>
+<p>All three: Icon.Cancel, <code>Color: =RGBA(160,160,160,1)</code>, <code>Tooltip: ="Clear search"</code>.</p>
+
+<p><strong>GAL search flicker fix</strong> (Add Person tab), same pattern as item 4 above:</p>
+<table>
+  <thead><tr><th>Control</th><th>Property</th><th>New formula</th></tr></thead>
+  <tbody>
+    <tr><td><code>txtAddPersonSearch</code></td><td>OnChange (new property)</td><td><code>=If(IsBlank(Trim(txtAddPersonSearch.Text)), ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)), ClearCollect(colAddPersonGalResults, Office365Users.SearchUserV2({searchTerm: txtAddPersonSearch.Text, top: 5}).value))</code></td></tr>
+    <tr><td><code>galAddPersonGalResults</code></td><td>Items</td><td><code>=colAddPersonGalResults</code></td></tr>
+  </tbody>
+</table>
+<p>Re-seed <code>colAddPersonGalResults</code> (same empty-filter formula) wherever <code>txtAddPersonSearch</code> gets <code>Reset()</code>'d: <code>btnAddPersonTrigger.OnSelect</code> and the successful-add branch of <code>btnAddPerson.OnSelect</code>. Also seed it once in the <strong>Screen's OnVisible</strong>.</p>
+
+<div class="note">Not changed this round: Manage People's initial load still takes a while, because <strong>BM Memberships</strong> is deliberately fetched group-by-group (see the v2.32 note above) rather than in one request, to avoid the row-limit truncation problem that took three iterations (v2.30→v2.32) to actually fix. With ~50 groups that's ~50 sequential SharePoint round trips every time you open Manage Groups or Manage People. Reverting to a single <code>ClearCollect(colMemberships, 'BM Memberships')</code>, even with the Data Row Limit already set to 2000, risks reintroducing that exact bug — flagged for a decision, not applied silently.</div>
+
+<h3>v2.34 — JMC / County-Contingent / Name split out of Title, and the standard import sheet</h3>
+<p>Given the size of this change, it's applied as a full screen re-paste rather than a manual property list — see the SharePoint schema notes above (<strong>BM Memberships</strong> section) for the new <strong>Name</strong>, <strong>JMC</strong>, and <strong>County/Contingent</strong> columns and the exact import-sheet mapping.</p>
+<p><strong>Add the three new columns to BM Memberships in SharePoint first</strong> (Name, JMC, County/Contingent — all Single line of text, Not Required), then delete each of the three screens and paste fresh into new blank screens rather than pasting over the existing ones — Studio's paste is additive/merge, not a full replace, so a control that got renamed or removed as part of a fix can be left behind on the canvas with its old bindings still intact.</p>
+<ul>
+  <li><strong>Name is now the field the app actually reads and writes</strong> for a person's display name — <code>Title</code> is kept only as a mirror so SharePoint's own list view still shows something readable; the app itself never reads Title again.</li>
+  <li><strong>Manage Groups</strong>: the member card in "Manage Members" now shows JMC and County/Contingent above Name/Email (each line hidden automatically when blank); the manual add/edit form has two new optional fields for them; the paste-import box auto-detects the standard 7-column sheet vs. the old 2-column Name/Email format by counting columns per pasted line.</li>
+  <li><strong>Manage People</strong>: person cards in the main list now show the same JMC/County/Contingent/Name/Email layout — since these two fields technically belong to a specific group-membership row rather than the person, the card shows whichever membership row is found first as a reasonable approximation.</li>
+  <li><strong>Send Email</strong>: unchanged — it continues to show groups, not individual people, by design.</li>
+</ul>
 
 <h2>Further Reading</h2>
 <div class="doc-grid">
