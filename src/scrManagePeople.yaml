@@ -13,6 +13,7 @@ Screens:
             Set(varAddPersonNamePrefill, "");
             Set(varAddPersonEmailPrefill, "");
             Set(varConfirmPurgeArmed, false);
+            Set(varPurgeSelectedEmail, "");
             Set(varShowLightbox, false);
             Set(varPeopleLightboxMode, "addPerson");
             ClearCollect(colPersonGroupPicks, Filter(colGroups, false));
@@ -41,7 +42,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.25"
+            Text: ="scrManagePeople v2.26"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -110,6 +111,7 @@ Screens:
               =Set(varPeopleLightboxMode, "purge");
               Reset(txtPurgeSearch);
               Set(varConfirmPurgeArmed, false);
+              Set(varPurgeSelectedEmail, "");
               Set(varShowLightbox, true)
             X: =1180
             Y: =16
@@ -310,7 +312,7 @@ Screens:
             HoverFill: =Self.Fill
             PressedFill: =Self.Fill
             BorderThickness: =0
-            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank())
+            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank()); Set(varPurgeSelectedEmail, ""); Set(varConfirmPurgeArmed, false)
             X: =0
             Y: =0
             Width: =1366
@@ -352,7 +354,7 @@ Screens:
             Icon: =Icon.Cancel
             Visible: =varShowLightbox
             Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank())
+            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank()); Set(varPurgeSelectedEmail, ""); Set(varConfirmPurgeArmed, false)
             X: =1093
             Y: =78
             Width: =28
@@ -777,7 +779,7 @@ Screens:
           Properties:
             Placeholder: ="Search by name or email..."
             Visible: =varShowLightbox && varPeopleLightboxMode = "purge"
-            OnChange: =Set(varConfirmPurgeArmed, false)
+            OnChange: =Set(varConfirmPurgeArmed, false); Set(varPurgeSelectedEmail, "")
             X: =263
             Y: =206
             Width: =820
@@ -789,7 +791,7 @@ Screens:
             Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text))
             Color: =RGBA(160,160,160,1)
             Tooltip: ="Clear search"
-            OnSelect: =Reset(txtPurgeSearch); Set(varConfirmPurgeArmed, false)
+            OnSelect: =Reset(txtPurgeSearch); Set(varConfirmPurgeArmed, false); Set(varPurgeSelectedEmail, "")
             X: =1051
             Y: =217
             Width: =22
@@ -799,8 +801,14 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {p: LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email)},
-                  If(IsBlank(Trim(txtPurgeSearch.Text)), "", IsBlank(p), "No current member matches that.", p.Name & "  -  " & p.Email & "  -  member of " & p.GroupCount & " group" & If(p.GroupCount = 1, "", "s"))
+                  {matches: CountRows(Filter(colPeople, Lower(Trim(txtPurgeSearch.Text)) in Lower(Name) || Lower(Trim(txtPurgeSearch.Text)) in Lower(Email)))},
+                  If(
+                      IsBlank(Trim(txtPurgeSearch.Text)),
+                      "Type at least part of a name or email.",
+                      matches = 0,
+                      "No current member matches that.",
+                      matches & " match" & If(matches = 1, "", "es") & " found - tick the person to remove."
+                  )
               )
             Visible: =varShowLightbox && varPeopleLightboxMode = "purge"
             Color: =RGBA(80,80,80,1)
@@ -810,50 +818,139 @@ Screens:
             Y: =260
             Width: =820
             Height: =30
+      - galPurgeMatches:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =Sort(Filter(colPeople, Lower(Trim(txtPurgeSearch.Text)) in Lower(Name) || Lower(Trim(txtPurgeSearch.Text)) in Lower(Email)), Name, SortOrder.Ascending)
+            Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text)) && CountRows(Filter(colPeople, Lower(Trim(txtPurgeSearch.Text)) in Lower(Name) || Lower(Trim(txtPurgeSearch.Text)) in Lower(Email))) > 0
+            TemplateSize: =54
+            TemplatePadding: =0
+            X: =263
+            Y: =294
+            Width: =820
+            Height: =176
+          Children:
+            - recPurgePersonRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =If(Lower(ThisItem.Email) = Lower(varPurgeSelectedEmail), RGBA(232,244,239,1), RGBA(255,255,255,1))
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =If(Lower(ThisItem.Email) = Lower(varPurgeSelectedEmail), RGBA(0,78,66,1), RGBA(235,238,242,1))
+                  BorderThickness: =1
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  X: =0
+                  Y: =3
+                  Width: =820
+                  Height: =48
+            - chkPurgeSelect:
+                Control: CheckBox@0.0.30
+                Properties:
+                  Label: =""
+                  Checked: =Lower(ThisItem.Email) = Lower(varPurgeSelectedEmail)
+                  BasePaletteColor: =RGBA(156,220,79,1)
+                  CheckboxSize: =22
+                  OnCheck: =Set(varPurgeSelectedEmail, ThisItem.Email); Set(varConfirmPurgeArmed, false)
+                  OnUncheck: =If(Lower(varPurgeSelectedEmail) = Lower(ThisItem.Email), Set(varPurgeSelectedEmail, "")); Set(varConfirmPurgeArmed, false)
+                  X: =14
+                  Y: =10
+                  Width: =38
+                  Height: =34
+            - lblPurgePersonName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Name
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =60
+                  Y: =6
+                  Width: =450
+                  Height: =22
+            - lblPurgePersonEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email
+                  Color: =RGBA(120,120,120,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =60
+                  Y: =27
+                  Width: =450
+                  Height: =20
+            - lblPurgePersonGroupCount:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="member of " & ThisItem.GroupCount & " group" & If(ThisItem.GroupCount = 1, "", "s")
+                  Color: =RGBA(80,80,80,1)
+                  Align: =Align.Right
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =580
+                  Y: =14
+                  Width: =220
+                  Height: =22
+      - lblPurgeGroupsHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Groups this will remove from"
+            Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(varPurgeSelectedEmail)
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Semibold
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =263
+            Y: =480
+            Width: =820
+            Height: =22
       - galPurgeMatchGroups:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: |-
-              =With(
-                  {p: LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email)},
-                  If(
-                      IsBlank(Trim(txtPurgeSearch.Text)) || IsBlank(p),
-                      Filter(Distinct(colMemberships, GroupName), false),
-                      Sort(Distinct(Filter(colMemberships, Lower(Email) = Lower(p.Email)), GroupName), Value, SortOrder.Ascending)
-                  )
+              =If(
+                  IsBlank(varPurgeSelectedEmail),
+                  Filter(Distinct(colMemberships, GroupName), false),
+                  Sort(Distinct(Filter(colMemberships, Lower(Email) = Lower(varPurgeSelectedEmail)), GroupName), Value, SortOrder.Ascending)
               )
-            Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text)) && !IsBlank(LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email))
-            TemplateSize: =28
+            Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(varPurgeSelectedEmail)
+            TemplateSize: =24
             TemplatePadding: =0
             X: =283
-            Y: =294
+            Y: =506
             Width: =780
-            Height: =130
+            Height: =82
           Children:
             - lblPurgeMatchGroupRow:
                 Control: Label@2.5.1
                 Properties:
                   Text: ="•  " & ThisItem.Value
                   Color: =RGBA(120,120,120,1)
-                  Size: =12
+                  Size: =11
                   Font: =Font.'Open Sans'
                   X: =0
-                  Y: =2
+                  Y: =1
                   Width: =780
-                  Height: =24
+                  Height: =22
       - btnPurgeFromAll:
           Control: ModernButton@1.0.0
           Properties:
             Text: =If(varConfirmPurgeArmed, "Tap again to confirm removal", "Remove from all groups")
-            Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text)) && !IsBlank(LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email))
+            Visible: =varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(varPurgeSelectedEmail)
             BasePaletteColor: =RGBA(163,45,45,1)
             OnSelect: |-
               =If(
                   !varConfirmPurgeArmed,
                   Set(varConfirmPurgeArmed, true),
-                  Set(varPurgeEmail, LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email).Email);
-                  Set(varPurgeName, LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email).Name);
+                  Set(varPurgeEmail, varPurgeSelectedEmail);
+                  Set(varPurgeName, LookUp(colPeople, Lower(Email) = Lower(varPurgeSelectedEmail)).Name);
                   ClearCollect(colPurgeAffectedGroups, Distinct(Filter(colMemberships, Lower(Email) = Lower(varPurgeEmail)), GroupName));
                   Set(varPurgeCount, CountRows(colPurgeAffectedGroups));
                   ForAll(
@@ -866,11 +963,12 @@ Screens:
                   ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                   Reset(txtPurgeSearch);
                   Set(varConfirmPurgeArmed, false);
+                  Set(varPurgeSelectedEmail, "");
                   Set(varSelectedPersonEmail, Blank());
                   Set(varShowLightbox, false);
                   Notify("Removed " & varPurgeName & " from " & varPurgeCount & " group" & If(varPurgeCount = 1, "", "s") & ".", NotificationType.Error)
               )
             X: =263
-            Y: =436
+            Y: =614
             Width: =820
             Height: =44

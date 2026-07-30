@@ -11,6 +11,7 @@ Screens:
         Set(varBccForced, false);
         Set(varPreviewGroupID, Blank());
         Set(varSavedSelectionName, "");
+        Set(varShowThursdayTools, false);
         Set(varShowLightbox, false);
         Set(varLastMembershipRefresh, Now())
     Children:
@@ -34,7 +35,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrSendEmail v2.26"
+            Text: ="scrSendEmail v2.27"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -88,6 +89,7 @@ Screens:
               Set(varBccForcedByBatch, false);
               Set(varBccForced, false);
               Set(varPreviewGroupID, Blank());
+              Set(varShowThursdayTools, false);
               Set(varLastMembershipRefresh, Now());
               Notify("Refreshed groups and memberships.", NotificationType.Success)
             X: =1010
@@ -530,19 +532,30 @@ Screens:
           Control: Label@2.5.1
           Properties:
             Text: ="Maintainer shortcuts"
-            Visible: =varIsMaintainer
+            Visible: =varIsMaintainer && varShowThursdayTools
             Color: =RGBA(120,120,120,1)
             Size: =11
             Font: =Font.'Open Sans'
             X: =760
+            Y: =If(IsBlank(varPreviewGroupID), 364, 542)
+            Width: =560
+            Height: =20
+      - btnToggleThursdayTools:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varShowThursdayTools, "Hide Thursday tools", "Thursday tools")
+            Visible: =varIsMaintainer
+            BasePaletteColor: =If(varShowThursdayTools, RGBA(0,78,66,1), RGBA(120,120,120,1))
+            OnSelect: =Set(varShowThursdayTools, !varShowThursdayTools)
+            X: =760
             Y: =If(IsBlank(varPreviewGroupID), 318, 496)
             Width: =560
-            Height: =28
+            Height: =36
       - btnThursdayBatch1:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Thursday Batch 1"
-            Visible: =varIsMaintainer
+            Visible: =varIsMaintainer && varShowThursdayTools
             BasePaletteColor: =RGBA(46,110,145,1)
             OnSelect: |-
               =If(
@@ -554,27 +567,27 @@ Screens:
                   Set(varBccForced, true)
               )
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 348, 526)
-            Width: =520
-            Height: =44
+            Y: =If(IsBlank(varPreviewGroupID), 390, 568)
+            Width: =245
+            Height: =38
       - icoPreviewBatch1:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.View
-            Visible: =varIsMaintainer
+            Visible: =varIsMaintainer && varShowThursdayTools
             Color: =RGBA(46,110,145,1)
             OnSelect: |-
               =Set(varLightboxMode, "batch1");
               Set(varShowLightbox, true)
-            X: =1290
-            Y: =If(IsBlank(varPreviewGroupID), 356, 534)
+            X: =1013
+            Y: =If(IsBlank(varPreviewGroupID), 395, 573)
             Width: =28
             Height: =28
       - btnThursdayBatch2:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Thursday Batch 2"
-            Visible: =varIsMaintainer
+            Visible: =varIsMaintainer && varShowThursdayTools
             BasePaletteColor: =RGBA(46,110,145,1)
             OnSelect: |-
               =If(
@@ -585,21 +598,21 @@ Screens:
                   Set(varBccForcedByBatch, true);
                   Set(varBccForced, true)
               )
-            X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 400, 578)
-            Width: =520
-            Height: =44
+            X: =1050
+            Y: =If(IsBlank(varPreviewGroupID), 390, 568)
+            Width: =245
+            Height: =38
       - icoPreviewBatch2:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.View
-            Visible: =varIsMaintainer
+            Visible: =varIsMaintainer && varShowThursdayTools
             Color: =RGBA(46,110,145,1)
             OnSelect: |-
               =Set(varLightboxMode, "batch2");
               Set(varShowLightbox, true)
-            X: =1290
-            Y: =If(IsBlank(varPreviewGroupID), 408, 586)
+            X: =1303
+            Y: =If(IsBlank(varPreviewGroupID), 395, 573)
             Width: =28
             Height: =28
       - btnClearSelection:
@@ -612,7 +625,7 @@ Screens:
               Set(varBccForcedByBatch, false);
               Set(varBccForced, false)
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 462, 640)
+            Y: =If(IsBlank(varPreviewGroupID), 270, 448)
             Width: =270
             Height: =40
       - btnSavedSelections:
@@ -626,7 +639,7 @@ Screens:
               Set(varLightboxMode, "saved");
               Set(varShowLightbox, true)
             X: =1050
-            Y: =If(IsBlank(varPreviewGroupID), 462, 640)
+            Y: =If(IsBlank(varPreviewGroupID), 270, 448)
             Width: =270
             Height: =40
       - btnOpenOutlook:
