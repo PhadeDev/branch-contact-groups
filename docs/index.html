@@ -273,6 +273,14 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Manual Fixes</h2>
 <p>Small property-level tweaks that are quicker to make directly in Studio than to re-paste a whole screen for. Select the named control, open its property list (Advanced tab, or the dropdown at the top of the formula bar), and edit only the property named — leave everything else on the control alone. This list grows as new ones come up; check it before doing a full delete-and-repaste for something small.</p>
 
+<h3>v2.36 — <code>drpEditThursdayBatch</code> opens blank instead of defaulting to None</h3>
+<p>For existing groups, the old <code>Default</code> formula only looked for the raw stored SharePoint choice value. If that value is blank, stale in <code>colGroups</code>, or has whitespace/casing differences, the dropdown cannot find a matching row in <code>colThursdayBatchOptions</code> and renders blank. Select <strong>scrManageGroups</strong> → <code>drpEditThursdayBatch</code> and replace the <strong>Default</strong> property with:</p>
+<pre>LookUp(
+    colThursdayBatchOptions,
+    Lower(Trim(Value)) =
+        Lower(Trim(Coalesce(LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value, "None")))
+)</pre>
+
 <h3>v2.8 — Dead click: <code>DisplayMode.View</code> combined with <code>OnSelect</code></h3>
 <p><code>DisplayMode.View</code> disables interaction entirely on a <code>Classic/Button</code>, not just its hover/press styling — a button with both properties set looks completely normal but never responds to a tap, with no error anywhere. Fix: select the control, delete its <strong>DisplayMode</strong> property so it goes back to default. Nothing else on the control needs to change.</p>
 <table>
