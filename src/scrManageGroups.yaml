@@ -29,6 +29,7 @@ Screens:
             Set(varConfirmReplaceArmed, false);
             Set(varConfirmDeleteGroupArmed, false);
             ClearCollect(colParsedRoster, Filter(colMemberships, false));
+            ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(Filter(colMemberships, false), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
             ClearCollect(colHealthChecks, Table({Severity: "OK", Issue: "Health checks not run yet", Detail: "Open Health Check to scan the current local data cache."}));
             ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
             ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
@@ -52,17 +53,6 @@ Screens:
             Y: =0
             Width: =1366
             Height: =72
-      - lblAppVersion:
-          Control: Label@2.5.1
-          Properties:
-            Text: ="scrManageGroups v2.23"
-            Color: =RGBA(214,232,227,1)
-            Size: =9
-            Font: =Font.'Open Sans'
-            X: =1226
-            Y: =3
-            Width: =130
-            Height: =12
       - icoBack:
           Control: Classic/Icon@2.5.0
           Properties:
@@ -394,6 +384,8 @@ Screens:
                     Set(varPendingRemoveMemberID, 0);
                     Reset(txtPasteRoster);
                     Reset(txtGalSearch);
+                    Reset(txtExistingPeopleSearch);
+                    ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
                     ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
                     Set(varParsedRosterCount, 0);
                     Set(varConfirmReplaceArmed, false);
@@ -602,7 +594,7 @@ Screens:
           Control: ModernDropdown@1.0.1
           Properties:
             Items: =colThursdayBatchOptions
-            Default: =If(IsBlank(varManageGroupID), LookUp(colThursdayBatchOptions, Value = "None"), LookUp(colThursdayBatchOptions, Value = LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value))
+            Default: =LookUp(colThursdayBatchOptions, Lower(Trim(Value)) = Lower(Trim(Coalesce(LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value, "None"))))
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =228
@@ -786,6 +778,20 @@ Screens:
             OnSelect: =Set(varManageSubTab, "members")
             X: =183
             Y: =124
+            Width: =170
+            Height: =36
+      - btnLbTabExisting:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Add existing"
+            Visible: =varShowLightbox && varLightboxMode = "manage"
+            BasePaletteColor: =If(varManageSubTab = "existing", RGBA(0,78,66,1), RGBA(46,110,145,1))
+            OnSelect: |-
+              =Set(varManageSubTab, "existing");
+              Reset(txtExistingPeopleSearch);
+              ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false))
+            X: =367
+            Y: =124
             Width: =200
             Height: =36
       - btnLbTabAdd:
@@ -795,9 +801,9 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "manage"
             BasePaletteColor: =If(varManageSubTab = "add", RGBA(0,78,66,1), RGBA(46,110,145,1))
             OnSelect: =Set(varManageSubTab, "add")
-            X: =399
+            X: =581
             Y: =124
-            Width: =200
+            Width: =170
             Height: =36
       - btnLbTabPaste:
           Control: ModernButton@1.0.0
@@ -806,7 +812,7 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "manage"
             BasePaletteColor: =If(varManageSubTab = "paste", RGBA(0,78,66,1), RGBA(46,110,145,1))
             OnSelect: =Set(varManageSubTab, "paste")
-            X: =615
+            X: =765
             Y: =124
             Width: =220
             Height: =36
@@ -1217,6 +1223,178 @@ Screens:
                   Y: =28
                   Width: =28
                   Height: =28
+      - lblExistingPeopleHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Add existing people"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =15
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =176
+            Width: =1000
+            Height: =24
+      - txtExistingPeopleSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search existing people by name or email..."
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing"
+            X: =183
+            Y: =210
+            Width: =1000
+            Height: =44
+      - icoClearExistingPeopleSearch:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Cancel
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing" && !IsBlank(Trim(txtExistingPeopleSearch.Text))
+            Color: =RGBA(160,160,160,1)
+            Tooltip: ="Clear search"
+            OnSelect: =Reset(txtExistingPeopleSearch)
+            X: =1148
+            Y: =221
+            Width: =22
+            Height: =22
+      - galExistingPeople:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =With(
+                  {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title, searchText: Lower(Trim(txtExistingPeopleSearch.Text))},
+                  Sort(
+                      Filter(
+                          colExistingPeoplePicks As person,
+                          CountRows(Filter(colMemberships As mem, Lower(mem.Email) = Lower(person.Email) && Lower(Trim(mem.GroupName)) = Lower(Trim(groupTitle)))) = 0 &&
+                          (IsBlank(searchText) || searchText in Lower(person.Name) || searchText in Lower(person.Email))
+                      ),
+                      Name,
+                      SortOrder.Ascending
+                  )
+              )
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing"
+            TemplateSize: =64
+            TemplatePadding: =0
+            X: =183
+            Y: =264
+            Width: =1000
+            Height: =300
+          Children:
+            - recExistingPersonRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =If(ThisItem.Picked, RGBA(232,244,239,1), RGBA(255,255,255,1))
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =If(ThisItem.Picked, RGBA(0,78,66,1), RGBA(235,238,242,1))
+                  BorderThickness: =1
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  X: =0
+                  Y: =3
+                  Width: =1000
+                  Height: =56
+            - chkExistingPerson:
+                Control: CheckBox@0.0.30
+                Properties:
+                  Label: =""
+                  Checked: =ThisItem.Picked
+                  BasePaletteColor: =RGBA(156,220,79,1)
+                  CheckboxSize: =22
+                  OnCheck: |-
+                    =UpdateIf(colExistingPeoplePicks, Lower(Email) = Lower(ThisItem.Email), {Picked: true})
+                  OnUncheck: |-
+                    =UpdateIf(colExistingPeoplePicks, Lower(Email) = Lower(ThisItem.Email), {Picked: false})
+                  X: =14
+                  Y: =14
+                  Width: =38
+                  Height: =34
+            - lblExistingPersonName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Name
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =60
+                  Y: =8
+                  Width: =480
+                  Height: =22
+            - lblExistingPersonEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email
+                  Color: =RGBA(120,120,120,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =60
+                  Y: =30
+                  Width: =480
+                  Height: =20
+            - lblExistingPersonMeta:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Trim(
+                        If(!IsBlank(Trim(ThisItem.JMC)), ThisItem.JMC & "  ", "") &
+                        If(!IsBlank(Trim(ThisItem.County)), ThisItem.County & "  ", "") &
+                        "member of " & ThisItem.GroupCount & " group" & If(ThisItem.GroupCount = 1, "", "s")
+                    )
+                  Color: =RGBA(90,90,90,1)
+                  Align: =Align.Right
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =560
+                  Y: =19
+                  Width: =410
+                  Height: =22
+      - lblExistingPeopleEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(IsBlank(Trim(txtExistingPeopleSearch.Text)), "Everyone currently in the app is already in this group, or there are no people loaded yet.", "No matching existing people outside this group.")
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing" && CountRows(galExistingPeople.AllItems) = 0
+            Color: =RGBA(120,120,120,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =274
+            Width: =1000
+            Height: =30
+      - btnAddSelectedExistingPeople:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: |-
+              ="Add selected (" & CountRows(Filter(colExistingPeoplePicks, Picked)) & ")"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            DisplayMode: =If(CountRows(Filter(colExistingPeoplePicks, Picked)) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =With(
+                  {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title, pickedPeople: Filter(colExistingPeoplePicks, Picked)},
+                  ForAll(
+                      pickedPeople As person,
+                      If(
+                          CountRows(Filter(colMemberships As mem, Lower(mem.Email) = Lower(person.Email) && Lower(Trim(mem.GroupName)) = Lower(Trim(groupTitle)))) = 0,
+                          Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: person.Name, Name: person.Name, Email: Lower(person.Email), GroupName: groupTitle, JMC: person.JMC, 'County/Contingent': person.County}));
+                          Patch('BM History', Defaults('BM History'), {Title: person.Name & " added from existing people (" & Lower(person.Email) & ")", GroupName: groupTitle, EventType: {Value: "Added"}})
+                      )
+                  );
+                  Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: groupTitle});
+                  ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
+                  Reset(txtExistingPeopleSearch);
+                  Notify("Added " & CountRows(pickedPeople) & " existing person" & If(CountRows(pickedPeople) = 1, "", "s") & " to " & groupTitle & ".", NotificationType.Success)
+              )
+            X: =183
+            Y: =586
+            Width: =1000
+            Height: =44
       - lblAddHeading:
           Control: Label@2.5.1
           Properties:
