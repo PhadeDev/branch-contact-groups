@@ -1,0 +1,663 @@
+Screens:
+  scrQuickContacts:
+    Properties:
+      Fill: =RGBA(246,248,247,1)
+      OnVisible: |-
+        =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+        ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+        Set(varQuickFilter, "All");
+        Set(varLastMembershipRefresh, Now())
+    Children:
+      - recHeader:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(0,78,66,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =76
+      - lblHeaderTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Branch Contact Groups"
+            Color: =RGBA(255,255,255,1)
+            FontWeight: =FontWeight.Bold
+            Size: =20
+            Font: =Font.'Open Sans'
+            X: =28
+            Y: =10
+            Width: =520
+            Height: =32
+      - lblHeaderSub:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Quick copy contact lists"
+            Color: =RGBA(214,232,227,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =28
+            Y: =44
+            Width: =520
+            Height: =22
+      - btnComposeNav:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Compose Email"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: =Navigate(scrSendEmail, ScreenTransition.Cover)
+            X: =980
+            Y: =18
+            Width: =160
+            Height: =40
+      - btnManageNav:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Manage Groups"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            Visible: =varIsMaintainer
+            OnSelect: =Navigate(scrManageGroups, ScreenTransition.Cover)
+            X: =1160
+            Y: =18
+            Width: =160
+            Height: =40
+      - lblQuickHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Contact Lists"
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =18
+            Font: =Font.'Open Sans'
+            X: =36
+            Y: =96
+            Width: =360
+            Height: =30
+      - lblLoaded:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Loaded " & Text(varLastMembershipRefresh, "[$-en-GB]d mmm HH:mm")
+            Color: =RGBA(112,119,117,1)
+            Size: =10
+            Font: =Font.'Open Sans'
+            X: =1110
+            Y: =102
+            Width: =210
+            Height: =20
+      - btnRefreshQuick:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Refresh"
+            BasePaletteColor: =RGBA(120,120,120,1)
+            OnSelect: |-
+              =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+              ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+              Set(varLastMembershipRefresh, Now());
+              Notify("Refreshed groups and memberships.", NotificationType.Success)
+            X: =960
+            Y: =94
+            Width: =130
+            Height: =36
+      - txtQuickSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search contact lists..."
+            X: =36
+            Y: =138
+            Width: =510
+            Height: =42
+      - icoClearQuickSearch:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Cancel
+            Visible: =!IsBlank(Trim(txtQuickSearch.Text))
+            Color: =RGBA(128,135,133,1)
+            Tooltip: ="Clear search"
+            OnSelect: =Reset(txtQuickSearch)
+            X: =508
+            Y: =148
+            Width: =22
+            Height: =22
+      - btnFilterAll:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="All"
+            Fill: =If(varQuickFilter = "All", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varQuickFilter = "All", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varQuickFilter = "All", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            OnSelect: =Set(varQuickFilter, "All")
+            X: =570
+            Y: =140
+            Width: =82
+            Height: =36
+      - btnFilterOfficial:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Official Use"
+            Fill: =If(varQuickFilter = "OfficialUse", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varQuickFilter = "OfficialUse", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varQuickFilter = "OfficialUse", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            OnSelect: =Set(varQuickFilter, "OfficialUse")
+            X: =660
+            Y: =140
+            Width: =130
+            Height: =36
+      - btnFilterSensitive:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Sensitive"
+            Fill: =If(varQuickFilter = "Sensitive", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varQuickFilter = "Sensitive", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varQuickFilter = "Sensitive", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            OnSelect: =Set(varQuickFilter, "Sensitive")
+            X: =798
+            Y: =140
+            Width: =116
+            Height: =36
+      - btnFilterPrivate:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Private"
+            Visible: =varIsMaintainer
+            Fill: =If(varQuickFilter = "Private", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varQuickFilter = "Private", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varQuickFilter = "Private", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            OnSelect: =Set(varQuickFilter, "Private")
+            X: =922
+            Y: =140
+            Width: =104
+            Height: =36
+      - galQuickRows:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =With(
+                  {
+                      source: Sort(
+                          Filter(
+                              colGroups,
+                              (!Private || varIsMaintainer) &&
+                              (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) &&
+                              Switch(
+                                  varQuickFilter,
+                                  "OfficialUse", OfficialUseOnly,
+                                  "Sensitive", OfficialSensitiveApproved,
+                                  "Private", Private,
+                                  true
+                              )
+                          ),
+                          Title,
+                          SortOrder.Ascending
+                      )
+                  },
+                  Sequence(RoundUp(CountRows(source) / 2, 0))
+              )
+            TemplateSize: =164
+            TemplatePadding: =0
+            X: =36
+            Y: =198
+            Width: =1294
+            Height: =530
+          Children:
+            - recLeftCard:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(255,255,255,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(220,228,225,1)
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  X: =0
+                  Y: =0
+                  Width: =626
+                  Height: =148
+            - lblLeftTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2 - 1
+                        },
+                        With({g: Index(source, idx)}, If(Len(g.Title) > 74, Left(g.Title, 74) & "...", g.Title))
+                    )
+                  Tooltip: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2 - 1
+                        },
+                        Index(source, idx).Title
+                    )
+                  Wrap: =false
+                  Color: =RGBA(24,45,55,1)
+                  FontWeight: =FontWeight.Bold
+                  Size: =14
+                  Font: =Font.'Open Sans'
+                  X: =20
+                  Y: =14
+                  Width: =486
+                  Height: =24
+            - lblLeftMeta:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2 - 1
+                        },
+                        With(
+                            {g: Index(source, idx)},
+                            With(
+                                {n: CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(g.Title)) && !IsBlank(Trim(Email))))},
+                                n & " member" & If(n = 1, "", "s") & " | Last modified " & Text(g.Modified, "d mmm yyyy")
+                            )
+                        )
+                    )
+                  Color: =RGBA(96,105,103,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =20
+                  Y: =42
+                  Width: =460
+                  Height: =22
+            - pilLeftSensitive:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Official Sensitive Approved"
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        Index(source, ThisItem.Value * 2 - 1).OfficialSensitiveApproved
+                    )
+                  Fill: =RGBA(252,231,231,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(163,45,45,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  X: =20
+                  Y: =74
+                  Width: =176
+                  Height: =20
+            - pilLeftOfficial:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Official Use Only"
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        Index(source, ThisItem.Value * 2 - 1).OfficialUseOnly
+                    )
+                  Fill: =RGBA(225,239,235,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(0,78,66,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  X: =204
+                  Y: =74
+                  Width: =128
+                  Height: =20
+            - pilLeftPrivate:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Private"
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =varIsMaintainer &&
+                    With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        Index(source, ThisItem.Value * 2 - 1).Private
+                    )
+                  Fill: =RGBA(232,237,235,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(45,58,64,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  X: =340
+                  Y: =74
+                  Width: =78
+                  Height: =20
+            - btnLeftCopy:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Text: ="Copy addresses"
+                  BasePaletteColor: =RGBA(0,78,66,1)
+                  OnSelect: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2 - 1
+                        },
+                        With(
+                            {g: Index(source, idx)},
+                            With(
+                                {recipients: Distinct(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(g.Title)) && !IsBlank(Trim(Email))), Email)},
+                                If(
+                                    CountRows(recipients) = 0,
+                                    Notify("No member email addresses found for " & g.Title & ".", NotificationType.Warning),
+                                    Copy(Concat(recipients, Value, "; "));
+                                    Notify("Copied " & CountRows(recipients) & " address" & If(CountRows(recipients) = 1, "", "es") & " from " & g.Title & ".", NotificationType.Success)
+                                )
+                            )
+                        )
+                    )
+                  X: =438
+                  Y: =94
+                  Width: =160
+                  Height: =38
+            - recLeftClick:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  Fill: =RGBA(0,0,0,0)
+                  HoverFill: =RGBA(0,78,66,0.04)
+                  PressedFill: =RGBA(0,78,66,0.08)
+                  BorderThickness: =0
+                  Tooltip: ="Copy addresses"
+                  OnSelect: =Select(btnLeftCopy)
+                  X: =0
+                  Y: =0
+                  Width: =626
+                  Height: =148
+            - recRightCard:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        ThisItem.Value * 2 <= CountRows(source)
+                    )
+                  Fill: =RGBA(255,255,255,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(220,228,225,1)
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  X: =668
+                  Y: =0
+                  Width: =626
+                  Height: =148
+            - lblRightTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2
+                        },
+                        If(idx > CountRows(source), "", With({g: Index(source, idx)}, If(Len(g.Title) > 74, Left(g.Title, 74) & "...", g.Title)))
+                    )
+                  Tooltip: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2
+                        },
+                        If(idx > CountRows(source), "", Index(source, idx).Title)
+                    )
+                  Visible: =recRightCard.Visible
+                  Wrap: =false
+                  Color: =RGBA(24,45,55,1)
+                  FontWeight: =FontWeight.Bold
+                  Size: =14
+                  Font: =Font.'Open Sans'
+                  X: =688
+                  Y: =14
+                  Width: =486
+                  Height: =24
+            - lblRightMeta:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2
+                        },
+                        If(
+                            idx > CountRows(source),
+                            "",
+                            With(
+                                {g: Index(source, idx)},
+                                With(
+                                    {n: CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(g.Title)) && !IsBlank(Trim(Email))))},
+                                    n & " member" & If(n = 1, "", "s") & " | Last modified " & Text(g.Modified, "d mmm yyyy")
+                                )
+                            )
+                        )
+                    )
+                  Visible: =recRightCard.Visible
+                  Color: =RGBA(96,105,103,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =688
+                  Y: =42
+                  Width: =460
+                  Height: =22
+            - pilRightSensitive:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Official Sensitive Approved"
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =recRightCard.Visible &&
+                    With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        Index(source, ThisItem.Value * 2).OfficialSensitiveApproved
+                    )
+                  Fill: =RGBA(252,231,231,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(163,45,45,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  X: =688
+                  Y: =74
+                  Width: =176
+                  Height: =20
+            - pilRightOfficial:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Official Use Only"
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =recRightCard.Visible &&
+                    With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        Index(source, ThisItem.Value * 2).OfficialUseOnly
+                    )
+                  Fill: =RGBA(225,239,235,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(0,78,66,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  X: =872
+                  Y: =74
+                  Width: =128
+                  Height: =20
+            - pilRightPrivate:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Private"
+                  DisplayMode: =DisplayMode.View
+                  Visible: |-
+                    =recRightCard.Visible && varIsMaintainer &&
+                    With(
+                        {source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending)},
+                        Index(source, ThisItem.Value * 2).Private
+                    )
+                  Fill: =RGBA(232,237,235,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  Color: =RGBA(45,58,64,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  X: =1008
+                  Y: =74
+                  Width: =78
+                  Height: =20
+            - btnRightCopy:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Text: ="Copy addresses"
+                  Visible: =recRightCard.Visible
+                  BasePaletteColor: =RGBA(0,78,66,1)
+                  OnSelect: |-
+                    =With(
+                        {
+                            source: Sort(Filter(colGroups, (!Private || varIsMaintainer) && (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) && Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)), Title, SortOrder.Ascending),
+                            idx: ThisItem.Value * 2
+                        },
+                        If(
+                            idx <= CountRows(source),
+                            With(
+                                {g: Index(source, idx)},
+                                With(
+                                    {recipients: Distinct(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(g.Title)) && !IsBlank(Trim(Email))), Email)},
+                                    If(
+                                        CountRows(recipients) = 0,
+                                        Notify("No member email addresses found for " & g.Title & ".", NotificationType.Warning),
+                                        Copy(Concat(recipients, Value, "; "));
+                                        Notify("Copied " & CountRows(recipients) & " address" & If(CountRows(recipients) = 1, "", "es") & " from " & g.Title & ".", NotificationType.Success)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                  X: =1106
+                  Y: =94
+                  Width: =160
+                  Height: =38
+            - recRightClick:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  Visible: =recRightCard.Visible
+                  Fill: =RGBA(0,0,0,0)
+                  HoverFill: =RGBA(0,78,66,0.04)
+                  PressedFill: =RGBA(0,78,66,0.08)
+                  BorderThickness: =0
+                  Tooltip: ="Copy addresses"
+                  OnSelect: =Select(btnRightCopy)
+                  X: =668
+                  Y: =0
+                  Width: =626
+                  Height: =148
+      - lblNoQuickResults:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="No contact lists match this search."
+            Visible: |-
+              =CountRows(
+                  Filter(
+                      colGroups,
+                      (!Private || varIsMaintainer) &&
+                      (IsBlank(Trim(txtQuickSearch.Text)) || Lower(Trim(txtQuickSearch.Text)) in Lower(Title)) &&
+                      Switch(varQuickFilter, "OfficialUse", OfficialUseOnly, "Sensitive", OfficialSensitiveApproved, "Private", Private, true)
+                  )
+              ) = 0
+            Color: =RGBA(96,105,103,1)
+            Size: =13
+            Font: =Font.'Open Sans'
+            Align: =Align.Center
+            X: =36
+            Y: =330
+            Width: =1294
+            Height: =40

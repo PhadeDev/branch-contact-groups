@@ -104,7 +104,7 @@
   <li>Open Power Apps Studio → New blank canvas app (tablet layout).</li>
   <li>Add all data sources listed below (Data panel → Add data).</li>
   <li>Set App → OnStart using the code block below.</li>
-  <li>Create three blank screens (name them exactly as shown), then paste each YAML in order: scrSendEmail, scrManageGroups, scrManagePeople.</li>
+  <li>Create four blank screens (name them exactly as shown), then paste each YAML in order: scrQuickContacts, scrSendEmail, scrManageGroups, scrManagePeople.</li>
   <li>These screens use manual X/Y positioning throughout. Anything too tall to fit on one screen (Manage Groups' member panel, Manage People's Add Person/Remove Leaver panels) is a centered lightbox instead of a scrolling section — see <strong>Manual Fixes</strong> below for small property-level tweaks that don't need a full re-paste.</li>
 </ol>
 
@@ -244,6 +244,14 @@ Set(varLightboxGroupID, Blank())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.38">
+    <div>
+      <div class="screen-number">Screen 0</div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.38</span></div>
+      <div class="screen-desc">Quick-copy card screen for one-contact-list clipboard sends. Uses the green/white visual direction, search, filters, member counts, and private-group maintainer visibility.</div>
+    </div>
+    <div class="screen-cta">Open YAML →</div>
+  </a>
   <a class="screen-card" href="screens/scrSendEmail.html?v=2.27">
     <div>
       <div class="screen-number">Screen 1</div>
