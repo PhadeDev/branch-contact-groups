@@ -93,9 +93,11 @@
 <body>
 
 <a class="back" href="https://powerapps.pages.dev/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.40</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.41</span></h1>
 <p class="built">Built 27 Aug 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
+
+<div class="note"><strong>v2.41 — fixed the GAL search hang.</strong> Every GAL search box (Manage Members "Add from GAL", Manage Maintainers, Manage People "Add Person") searched live on every keystroke — each keystroke fired its own real network call to the Office 365 Users connector, with no cancellation of the previous one, so typing a full name could queue up several slow calls that finished out of order. That's the "typed a name, nothing happened for almost a minute" behaviour. Fixed: typing no longer searches by itself — press the new <strong>Search</strong> button once you've typed a surname, which shows "Searching..." while the one request is in flight. Placeholder text now also hints at surname-first search (e.g. "Hughes"), matching how your GAL already stores display names ("Surname, Firstname"). All four screens changed — full re-paste needed.</div>
 
 <div class="note"><strong>v2.40 — fixed the constantly-spinning loading dots / sluggish clicking.</strong> Every screen's own <code>OnVisible</code> was redundantly re-running the full ~50-sequential-call group/membership fetch on top of <strong>App.OnStart</strong> already doing it once at launch — so navigating between any two screens re-triggered the whole slow load. That per-screen reload is now removed; the data loads once at app start, plus on demand via each screen's own <strong>Refresh</strong> button. All four screens changed — full re-paste needed. See the "Fixed in v2.40" note further down for detail.</div>
 
@@ -251,34 +253,34 @@ Set(varLightboxGroupID, 0)</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.40">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.41">
     <div>
       <div class="screen-number">Screen 0</div>
-      <div class="screen-name">scrQuickContacts <span class="version">v2.40</span></div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.41</span></div>
       <div class="screen-desc">Quick-copy card screen for one-contact-list clipboard sends. Uses the green/white visual direction, search, filters, member counts, and private-group maintainer visibility.</div>
     </div>
     <div class="screen-cta">Open YAML →</div>
   </a>
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.40">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.41">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail <span class="version">v2.40</span></div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.41</span></div>
       <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, compact maintainer-only Thursday tools (one batch selector instead of two separate buttons), member/history/batch-preview popup, clear-search button, manual Refresh, and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.40">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.41">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.40</span></div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.41</span></div>
       <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.40">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.41">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
-      <div class="screen-name">scrManagePeople <span class="version">v2.40</span></div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.41</span></div>
       <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>

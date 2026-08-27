@@ -8,6 +8,7 @@ Screens:
             Back(),
             ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
             Set(varSelectedPersonEmail, "");
+            Set(varAddPersonSearching, false);
             Set(varAddPersonNamePrefill, "");
             Set(varAddPersonEmailPrefill, "");
             Set(varConfirmPurgeArmed, false);
@@ -40,7 +41,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.40"
+            Text: ="scrManagePeople v2.41"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -373,17 +374,17 @@ Screens:
       - txtAddPersonSearch:
           Control: ModernTextInput@1.1.0
           Properties:
-            Placeholder: ="Search by name..."
+            Placeholder: ="Search GAL by surname, e.g. Hughes..."
             Visible: =varShowLightbox && varPeopleLightboxMode = "addPerson"
             OnChange: |-
               =If(
                   IsBlank(Trim(txtAddPersonSearch.Text)),
-                  ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)),
-                  ClearCollect(colAddPersonGalResults, Office365Users.SearchUserV2({searchTerm: txtAddPersonSearch.Text, top: 5}).value)
+                  ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Set(varAddPersonSearching, false)
               )
             X: =263
             Y: =148
-            Width: =820
+            Width: =650
             Height: =42
       - icoClearAddPersonSearch:
           Control: Classic/Icon@2.5.0
@@ -394,17 +395,33 @@ Screens:
             Tooltip: ="Clear search"
             OnSelect: |-
               =Reset(txtAddPersonSearch);
+              Set(varAddPersonSearching, false);
               ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
-            X: =1051
+            X: =881
             Y: =158
             Width: =22
             Height: =22
+      - btnAddPersonSearch:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varAddPersonSearching, "Searching...", "Search")
+            DisplayMode: =If(varAddPersonSearching || IsBlank(Trim(txtAddPersonSearch.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+            Visible: =varShowLightbox && varPeopleLightboxMode = "addPerson"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varAddPersonSearching, true);
+              ClearCollect(colAddPersonGalResults, Office365Users.SearchUserV2({searchTerm: Trim(txtAddPersonSearch.Text), top: 15}).value);
+              Set(varAddPersonSearching, false)
+            X: =933
+            Y: =148
+            Width: =150
+            Height: =42
       - galAddPersonGalResults:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: =colAddPersonGalResults
-            Visible: =varShowLightbox && varPeopleLightboxMode = "addPerson" && !IsBlank(Trim(txtAddPersonSearch.Text))
+            Visible: =varShowLightbox && varPeopleLightboxMode = "addPerson" && !varAddPersonSearching && !IsBlank(Trim(txtAddPersonSearch.Text))
             TemplateSize: =46
             TemplatePadding: =0
             X: =263

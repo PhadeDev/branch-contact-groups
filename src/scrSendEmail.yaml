@@ -32,7 +32,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrSendEmail v2.40"
+            Text: ="scrSendEmail v2.41"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'

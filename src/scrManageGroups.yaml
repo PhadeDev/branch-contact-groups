@@ -11,6 +11,8 @@ Screens:
             Set(varErrManualEmail, false);
             Set(varErrMaintainerName, false);
             Set(varErrMaintainerEmail, false);
+            Set(varGalSearching, false);
+            Set(varMaintainerSearching, false);
             Set(varManageGroupID, 0);
             Set(varEditingMemberID, 0);
             Set(varPendingRemoveMemberID, 0);
@@ -957,17 +959,17 @@ Screens:
       - txtMaintainerSearch:
           Control: ModernTextInput@1.1.0
           Properties:
-            Placeholder: ="Search GAL by name..."
+            Placeholder: ="Search GAL by surname..."
             Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
             OnChange: |-
               =If(
                   IsBlank(Trim(txtMaintainerSearch.Text)),
-                  ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)),
-                  ClearCollect(colMaintainerGalSearchResults, Office365Users.SearchUserV2({searchTerm: txtMaintainerSearch.Text, top: 5}).value)
+                  ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Set(varMaintainerSearching, false)
               )
             X: =703
             Y: =160
-            Width: =420
+            Width: =290
             Height: =42
       - icoClearMaintainerSearch:
           Control: Classic/Icon@2.5.0
@@ -978,17 +980,33 @@ Screens:
             Tooltip: ="Clear search"
             OnSelect: |-
               =Reset(txtMaintainerSearch);
+              Set(varMaintainerSearching, false);
               ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
-            X: =1091
+            X: =961
             Y: =170
             Width: =22
             Height: =22
+      - btnMaintainerSearch:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varMaintainerSearching, "Searching...", "Search")
+            DisplayMode: =If(varMaintainerSearching || IsBlank(Trim(txtMaintainerSearch.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varMaintainerSearching, true);
+              ClearCollect(colMaintainerGalSearchResults, Office365Users.SearchUserV2({searchTerm: Trim(txtMaintainerSearch.Text), top: 15}).value);
+              Set(varMaintainerSearching, false)
+            X: =1003
+            Y: =160
+            Width: =120
+            Height: =42
       - galMaintainerGalResults:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: =colMaintainerGalSearchResults
-            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers" && !IsBlank(Trim(txtMaintainerSearch.Text))
+            Visible: =varShowLightbox && varLightboxMode = "adminMaintainers" && !varMaintainerSearching && !IsBlank(Trim(txtMaintainerSearch.Text))
             TemplateSize: =54
             TemplatePadding: =0
             X: =703
@@ -1413,17 +1431,17 @@ Screens:
       - txtGalSearch:
           Control: ModernTextInput@1.1.0
           Properties:
-            Placeholder: ="Search GAL by name..."
+            Placeholder: ="Search GAL by surname, e.g. Hughes..."
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: |-
               =If(
                   IsBlank(Trim(txtGalSearch.Text)),
-                  ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)),
-                  ClearCollect(colGalSearchResults, Office365Users.SearchUserV2({searchTerm: txtGalSearch.Text, top: 10}).value)
+                  ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Set(varGalSearching, false)
               )
             X: =183
             Y: =210
-            Width: =480
+            Width: =390
             Height: =44
       - icoClearGalSearch:
           Control: Classic/Icon@2.5.0
@@ -1434,17 +1452,33 @@ Screens:
             Tooltip: ="Clear search"
             OnSelect: |-
               =Reset(txtGalSearch);
+              Set(varGalSearching, false);
               ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
-            X: =571
+            X: =481
             Y: =220
             Width: =22
             Height: =22
+      - btnGalSearch:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varGalSearching, "Searching...", "Search")
+            DisplayMode: =If(varGalSearching || IsBlank(Trim(txtGalSearch.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varGalSearching, true);
+              ClearCollect(colGalSearchResults, Office365Users.SearchUserV2({searchTerm: Trim(txtGalSearch.Text), top: 15}).value);
+              Set(varGalSearching, false)
+            X: =523
+            Y: =210
+            Width: =140
+            Height: =44
       - galGalResults:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: =colGalSearchResults
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && !varGalSearching
             TemplateSize: =56
             TemplatePadding: =0
             X: =183
