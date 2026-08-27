@@ -3,9 +3,7 @@ Screens:
     Properties:
       Fill: =RGBA(246,248,247,1)
       OnVisible: |-
-        =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-        ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
-        Set(varQuickFilter, "All");
+        =Set(varQuickFilter, "All");
         Set(varLastMembershipRefresh, Now())
     Children:
       - recHeader:

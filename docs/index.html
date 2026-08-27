@@ -93,9 +93,11 @@
 <body>
 
 <a class="back" href="https://powerapps.pages.dev/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.39</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.40</span></h1>
 <p class="built">Built 27 Aug 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
+
+<div class="note"><strong>v2.40 — fixed the constantly-spinning loading dots / sluggish clicking.</strong> Every screen's own <code>OnVisible</code> was redundantly re-running the full ~50-sequential-call group/membership fetch on top of <strong>App.OnStart</strong> already doing it once at launch — so navigating between any two screens re-triggered the whole slow load. That per-screen reload is now removed; the data loads once at app start, plus on demand via each screen's own <strong>Refresh</strong> button. All four screens changed — full re-paste needed. See the "Fixed in v2.40" note further down for detail.</div>
 
 <div class="note"><strong>v2.39 — pre-launch bug pass and simplification. All four screens changed, please do a full delete-and-repaste of every screen rather than a partial fix this round.</strong>
 <ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
@@ -249,34 +251,34 @@ Set(varLightboxGroupID, 0)</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.39">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.40">
     <div>
       <div class="screen-number">Screen 0</div>
-      <div class="screen-name">scrQuickContacts <span class="version">v2.39</span></div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.40</span></div>
       <div class="screen-desc">Quick-copy card screen for one-contact-list clipboard sends. Uses the green/white visual direction, search, filters, member counts, and private-group maintainer visibility.</div>
     </div>
     <div class="screen-cta">Open YAML →</div>
   </a>
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.39">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.40">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail <span class="version">v2.39</span></div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.40</span></div>
       <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, compact maintainer-only Thursday tools (one batch selector instead of two separate buttons), member/history/batch-preview popup, clear-search button, manual Refresh, and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.39">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.40">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.39</span></div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.40</span></div>
       <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.39">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.40">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
-      <div class="screen-name">scrManagePeople <span class="version">v2.39</span></div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.40</span></div>
       <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
@@ -426,7 +428,7 @@ Set(varLightboxGroupID, 0)</pre>
 </table>
 <p>Re-seed <code>colAddPersonGalResults</code> (same empty-filter formula) wherever <code>txtAddPersonSearch</code> gets <code>Reset()</code>'d: <code>btnAddPersonTrigger.OnSelect</code> and the successful-add branch of <code>btnAddPerson.OnSelect</code>. Also seed it once in the <strong>Screen's OnVisible</strong>.</p>
 
-<div class="note">Not changed this round: Manage People's initial load still takes a while, because <strong>BM Memberships</strong> is deliberately fetched group-by-group (see the v2.32 note above) rather than in one request, to avoid the row-limit truncation problem that took three iterations (v2.30→v2.32) to actually fix. With ~50 groups that's ~50 sequential SharePoint round trips every time you open Manage Groups or Manage People. Reverting to a single <code>ClearCollect(colMemberships, 'BM Memberships')</code>, even with the Data Row Limit already set to 2000, risks reintroducing that exact bug — flagged for a decision, not applied silently.</div>
+<div class="note"><strong>Fixed in v2.40:</strong> every screen was redundantly re-running the full group-by-group fetch (~50 sequential SharePoint round trips) on its own <code>OnVisible</code>, on top of <strong>App.OnStart</strong> already doing it once at launch — so simply navigating between screens (Quick Contacts → Send Email → Manage Groups → Manage People) re-triggered the whole slow load every time, which is what showed up as the constantly-spinning loading dots and sluggish clicks. The group-by-group fetch itself is unchanged (still needed to avoid the v2.30→v2.32 row-limit truncation bug) — it now only runs once at app launch, plus on demand via each screen's own <strong>Refresh</strong> button.</div>
 
 <h3>v2.34 — JMC / County-Contingent / Name split out of Title, and the standard import sheet</h3>
 <p>Given the size of this change, it's applied as a full screen re-paste rather than a manual property list — see the SharePoint schema notes above (<strong>BM Memberships</strong> section) for the new <strong>Name</strong>, <strong>JMC</strong>, and <strong>County/Contingent</strong> columns and the exact import-sheet mapping.</p>
