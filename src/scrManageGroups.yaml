@@ -1,7 +1,7 @@
 Screens:
   scrManageGroups:
     Properties:
-      Fill: =RGBA(255,255,255,1)
+      Fill: =RGBA(246,248,247,1)
       OnVisible: |-
         =If(
             !varIsMaintainer,
@@ -13,6 +13,7 @@ Screens:
             Set(varErrMaintainerEmail, false);
             Set(varGalSearching, false);
             Set(varMaintainerSearching, false);
+            Set(varShowMemberEditDialog, false);
             Set(varManageGroupID, 0);
             Set(varEditingMemberID, 0);
             Set(varPendingRemoveMemberID, 0);
@@ -367,11 +368,29 @@ Screens:
                   Y: =0
                   Width: =1320
                   Height: =56
+            - recRowManageMembersChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(231,241,247,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =1177
+                  Y: =13
+                  Width: =34
+                  Height: =34
             - icoRowManageMembers:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   Icon: =Icon.People
                   Color: =RGBA(46,110,145,1)
+                  Tooltip: ="Manage members"
                   OnSelect: |-
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "manage");
@@ -390,11 +409,29 @@ Screens:
                   Y: =16
                   Width: =28
                   Height: =28
+            - recRowHistoryChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(231,241,247,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =1217
+                  Y: =13
+                  Width: =34
+                  Height: =34
             - icoRowHistory:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   Icon: =Icon.History
                   Color: =RGBA(46,110,145,1)
+                  Tooltip: ="View history"
                   OnSelect: |-
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "history");
@@ -403,11 +440,29 @@ Screens:
                   Y: =16
                   Width: =28
                   Height: =28
+            - recRowEditChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(231,241,247,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =1257
+                  Y: =13
+                  Width: =34
+                  Height: =34
             - icoRowEdit:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   Icon: =Icon.Edit
                   Color: =RGBA(46,110,145,1)
+                  Tooltip: ="Edit group"
                   OnSelect: |-
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "edit");
@@ -438,6 +493,7 @@ Screens:
               =Set(varShowLightbox, false);
               Set(varManageGroupID, 0);
               Set(varEditingMemberID, 0);
+              Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
               Reset(txtManualJMC);
@@ -494,6 +550,7 @@ Screens:
               =Set(varShowLightbox, false);
               Set(varManageGroupID, 0);
               Set(varEditingMemberID, 0);
+              Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
               Reset(txtManualJMC);
@@ -733,6 +790,7 @@ Screens:
               =Set(varShowLightbox, false);
               Set(varManageGroupID, 0);
               Set(varEditingMemberID, 0);
+              Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
               Reset(txtManualJMC);
@@ -1204,14 +1262,32 @@ Screens:
                   Y: =26 + If(IsBlank(Trim(ThisItem.JMC)), 0, 18) + If(IsBlank(Trim(ThisItem.'County/Contingent')), 0, 18)
                   Width: =800
                   Height: =20
+            - recEditMemberChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(231,241,247,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =877
+                  Y: =25
+                  Width: =34
+                  Height: =34
             - icoEditMember:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   Icon: =Icon.Edit
                   Color: =RGBA(46,110,145,1)
+                  Tooltip: ="Edit member"
                   OnSelect: |-
                     =Set(varEditingMemberID, ThisItem.ID);
-                    Set(varManageSubTab, "add");
+                    Set(varShowMemberEditDialog, true);
                     Reset(txtManualName);
                     Reset(txtManualEmail);
                     Reset(txtManualJMC);
@@ -1220,12 +1296,29 @@ Screens:
                   Y: =28
                   Width: =28
                   Height: =28
+            - recRemoveMemberChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =If(varPendingRemoveMemberID = ThisItem.ID, RGBA(163,45,45,1), RGBA(251,234,234,1))
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =917
+                  Y: =25
+                  Width: =34
+                  Height: =34
             - icoRemove:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   Icon: =Icon.Trash
                   Color: =If(varPendingRemoveMemberID = ThisItem.ID, RGBA(255,255,255,1), RGBA(163,45,45,1))
-                  Fill: =If(varPendingRemoveMemberID = ThisItem.ID, RGBA(163,45,45,1), RGBA(255,255,255,1))
+                  Fill: =RGBA(0,0,0,0)
                   Tooltip: =If(varPendingRemoveMemberID = ThisItem.ID, "Tap again to remove", "Remove member")
                   OnSelect: |-
                     =If(
@@ -1243,6 +1336,62 @@ Screens:
                   Y: =28
                   Width: =28
                   Height: =28
+      - recMemberEditBackdrop:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            Visible: =varShowMemberEditDialog
+            Fill: =RGBA(15,25,20,0.5)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            OnSelect: |-
+              =Set(varShowMemberEditDialog, false);
+              Set(varEditingMemberID, 0);
+              Reset(txtManualName);
+              Reset(txtManualEmail);
+              Reset(txtManualJMC);
+              Reset(txtManualCounty)
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =768
+      - recMemberEditPanel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =varShowMemberEditDialog
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            X: =403
+            Y: =174
+            Width: =560
+            Height: =340
+      - icoMemberEditClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Cancel
+            Visible: =varShowMemberEditDialog
+            Color: =RGBA(120,120,120,1)
+            Tooltip: ="Close"
+            OnSelect: |-
+              =Set(varShowMemberEditDialog, false);
+              Set(varEditingMemberID, 0);
+              Reset(txtManualName);
+              Reset(txtManualEmail);
+              Reset(txtManualJMC);
+              Reset(txtManualCounty)
+            X: =905
+            Y: =196
+            Width: =28
+            Height: =28
       - lblExistingPeopleHeading:
           Control: Label@2.5.1
           Properties:
@@ -1554,63 +1703,63 @@ Screens:
       - lblManualHeading:
           Control: Label@2.5.1
           Properties:
-            Text: =If(varEditingMemberID = 0, "Add manually (non-GAL address)", "Edit member")
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            Text: =If(varShowMemberEditDialog, "Edit member", If(varEditingMemberID = 0, "Add manually (non-GAL address)", "Edit member"))
+            Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
-            Size: =15
+            Size: =16
             Font: =Font.'Open Sans'
-            X: =703
-            Y: =176
-            Width: =420
+            X: =If(varShowMemberEditDialog, 433, 703)
+            Y: =If(varShowMemberEditDialog, 196, 176)
+            Width: =If(varShowMemberEditDialog, 440, 420)
             Height: =24
       - txtManualName:
           Control: ModernTextInput@1.1.0
           Properties:
             Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Name)
             Placeholder: ="Full name"
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             OnChange: =Set(varErrManualName, false)
-            X: =703
-            Y: =210
-            Width: =420
+            X: =If(varShowMemberEditDialog, 433, 703)
+            Y: =If(varShowMemberEditDialog, 234, 210)
+            Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - txtManualEmail:
           Control: ModernTextInput@1.1.0
           Properties:
             Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Email)
             Placeholder: ="Email address"
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             OnChange: =Set(varErrManualEmail, false)
-            X: =703
-            Y: =260
-            Width: =420
+            X: =If(varShowMemberEditDialog, 433, 703)
+            Y: =If(varShowMemberEditDialog, 284, 260)
+            Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - txtManualJMC:
           Control: ModernTextInput@1.1.0
           Properties:
             Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).JMC)
             Placeholder: ="JMC (optional)"
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
-            X: =703
-            Y: =310
-            Width: =420
+            Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
+            X: =If(varShowMemberEditDialog, 433, 703)
+            Y: =If(varShowMemberEditDialog, 334, 310)
+            Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - txtManualCounty:
           Control: ModernTextInput@1.1.0
           Properties:
             Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).'County/Contingent')
             Placeholder: ="County/Contingent (optional)"
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
-            X: =703
-            Y: =360
-            Width: =420
+            Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
+            X: =If(varShowMemberEditDialog, 433, 703)
+            Y: =If(varShowMemberEditDialog, 384, 360)
+            Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - btnManualAdd:
           Control: ModernButton@1.0.0
           Properties:
-            Text: =If(varEditingMemberID = 0, "Add", "Update")
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
+            Text: =If(varEditingMemberID = 0, "Add", "Save changes")
+            Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
               =Set(varAddedName, Trim(txtManualName.Text));
@@ -1633,6 +1782,7 @@ Screens:
                   Reset(txtManualJMC);
                   Reset(txtManualCounty);
                   Set(varEditingMemberID, 0);
+                  Set(varShowMemberEditDialog, false);
                   Notify("Updated " & varAddedName & ".", NotificationType.Success),
                   With(
                       {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
@@ -1649,26 +1799,27 @@ Screens:
                   Reset(txtManualCounty);
                   Notify("Added " & varAddedName & ".", NotificationType.Success)
               )
-            X: =703
-            Y: =410
-            Width: =420
+            X: =If(varShowMemberEditDialog, 433, 703)
+            Y: =If(varShowMemberEditDialog, 442, 410)
+            Width: =If(varShowMemberEditDialog, 235, 420)
             Height: =48
       - btnCancelMemberEdit:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Cancel edit"
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && varEditingMemberID <> 0
+            Visible: =(varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")) && varEditingMemberID <> 0
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: |-
               =Set(varEditingMemberID, 0);
+              Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
               Reset(txtManualJMC);
               Reset(txtManualCounty)
-            X: =703
-            Y: =464
-            Width: =420
-            Height: =36
+            X: =If(varShowMemberEditDialog, 683, 703)
+            Y: =If(varShowMemberEditDialog, 442, 464)
+            Width: =If(varShowMemberEditDialog, 250, 420)
+            Height: =48
       - lblPasteHeading:
           Control: Label@2.5.1
           Properties:

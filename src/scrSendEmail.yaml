@@ -1,7 +1,7 @@
 Screens:
   scrSendEmail:
     Properties:
-      Fill: =RGBA(255,255,255,1)
+      Fill: =RGBA(246,248,247,1)
       OnVisible: |-
         =Set(varRecipientField, "bcc");
         Set(varBccForcedByBatch, false);
@@ -32,7 +32,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrSendEmail v2.41"
+            Text: ="scrSendEmail v2.42"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -333,6 +333,23 @@ Screens:
                   Y: =22
                   Width: =38
                   Height: =38
+            - recViewMembersChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(231,241,247,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =597
+                  Y: =24
+                  Width: =34
+                  Height: =34
             - icoViewMembers:
                 Control: Classic/Icon@2.5.0
                 Properties:
@@ -347,6 +364,23 @@ Screens:
                   Y: =27
                   Width: =28
                   Height: =28
+            - recViewHistoryChip:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(231,241,247,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =17
+                  RadiusTopRight: =17
+                  RadiusBottomLeft: =17
+                  RadiusBottomRight: =17
+                  X: =637
+                  Y: =24
+                  Width: =34
+                  Height: =34
             - icoViewHistory:
                 Control: Classic/Icon@2.5.0
                 Properties:
@@ -490,6 +524,24 @@ Screens:
             Y: =If(varPreviewGroupID = 0, 176, 354)
             Width: =560
             Height: =30
+      - recRecipientSegTrack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =!varBccForced
+            Fill: =RGBA(236,239,237,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =23
+            RadiusTopRight: =23
+            RadiusBottomLeft: =23
+            RadiusBottomRight: =23
+            X: =756
+            Y: =If(varPreviewGroupID = 0, 214, 392)
+            Width: =568
+            Height: =46
       - segTo:
           Control: ModernButton@1.0.0
           Properties:
@@ -558,6 +610,24 @@ Screens:
             Y: =If(varPreviewGroupID = 0, 318, 496)
             Width: =560
             Height: =36
+      - recBatchSegTrack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =varIsMaintainer && varShowThursdayTools
+            Fill: =RGBA(236,239,237,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =23
+            RadiusTopRight: =23
+            RadiusBottomLeft: =23
+            RadiusBottomRight: =23
+            X: =756
+            Y: =If(varPreviewGroupID = 0, 386, 564)
+            Width: =366
+            Height: =46
       - segBatch1:
           Control: ModernButton@1.0.0
           Properties:

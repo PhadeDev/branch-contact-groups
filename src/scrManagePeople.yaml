@@ -1,7 +1,7 @@
 Screens:
   scrManagePeople:
     Properties:
-      Fill: =RGBA(255,255,255,1)
+      Fill: =RGBA(246,248,247,1)
       OnVisible: |-
         =If(
             !varIsMaintainer,
@@ -41,7 +41,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.41"
+            Text: ="scrManagePeople v2.42"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -208,6 +208,46 @@ Screens:
                   Y: =0
                   Width: =1320
                   Height: =86
+            - recPersonAvatar:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: |-
+                    =Switch(
+                        Mod(Len(Trim(ThisItem.Name)), 6),
+                        0, RGBA(46,110,145,1),
+                        1, RGBA(107,79,160,1),
+                        2, RGBA(0,78,66,1),
+                        3, RGBA(180,100,0,1),
+                        4, RGBA(163,45,45,1),
+                        RGBA(59,109,17,1)
+                    )
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderThickness: =0
+                  RadiusTopLeft: =24
+                  RadiusTopRight: =24
+                  RadiusBottomLeft: =24
+                  RadiusBottomRight: =24
+                  X: =16
+                  Y: =19
+                  Width: =48
+                  Height: =48
+            - lblPersonAvatarInitials:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =Upper(Left(Trim(ThisItem.Name),1) & Mid(Trim(ThisItem.Name) & " ", Find(" ", Trim(ThisItem.Name) & " ") + 1, 1))
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Color: =RGBA(255,255,255,1)
+                  FontWeight: =FontWeight.Bold
+                  Size: =14
+                  Font: =Font.'Open Sans'
+                  X: =16
+                  Y: =19
+                  Width: =48
+                  Height: =48
             - lblPersonRowJMC:
                 Control: Label@2.5.1
                 Properties:
@@ -218,9 +258,9 @@ Screens:
                   FontWeight: =FontWeight.Semibold
                   Size: =11
                   Font: =Font.'Open Sans'
-                  X: =16
+                  X: =80
                   Y: =4
-                  Width: =1280
+                  Width: =1216
                   Height: =18
             - lblPersonRowCounty:
                 Control: Label@2.5.1
@@ -231,9 +271,9 @@ Screens:
                   Color: =RGBA(120,120,120,1)
                   Size: =11
                   Font: =Font.'Open Sans'
-                  X: =16
+                  X: =80
                   Y: =4 + If(IsBlank(Trim(ThisItem.JMC)), 0, 18)
-                  Width: =1280
+                  Width: =1216
                   Height: =18
             - lblPersonRowName:
                 Control: Label@2.5.1
@@ -244,9 +284,9 @@ Screens:
                   FontWeight: =FontWeight.Semibold
                   Size: =14
                   Font: =Font.'Open Sans'
-                  X: =16
+                  X: =80
                   Y: =4 + If(IsBlank(Trim(ThisItem.JMC)), 0, 18) + If(IsBlank(Trim(ThisItem.County)), 0, 18)
-                  Width: =1280
+                  Width: =1216
                   Height: =22
             - lblPersonRowEmail:
                 Control: Label@2.5.1
@@ -256,9 +296,9 @@ Screens:
                   Color: =RGBA(120,120,120,1)
                   Size: =12
                   Font: =Font.'Open Sans'
-                  X: =16
+                  X: =80
                   Y: =26 + If(IsBlank(Trim(ThisItem.JMC)), 0, 18) + If(IsBlank(Trim(ThisItem.County)), 0, 18)
-                  Width: =1280
+                  Width: =1216
                   Height: =20
             - recPersonRowClickCatcher:
                 Control: Classic/Button@2.2.0
