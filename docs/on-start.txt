@@ -8,7 +8,7 @@ ClearCollect(colThursdayBatchOptions, ["None", "Batch 1", "Batch 2"]);
 Set(varRecipientField, "bcc");
 Set(varBccForcedByBatch, false);
 Set(varBccForced, false);
-Set(varPreviewGroupID, Blank());
+Set(varPreviewGroupID, 0);
 Set(varShowLightbox, false);
 Set(varLightboxMode, "");
-Set(varLightboxGroupID, Blank())
+Set(varLightboxGroupID, 0)

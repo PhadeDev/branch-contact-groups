@@ -92,10 +92,26 @@
 </head>
 <body>
 
-<a class="back" href="https://phaderon.github.io/PowerApps/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.34</span></h1>
-<p class="built">Built 24 Jul 2026 BST</p>
+<a class="back" href="https://powerapps.pages.dev/">← Guide Library</a>
+<h1>Branch Contact Groups <span class="version">v2.39</span></h1>
+<p class="built">Built 27 Aug 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
+
+<div class="note"><strong>v2.39 — pre-launch bug pass and simplification. All four screens changed, please do a full delete-and-repaste of every screen rather than a partial fix this round.</strong>
+<ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
+<li><strong>Removed</strong> the "Saved selections" feature on Send Email (and the <code>BM Saved Selections</code> list it needed) — it was undocumented in the setup steps and added risk for little day-to-day benefit. Ticking groups and Clear Selection still work exactly as before.</li>
+<li><strong>Fixed</strong> a real publish-risk bug: several screen-local ID variables (<code>varPreviewGroupID</code>, <code>varLightboxGroupID</code>, <code>varManageGroupID</code>, <code>varEditingMemberID</code>) were first set to <code>Blank()</code>, which Power Fx can refuse with "No type found for variable" even though a real value is set later. All four now use <code>0</code> ("nothing selected") instead.</li>
+<li><strong>Fixed</strong> a Manage Groups bug where renaming a group showed "0 members" everywhere until you refreshed — the membership cache was rebuilt one line before the group list itself was.</li>
+<li><strong>Fixed</strong> a Manage Groups bug where the "Add manually" member form could show a previous group's leftover name/email/JMC/County if you closed the Manage Members popup without saving.</li>
+<li><strong>Fixed</strong> a Manage People bug where the bottom of a person's row (email/group-count line) didn't respond to taps when both JMC and County/Contingent were shown.</li>
+<li><strong>Fixed</strong> a Manage People bug where the Edit Person name field could show blank for a person whose email is stored with different capitalisation than what you typed.</li>
+<li><strong>Fixed</strong> a Manage People bug where renaming someone (or changing just their email) didn't update the group's "Last modified" date the way adding/removing a member does.</li>
+<li><strong>Fixed</strong> Quick Contacts showing the wrong "Last modified" date for any group with a manually-overridden date (it now matches what Manage Groups shows).</li>
+<li><strong>Fixed</strong> a non-maintainer getting stuck on Send Email with no way back — it now shows a Back button for anyone who isn't a maintainer.</li>
+<li><strong>Removed</strong> a leftover debug line ("Raw stored value: [...]") from the Manage Groups edit form.</li>
+<li><strong>Simplified</strong> the two separate Thursday Batch 1 / Batch 2 buttons into one Batch 1/Batch 2 selector plus a single Apply and Preview action.</li>
+<li><strong>Trimmed</strong> the Admin Health Check from seven scans down to the three that catch real problems: blank names, invalid/blank emails, and membership rows pointing at a group that no longer exists.</li>
+</ul></div>
 
 <h2>Before You Start</h2>
 <ol>
@@ -207,18 +223,7 @@
 <p><strong>Versioning:</strong> not needed — this list is itself the audit trail; individual rows are never edited after creation.</p>
 <p><strong>Permissions:</strong> same as BM Groups/BM Memberships — Edit for maintainers (the app writes here on their behalf), Read for everyone (the history icon is visible on the Send Email screen too, not just Manage Groups).</p>
 
-<h3>List: <code>BM Saved Selections</code> <span style="color:#4dafff; font-size:0.8em;">(new in v2.35)</span></h3>
-<table>
-  <thead><tr><th>Column name</th><th>Type</th><th>Notes</th></tr></thead>
-  <tbody>
-    <tr><td>Title</td><td>Single line of text</td><td>Readable mirror only, written as selection name plus group name.</td></tr>
-    <tr><td>SelectionName</td><td>Single line of text</td><td>Name of the reusable saved send set.</td></tr>
-    <tr><td>GroupName</td><td>Single line of text</td><td>One row per group included in that saved set. Must match a BM Groups title.</td></tr>
-  </tbody>
-</table>
-<p>The Send Email screen uses this list to save, load, and delete reusable group selections. Add this SharePoint list as a data source before pasting <strong>scrSendEmail v2.26</strong>.</p>
-
-<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all five lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
+<div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all four lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
 
 <h2>App.OnStart</h2>
 <p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong> — it's set to <code>mod.gov.uk</code> below.</p>
@@ -235,43 +240,43 @@ ClearCollect(colThursdayBatchOptions, ["None", "Batch 1", "Batch 2"]);
 Set(varRecipientField, "bcc");
 Set(varBccForcedByBatch, false);
 Set(varBccForced, false);
-Set(varPreviewGroupID, Blank());
+Set(varPreviewGroupID, 0);
 Set(varShowLightbox, false);
 Set(varLightboxMode, "");
-Set(varLightboxGroupID, Blank())</pre>
+Set(varLightboxGroupID, 0)</pre>
 </div>
 
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.38">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.39">
     <div>
       <div class="screen-number">Screen 0</div>
-      <div class="screen-name">scrQuickContacts <span class="version">v2.38</span></div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.39</span></div>
       <div class="screen-desc">Quick-copy card screen for one-contact-list clipboard sends. Uses the green/white visual direction, search, filters, member counts, and private-group maintainer visibility.</div>
     </div>
     <div class="screen-cta">Open YAML →</div>
   </a>
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.27">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.39">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail <span class="version">v2.27</span></div>
-      <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, compact maintainer-only Thursday tools, member/history/batch-preview popup, clear-search button, manual Refresh, last-loaded timestamp, and reusable saved selections stored in BM Saved Selections.</div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.39</span></div>
+      <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, compact maintainer-only Thursday tools (one batch selector instead of two separate buttons), member/history/batch-preview popup, clear-search button, manual Refresh, and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.24">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.39">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.24</span></div>
-      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check, and manually refresh the loaded SharePoint cache.</div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.39</span></div>
+      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.26">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.39">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
-      <div class="screen-name">scrManagePeople <span class="version">v2.26</span></div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.39</span></div>
       <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>

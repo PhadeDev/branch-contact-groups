@@ -13,8 +13,8 @@ Screens:
             Set(varErrManualEmail, false);
             Set(varErrMaintainerName, false);
             Set(varErrMaintainerEmail, false);
-            Set(varManageGroupID, Blank());
-            Set(varEditingMemberID, Blank());
+            Set(varManageGroupID, 0);
+            Set(varEditingMemberID, 0);
             Set(varPendingRemoveMemberID, 0);
             Set(varPendingRemoveMaintainerID, 0);
             Set(varShowLightbox, false);
@@ -134,7 +134,7 @@ Screens:
             Text: ="+ New Group"
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
-              =Set(varManageGroupID, Blank());
+              =Set(varManageGroupID, 0);
               Set(varLightboxMode, "edit");
               Reset(txtEditTitle);
               Reset(txtEditNotes);
@@ -175,12 +175,8 @@ Screens:
                   colHealthChecks,
                   Table(
                       {Severity: If(CountRows(Filter(colMemberships, IsBlank(Trim(Name)))) = 0, "OK", "Fix"), Issue: "Blank Name values", Detail: CountRows(Filter(colMemberships, IsBlank(Trim(Name)))) & " membership row(s) have blank Name. Backfill Name from Title before using v2.34 screens."},
-                      {Severity: If(CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) = 0)) = 0, "OK", "Fix"), Issue: "Memberships pointing at missing groups", Detail: CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) = 0)) & " row(s) have a GroupName that does not match any current group title."},
-                      {Severity: If(CountRows(Filter(colGroups As grp, CountRows(Filter(colMemberships As mem, Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)))) = 0)) = 0, "OK", "Check"), Issue: "Groups with no members", Detail: CountRows(Filter(colGroups As grp, CountRows(Filter(colMemberships As mem, Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)))) = 0)) & " group(s) currently have no membership rows."},
-                      {Severity: If(With({dupes: AddColumns(GroupBy(colMemberships, Email, GroupName, Rows), RowCount, CountRows(Rows))}, CountRows(Filter(dupes, RowCount > 1))) = 0, "OK", "Fix"), Issue: "Duplicate email in same group", Detail: With({dupes: AddColumns(GroupBy(colMemberships, Email, GroupName, Rows), RowCount, CountRows(Rows))}, CountRows(Filter(dupes, RowCount > 1))) & " duplicate email/group combination(s) found."},
                       {Severity: If(CountRows(Filter(colMemberships, IsBlank(Trim(Email)) || !IsMatch(Email, Match.Email))) = 0, "OK", "Fix"), Issue: "Blank or invalid email addresses", Detail: CountRows(Filter(colMemberships, IsBlank(Trim(Email)) || !IsMatch(Email, Match.Email))) & " membership row(s) have a blank or invalid email."},
-                      {Severity: If(CountRows(Filter(colGroups, !(ThursdayBatch.Value = "None" || ThursdayBatch.Value = "Batch 1" || ThursdayBatch.Value = "Batch 2"))) = 0, "OK", "Fix"), Issue: "Unexpected Thursday Batch values", Detail: CountRows(Filter(colGroups, !(ThursdayBatch.Value = "None" || ThursdayBatch.Value = "Batch 1" || ThursdayBatch.Value = "Batch 2"))) & " group(s) have a ThursdayBatch outside None/Batch 1/Batch 2."},
-                      {Severity: If(CountRows(Filter(colMemberships, !EndsWith(Lower(Email), "@" & varModDomain))) = 0, "OK", "Info"), Issue: "External recipient addresses", Detail: CountRows(Filter(colMemberships, !EndsWith(Lower(Email), "@" & varModDomain))) & " unique membership row(s) use an address outside " & varModDomain & "."}
+                      {Severity: If(CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) = 0)) = 0, "OK", "Fix"), Issue: "Memberships pointing at missing groups", Detail: CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) = 0)) & " row(s) have a GroupName that does not match any current group title."}
                   )
               );
               Set(varLightboxMode, "adminHealth");
@@ -380,7 +376,7 @@ Screens:
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "manage");
                     Set(varManageSubTab, "members");
-                    Set(varEditingMemberID, Blank());
+                    Set(varEditingMemberID, 0);
                     Set(varPendingRemoveMemberID, 0);
                     Reset(txtPasteRoster);
                     Reset(txtGalSearch);
@@ -438,7 +434,14 @@ Screens:
             HoverFill: =Self.Fill
             PressedFill: =Self.Fill
             BorderThickness: =0
-            OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
+            OnSelect: |-
+              =Set(varShowLightbox, false);
+              Set(varManageGroupID, 0);
+              Set(varEditingMemberID, 0);
+              Reset(txtManualName);
+              Reset(txtManualEmail);
+              Reset(txtManualJMC);
+              Reset(txtManualCounty)
             X: =0
             Y: =0
             Width: =1366
@@ -467,10 +470,10 @@ Screens:
             Text: |-
               =Switch(
                   varLightboxMode,
-                  "edit", If(IsBlank(varManageGroupID), "New group", "Edit group"),
+                  "edit", If(varManageGroupID = 0, "New group", "Edit group"),
                   "adminMaintainers", "Manage maintainers",
                   "adminHealth", "Admin health check",
-                  If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " - History", ""))
+                  If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " - History", ""))
               )
             Visible: =varShowLightbox
             Color: =RGBA(31,58,95,1)
@@ -487,7 +490,14 @@ Screens:
             Icon: =Icon.Cancel
             Visible: =varShowLightbox
             Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
+            OnSelect: |-
+              =Set(varShowLightbox, false);
+              Set(varManageGroupID, 0);
+              Set(varEditingMemberID, 0);
+              Reset(txtManualName);
+              Reset(txtManualEmail);
+              Reset(txtManualJMC);
+              Reset(txtManualCounty)
             X: =1209
             Y: =78
             Width: =28
@@ -573,7 +583,7 @@ Screens:
       - txtEditTitle:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)
+            Default: =If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Title)
             Placeholder: ="Group name"
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
@@ -583,7 +593,7 @@ Screens:
       - txtEditNotes:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Notes)
+            Default: =If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Notes)
             Placeholder: ="Notes (optional)"
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
@@ -600,26 +610,13 @@ Screens:
             Y: =228
             Width: =200
             Height: =42
-      - lblThursdayBatchRawValue:
-          Control: Label@2.5.1
-          Properties:
-            Text: |-
-              =If(IsBlank(varManageGroupID), "", "Raw stored value: [" & LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value & "]")
-            Visible: =varShowLightbox && varLightboxMode = "edit" && !IsBlank(varManageGroupID)
-            Color: =RGBA(160,160,160,1)
-            Size: =10
-            Font: =Font.'Open Sans'
-            X: =403
-            Y: =238
-            Width: =400
-            Height: =22
       - chkEditPrivate:
           Control: CheckBox@0.0.30
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Private (maintainers only)"
-            Checked: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).Private)
+            Checked: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).Private)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =282
@@ -631,7 +628,7 @@ Screens:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Official Sensitive Approved"
-            Checked: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
+            Checked: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =322
@@ -643,7 +640,7 @@ Screens:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Official Use Only"
-            Checked: =If(IsBlank(varManageGroupID), false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
+            Checked: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =362
@@ -655,7 +652,7 @@ Screens:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Override last modified date"
-            Checked: =If(IsBlank(varManageGroupID), false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
+            Checked: =If(varManageGroupID = 0, false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =402
@@ -664,7 +661,7 @@ Screens:
       - datEditManualDate:
           Control: Classic/DatePicker@2.6.0
           Properties:
-            DefaultDate: =If(IsBlank(varManageGroupID) || IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified), Today(), LookUp(colGroups, ID = varManageGroupID).ManuallySetModified)
+            DefaultDate: =If(varManageGroupID = 0 || IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified), Today(), LookUp(colGroups, ID = varManageGroupID).ManuallySetModified)
             Visible: =varShowLightbox && varLightboxMode = "edit" && chkOverrideDate.Checked
             X: =603
             Y: =398
@@ -673,21 +670,21 @@ Screens:
       - btnSaveGroupEdit:
           Control: ModernButton@1.0.0
           Properties:
-            Text: =If(IsBlank(varManageGroupID), "Create group", "Save")
+            Text: =If(varManageGroupID = 0, "Create group", "Save")
             Visible: =varShowLightbox && varLightboxMode = "edit"
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
               =With(
                   {
                       newTitle: Trim(txtEditTitle.Text),
-                      oldTitle: If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)
+                      oldTitle: If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Title)
                   },
                   If(
                       IsBlank(newTitle),
                       Notify("Group name can't be blank.", NotificationType.Warning),
-                      CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(newTitle) && (IsBlank(varManageGroupID) || ID <> varManageGroupID))) > 0,
+                      CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(newTitle) && (varManageGroupID = 0 || ID <> varManageGroupID))) > 0,
                       Notify("A group with that name already exists.", NotificationType.Warning),
-                      IsBlank(varManageGroupID),
+                      varManageGroupID = 0,
                       Patch('BM Groups', Defaults('BM Groups'), {
                           Title: newTitle,
                           Notes: Trim(txtEditNotes.Text),
@@ -713,11 +710,11 @@ Screens:
                       If(
                           Lower(Trim(newTitle)) <> Lower(Trim(oldTitle)),
                           UpdateIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
-                          UpdateIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
-                          ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)))
+                          UpdateIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle})
                       );
-                      Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
                       ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                      ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+                      Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
                       Set(varShowLightbox, false);
                       Notify("Saved.", NotificationType.Success)
                   )
@@ -732,7 +729,14 @@ Screens:
             Text: ="Cancel"
             Visible: =varShowLightbox && varLightboxMode = "edit"
             BasePaletteColor: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowLightbox, false); Set(varManageGroupID, Blank())
+            OnSelect: |-
+              =Set(varShowLightbox, false);
+              Set(varManageGroupID, 0);
+              Set(varEditingMemberID, 0);
+              Reset(txtManualName);
+              Reset(txtManualEmail);
+              Reset(txtManualJMC);
+              Reset(txtManualCounty)
             X: =353
             Y: =466
             Width: =160
@@ -746,7 +750,7 @@ Screens:
                   "Tap again to confirm - deletes " & CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)))) & " member(s)",
                   "Delete group"
               )
-            Visible: =varShowLightbox && varLightboxMode = "edit" && !IsBlank(varManageGroupID)
+            Visible: =varShowLightbox && varLightboxMode = "edit" && varManageGroupID <> 0
             BasePaletteColor: =RGBA(163,45,45,1)
             OnSelect: |-
               =If(
@@ -761,7 +765,7 @@ Screens:
                       ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                       Set(varConfirmDeleteGroupArmed, false);
                       Set(varShowLightbox, false);
-                      Set(varManageGroupID, Blank());
+                      Set(varManageGroupID, 0);
                       Notify("Deleted " & deletedTitle & ".", NotificationType.Error)
                   )
               )
@@ -822,7 +826,7 @@ Screens:
           Properties:
             Items: |-
               =If(
-                  varLightboxMode = "history" && !IsBlank(varManageGroupID),
+                  varLightboxMode = "history" && varManageGroupID <> 0,
                   With(
                       {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
                       Sort(Filter('BM History', Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Created, SortOrder.Descending)
@@ -1121,7 +1125,7 @@ Screens:
           Properties:
             Items: |-
               =If(
-                  IsBlank(varManageGroupID),
+                  varManageGroupID = 0,
                   Filter(colMemberships, false),
                   With(
                       {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
@@ -1518,7 +1522,7 @@ Screens:
       - lblManualHeading:
           Control: Label@2.5.1
           Properties:
-            Text: =If(IsBlank(varEditingMemberID), "Add manually (non-GAL address)", "Edit member")
+            Text: =If(varEditingMemberID = 0, "Add manually (non-GAL address)", "Edit member")
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
@@ -1531,7 +1535,7 @@ Screens:
       - txtManualName:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varEditingMemberID), "", LookUp(colMemberships, ID = varEditingMemberID).Name)
+            Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Name)
             Placeholder: ="Full name"
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: =Set(varErrManualName, false)
@@ -1542,7 +1546,7 @@ Screens:
       - txtManualEmail:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varEditingMemberID), "", LookUp(colMemberships, ID = varEditingMemberID).Email)
+            Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Email)
             Placeholder: ="Email address"
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             OnChange: =Set(varErrManualEmail, false)
@@ -1553,7 +1557,7 @@ Screens:
       - txtManualJMC:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varEditingMemberID), "", LookUp(colMemberships, ID = varEditingMemberID).JMC)
+            Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).JMC)
             Placeholder: ="JMC (optional)"
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             X: =703
@@ -1563,7 +1567,7 @@ Screens:
       - txtManualCounty:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varEditingMemberID), "", LookUp(colMemberships, ID = varEditingMemberID).'County/Contingent')
+            Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).'County/Contingent')
             Placeholder: ="County/Contingent (optional)"
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             X: =703
@@ -1573,7 +1577,7 @@ Screens:
       - btnManualAdd:
           Control: ModernButton@1.0.0
           Properties:
-            Text: =If(IsBlank(varEditingMemberID), "Add", "Update")
+            Text: =If(varEditingMemberID = 0, "Add", "Update")
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
@@ -1586,9 +1590,9 @@ Screens:
                   If(
                       varErrManualName || varErrManualEmail,
                       Notify("Enter a name and a valid email address.", NotificationType.Warning),
-                      !IsBlank(varEditingMemberID) && CountRows(Filter(colMemberships, ID <> varEditingMemberID, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)), Lower(Email) = varAddedEmail)) > 0,
+                      varEditingMemberID <> 0 && CountRows(Filter(colMemberships, ID <> varEditingMemberID, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)), Lower(Email) = varAddedEmail)) > 0,
                       Notify("That email is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
-                      !IsBlank(varEditingMemberID),
+                      varEditingMemberID <> 0,
                       Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Name: varAddedName, Email: varAddedEmail, JMC: varAddedJMC, 'County/Contingent': varAddedCounty});
                   Patch('BM History', Defaults('BM History'), {Title: "Member updated (" & varAddedEmail & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Edited"}});
                   ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
@@ -1596,7 +1600,7 @@ Screens:
                   Reset(txtManualEmail);
                   Reset(txtManualJMC);
                   Reset(txtManualCounty);
-                  Set(varEditingMemberID, Blank());
+                  Set(varEditingMemberID, 0);
                   Notify("Updated " & varAddedName & ".", NotificationType.Success),
                   With(
                       {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
@@ -1621,10 +1625,10 @@ Screens:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Cancel edit"
-            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && !IsBlank(varEditingMemberID)
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && varEditingMemberID <> 0
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: |-
-              =Set(varEditingMemberID, Blank());
+              =Set(varEditingMemberID, 0);
               Reset(txtManualName);
               Reset(txtManualEmail);
               Reset(txtManualJMC);
@@ -1745,7 +1749,7 @@ Screens:
                   varConfirmReplaceArmed,
                   "Tap again to confirm - replaces all " &
                       With(
-                          {groupTitle: If(IsBlank(varManageGroupID), "", LookUp(colGroups, ID = varManageGroupID).Title)},
+                          {groupTitle: If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Title)},
                           CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle))))
                       ) & " current members",
                   "Replace membership from paste"

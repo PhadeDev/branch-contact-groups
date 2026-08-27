@@ -5,12 +5,11 @@ Screens:
       OnVisible: |-
         =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
         ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
-        ClearCollect(colSavedSelections, 'BM Saved Selections');
         Set(varRecipientField, "bcc");
         Set(varBccForcedByBatch, false);
         Set(varBccForced, false);
-        Set(varPreviewGroupID, Blank());
-        Set(varSavedSelectionName, "");
+        Set(varPreviewGroupID, 0);
+        Set(varSelectedBatch, "Batch 1");
         Set(varShowThursdayTools, false);
         Set(varShowLightbox, false);
         Set(varLastMembershipRefresh, Now())
@@ -35,7 +34,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrSendEmail v2.27"
+            Text: ="scrSendEmail v2.39"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -77,6 +76,17 @@ Screens:
             Y: =16
             Width: =160
             Height: =40
+      - btnBackToQuickContacts:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Back"
+            BasePaletteColor: =RGBA(120,120,120,1)
+            Visible: =!varIsMaintainer
+            OnSelect: =Navigate(scrQuickContacts, ScreenTransition.Cover)
+            X: =1180
+            Y: =16
+            Width: =160
+            Height: =40
       - btnRefreshData:
           Control: ModernButton@1.0.0
           Properties:
@@ -85,10 +95,9 @@ Screens:
             OnSelect: |-
               =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
               ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
-              ClearCollect(colSavedSelections, 'BM Saved Selections');
               Set(varBccForcedByBatch, false);
               Set(varBccForced, false);
-              Set(varPreviewGroupID, Blank());
+              Set(varPreviewGroupID, 0);
               Set(varShowThursdayTools, false);
               Set(varLastMembershipRefresh, Now());
               Notify("Refreshed groups and memberships.", NotificationType.Success)
@@ -359,7 +368,7 @@ Screens:
           Properties:
             Text: =""
             DisplayMode: =DisplayMode.View
-            Visible: =!IsBlank(varPreviewGroupID)
+            Visible: =varPreviewGroupID <> 0
             Fill: =RGBA(255,255,255,1)
             HoverFill: =Self.Fill
             PressedFill: =Self.Fill
@@ -376,8 +385,8 @@ Screens:
       - lblPreviewTitle:
           Control: Label@2.5.1
           Properties:
-            Text: =If(IsBlank(varPreviewGroupID), "", LookUp(colGroups, ID = varPreviewGroupID).Title)
-            Visible: =!IsBlank(varPreviewGroupID)
+            Text: =If(varPreviewGroupID = 0, "", LookUp(colGroups, ID = varPreviewGroupID).Title)
+            Visible: =varPreviewGroupID <> 0
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
             Size: =16
@@ -390,7 +399,7 @@ Screens:
           Control: Label@2.5.1
           Properties:
             Text: |-
-              =If(IsBlank(varPreviewGroupID), "",
+              =If(varPreviewGroupID = 0, "",
                       With(
                           {g: LookUp(colGroups, ID = varPreviewGroupID)},
                           With(
@@ -399,7 +408,7 @@ Screens:
                           )
                       )
               )
-            Visible: =!IsBlank(varPreviewGroupID)
+            Visible: =varPreviewGroupID <> 0
             Color: =RGBA(120,120,120,1)
             Size: =12
             Font: =Font.'Open Sans'
@@ -410,8 +419,8 @@ Screens:
       - lblPreviewNotes:
           Control: Label@2.5.1
           Properties:
-            Text: =If(IsBlank(varPreviewGroupID), "", LookUp(colGroups, ID = varPreviewGroupID).Notes)
-            Visible: =!IsBlank(varPreviewGroupID) && !IsBlank(LookUp(colGroups, ID = varPreviewGroupID).Notes)
+            Text: =If(varPreviewGroupID = 0, "", LookUp(colGroups, ID = varPreviewGroupID).Notes)
+            Visible: =varPreviewGroupID <> 0 && !IsBlank(LookUp(colGroups, ID = varPreviewGroupID).Notes)
             Color: =RGBA(90,90,90,1)
             Size: =12
             Font: =Font.'Open Sans'
@@ -423,7 +432,7 @@ Screens:
           Control: ModernButton@1.0.0
           Properties:
             Text: ="Select only this group"
-            Visible: =!IsBlank(varPreviewGroupID)
+            Visible: =varPreviewGroupID <> 0
             BasePaletteColor: =RGBA(0,78,66,1)
             OnSelect: |-
               =UpdateIf(colGroups, true, {Ticked: false});
@@ -437,8 +446,8 @@ Screens:
       - btnToggleSelection:
           Control: ModernButton@1.0.0
           Properties:
-            Text: =If(IsBlank(varPreviewGroupID), "", If(LookUp(colGroups, ID = varPreviewGroupID).Ticked, "Remove from selection", "Add to selection"))
-            Visible: =!IsBlank(varPreviewGroupID)
+            Text: =If(varPreviewGroupID = 0, "", If(LookUp(colGroups, ID = varPreviewGroupID).Ticked, "Remove from selection", "Add to selection"))
+            Visible: =varPreviewGroupID <> 0
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: |-
               =UpdateIf(colGroups, ID = varPreviewGroupID, {Ticked: !LookUp(colGroups, ID = varPreviewGroupID).Ticked});
@@ -457,7 +466,7 @@ Screens:
             Size: =18
             Font: =Font.'Open Sans'
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 92, 270)
+            Y: =If(varPreviewGroupID = 0, 92, 270)
             Width: =560
             Height: =32
       - lblTickedGroups:
@@ -468,7 +477,7 @@ Screens:
             Size: =13
             Font: =Font.'Open Sans'
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 128, 306)
+            Y: =If(varPreviewGroupID = 0, 128, 306)
             Width: =560
             Height: =42
       - lblRecipientCount:
@@ -480,7 +489,7 @@ Screens:
             Size: =14
             Font: =Font.'Open Sans'
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 176, 354)
+            Y: =If(varPreviewGroupID = 0, 176, 354)
             Width: =560
             Height: =30
       - segTo:
@@ -491,7 +500,7 @@ Screens:
             BasePaletteColor: =If(varRecipientField = "to", RGBA(0,78,66,1), RGBA(220,224,229,1))
             OnSelect: =Set(varRecipientField, "to")
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 218, 396)
+            Y: =If(varPreviewGroupID = 0, 218, 396)
             Width: =174
             Height: =38
       - segCc:
@@ -502,7 +511,7 @@ Screens:
             BasePaletteColor: =If(varRecipientField = "cc", RGBA(0,78,66,1), RGBA(220,224,229,1))
             OnSelect: =Set(varRecipientField, "cc")
             X: =953
-            Y: =If(IsBlank(varPreviewGroupID), 218, 396)
+            Y: =If(varPreviewGroupID = 0, 218, 396)
             Width: =174
             Height: =38
       - segBcc:
@@ -513,7 +522,7 @@ Screens:
             BasePaletteColor: =If(varRecipientField = "bcc", RGBA(0,78,66,1), RGBA(220,224,229,1))
             OnSelect: =Set(varRecipientField, "bcc")
             X: =1146
-            Y: =If(IsBlank(varPreviewGroupID), 218, 396)
+            Y: =If(varPreviewGroupID = 0, 218, 396)
             Width: =174
             Height: =38
       - lblBccForcedNotice:
@@ -525,7 +534,7 @@ Screens:
             Size: =12
             Font: =Font.'Open Sans'
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 218, 396)
+            Y: =If(varPreviewGroupID = 0, 218, 396)
             Width: =560
             Height: =38
       - lblThursdayHint:
@@ -537,7 +546,7 @@ Screens:
             Size: =11
             Font: =Font.'Open Sans'
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 364, 542)
+            Y: =If(varPreviewGroupID = 0, 364, 542)
             Width: =560
             Height: =20
       - btnToggleThursdayTools:
@@ -548,71 +557,65 @@ Screens:
             BasePaletteColor: =If(varShowThursdayTools, RGBA(0,78,66,1), RGBA(120,120,120,1))
             OnSelect: =Set(varShowThursdayTools, !varShowThursdayTools)
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 318, 496)
+            Y: =If(varPreviewGroupID = 0, 318, 496)
             Width: =560
             Height: =36
-      - btnThursdayBatch1:
+      - segBatch1:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Thursday Batch 1"
+            Text: ="Batch 1"
             Visible: =varIsMaintainer && varShowThursdayTools
-            BasePaletteColor: =RGBA(46,110,145,1)
-            OnSelect: |-
-              =If(
-                  CountRows(Filter(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 1")) = 0,
-                  Notify("No groups are currently set to Thursday Batch 1. Set a group's Thursday Batch in Manage Groups first.", NotificationType.Warning),
-                  UpdateIf(colGroups, true, {Ticked: false});
-                  UpdateIf(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 1", {Ticked: true});
-                  Set(varBccForcedByBatch, true);
-                  Set(varBccForced, true)
-              )
+            BasePaletteColor: =If(varSelectedBatch = "Batch 1", RGBA(46,110,145,1), RGBA(220,224,229,1))
+            OnSelect: =Set(varSelectedBatch, "Batch 1")
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 390, 568)
-            Width: =245
+            Y: =If(varPreviewGroupID = 0, 390, 568)
+            Width: =174
             Height: =38
-      - icoPreviewBatch1:
-          Control: Classic/Icon@2.5.0
-          Properties:
-            Icon: =Icon.View
-            Visible: =varIsMaintainer && varShowThursdayTools
-            Color: =RGBA(46,110,145,1)
-            OnSelect: |-
-              =Set(varLightboxMode, "batch1");
-              Set(varShowLightbox, true)
-            X: =1013
-            Y: =If(IsBlank(varPreviewGroupID), 395, 573)
-            Width: =28
-            Height: =28
-      - btnThursdayBatch2:
+      - segBatch2:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Thursday Batch 2"
+            Text: ="Batch 2"
             Visible: =varIsMaintainer && varShowThursdayTools
-            BasePaletteColor: =RGBA(46,110,145,1)
-            OnSelect: |-
-              =If(
-                  CountRows(Filter(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 2")) = 0,
-                  Notify("No groups are currently set to Thursday Batch 2. Set a group's Thursday Batch in Manage Groups first.", NotificationType.Warning),
-                  UpdateIf(colGroups, true, {Ticked: false});
-                  UpdateIf(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 2", {Ticked: true});
-                  Set(varBccForcedByBatch, true);
-                  Set(varBccForced, true)
-              )
-            X: =1050
-            Y: =If(IsBlank(varPreviewGroupID), 390, 568)
-            Width: =245
+            BasePaletteColor: =If(varSelectedBatch = "Batch 2", RGBA(46,110,145,1), RGBA(220,224,229,1))
+            OnSelect: =Set(varSelectedBatch, "Batch 2")
+            X: =944
+            Y: =If(varPreviewGroupID = 0, 390, 568)
+            Width: =174
             Height: =38
-      - icoPreviewBatch2:
+      - btnApplyThursdayBatch:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Apply " & varSelectedBatch
+            Visible: =varIsMaintainer && varShowThursdayTools
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =With(
+                  {batchKey: Lower(varSelectedBatch)},
+                  If(
+                      CountRows(Filter(colGroups, Lower(Trim(ThursdayBatch.Value)) = batchKey)) = 0,
+                      Notify("No groups are currently set to " & varSelectedBatch & ". Set a group's Thursday Batch in Manage Groups first.", NotificationType.Warning),
+                      UpdateIf(colGroups, true, {Ticked: false});
+                      UpdateIf(colGroups, Lower(Trim(ThursdayBatch.Value)) = batchKey, {Ticked: true});
+                      Set(varBccForcedByBatch, true);
+                      Set(varBccForced, true)
+                  )
+              )
+            X: =1128
+            Y: =If(varPreviewGroupID = 0, 390, 568)
+            Width: =165
+            Height: =38
+      - icoPreviewThursdayBatch:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.View
             Visible: =varIsMaintainer && varShowThursdayTools
             Color: =RGBA(46,110,145,1)
+            Tooltip: ="Preview " & varSelectedBatch & " recipients"
             OnSelect: |-
-              =Set(varLightboxMode, "batch2");
+              =Set(varLightboxMode, "batch" & Right(varSelectedBatch, 1));
               Set(varShowLightbox, true)
             X: =1303
-            Y: =If(IsBlank(varPreviewGroupID), 395, 573)
+            Y: =If(varPreviewGroupID = 0, 395, 573)
             Width: =28
             Height: =28
       - btnClearSelection:
@@ -625,22 +628,8 @@ Screens:
               Set(varBccForcedByBatch, false);
               Set(varBccForced, false)
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 270, 448)
-            Width: =270
-            Height: =40
-      - btnSavedSelections:
-          Control: ModernButton@1.0.0
-          Properties:
-            Text: ="Saved selections"
-            BasePaletteColor: =RGBA(0,78,66,1)
-            OnSelect: |-
-              =ClearCollect(colSavedSelections, 'BM Saved Selections');
-              Reset(txtSavedSelectionName);
-              Set(varLightboxMode, "saved");
-              Set(varShowLightbox, true)
-            X: =1050
-            Y: =If(IsBlank(varPreviewGroupID), 270, 448)
-            Width: =270
+            Y: =If(varPreviewGroupID = 0, 270, 448)
+            Width: =560
             Height: =40
       - btnOpenOutlook:
           Control: ModernButton@1.0.0
@@ -663,7 +652,7 @@ Screens:
                   Launch("mailto:?" & varEffectiveField & "=" & EncodeUrl(varAddressString), {}, LaunchTarget.New)
               )
             X: =760
-            Y: =If(IsBlank(varPreviewGroupID), 648, 708)
+            Y: =If(varPreviewGroupID = 0, 648, 708)
             Width: =270
             Height: =56
       - btnCopyAddresses:
@@ -684,7 +673,7 @@ Screens:
                   Notify("Copied " & CountRows(varRecipients) & " addresses to clipboard.", NotificationType.Success)
               )
             X: =1050
-            Y: =If(IsBlank(varPreviewGroupID), 648, 708)
+            Y: =If(varPreviewGroupID = 0, 648, 708)
             Width: =270
             Height: =56
       - recLightboxBackdrop:
@@ -724,11 +713,10 @@ Screens:
           Properties:
             Text: |-
               =Switch(varLightboxMode,
-                  "members", If(IsBlank(varLightboxGroupID), "", LookUp(colGroups, ID = varLightboxGroupID).Title),
-                  "history", If(IsBlank(varLightboxGroupID), "", LookUp(colGroups, ID = varLightboxGroupID).Title & " - History"),
+                  "members", If(varLightboxGroupID = 0, "", LookUp(colGroups, ID = varLightboxGroupID).Title),
+                  "history", If(varLightboxGroupID = 0, "", LookUp(colGroups, ID = varLightboxGroupID).Title & " - History"),
                   "batch1", "Thursday Batch 1 - recipients",
                   "batch2", "Thursday Batch 2 - recipients",
-                  "saved", "Saved selections",
                   ""
               )
             Visible: =varShowLightbox
@@ -751,112 +739,13 @@ Screens:
             Y: =110
             Width: =28
             Height: =28
-      - txtSavedSelectionName:
-          Control: ModernTextInput@1.1.0
-          Properties:
-            Placeholder: ="Selection name"
-            Visible: =varShowLightbox && varLightboxMode = "saved"
-            OnChange: =Set(varSavedSelectionName, Trim(txtSavedSelectionName.Text))
-            X: =363
-            Y: =160
-            Width: =430
-            Height: =42
-      - btnSaveSelection:
-          Control: ModernButton@1.0.0
-          Properties:
-            Text: ="Save current selection"
-            Visible: =varShowLightbox && varLightboxMode = "saved"
-            BasePaletteColor: =RGBA(0,78,66,1)
-            OnSelect: |-
-              =Set(varSavedSelectionName, Trim(txtSavedSelectionName.Text));
-              If(
-                  IsBlank(varSavedSelectionName),
-                  Notify("Enter a selection name first.", NotificationType.Warning),
-                  CountRows(Filter(colGroups, Ticked = true)) = 0,
-                  Notify("Tick at least one group before saving.", NotificationType.Warning),
-                  RemoveIf('BM Saved Selections', Lower(Trim(SelectionName)) = Lower(Trim(varSavedSelectionName)));
-                  ForAll(Filter(colGroups, Ticked = true) As grp, Patch('BM Saved Selections', Defaults('BM Saved Selections'), {Title: varSavedSelectionName & " - " & grp.Title, SelectionName: varSavedSelectionName, GroupName: grp.Title}));
-                  ClearCollect(colSavedSelections, 'BM Saved Selections');
-                  Reset(txtSavedSelectionName);
-                  Notify("Saved selection '" & varSavedSelectionName & "'.", NotificationType.Success)
-              )
-            X: =803
-            Y: =160
-            Width: =200
-            Height: =42
-      - lblSavedSelectionHint:
-          Control: Label@2.5.1
-          Properties:
-            Text: ="Load a saved set below, or tick groups first and save them as a reusable set."
-            Visible: =varShowLightbox && varLightboxMode = "saved"
-            Color: =RGBA(120,120,120,1)
-            Size: =12
-            Font: =Font.'Open Sans'
-            X: =363
-            Y: =210
-            Width: =640
-            Height: =30
-      - galSavedSelections:
-          Control: Gallery@2.15.0
-          Variant: Vertical
-          Properties:
-            Items: =Sort(Distinct(colSavedSelections, SelectionName), Value, SortOrder.Ascending)
-            Visible: =varShowLightbox && varLightboxMode = "saved"
-            TemplateSize: =58
-            TemplatePadding: =0
-            X: =363
-            Y: =250
-            Width: =640
-            Height: =390
-          Children:
-            - lblSavedSelectionRow:
-                Control: Label@2.5.1
-                Properties:
-                  Text: =ThisItem.Value & "  -  " & CountRows(Filter(colSavedSelections, SelectionName = ThisItem.Value)) & " group(s)"
-                  Color: =RGBA(31,58,95,1)
-                  FontWeight: =FontWeight.Semibold
-                  Size: =13
-                  Font: =Font.'Open Sans'
-                  X: =0
-                  Y: =8
-                  Width: =360
-                  Height: =24
-            - btnLoadSavedSelection:
-                Control: ModernButton@1.0.0
-                Properties:
-                  Text: ="Load"
-                  BasePaletteColor: =RGBA(0,78,66,1)
-                  OnSelect: |-
-                    =UpdateIf(colGroups, true, {Ticked: false});
-                    ForAll(Filter(colSavedSelections, SelectionName = ThisItem.Value) As saved, UpdateIf(colGroups, Lower(Trim(Title)) = Lower(Trim(saved.GroupName)), {Ticked: true}));
-                    Set(varBccForcedByBatch, false);
-                    Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !EndsWith(Lower(mem.Email), "@" & varModDomain))) > 0);
-                    Set(varShowLightbox, false);
-                    Notify("Loaded '" & ThisItem.Value & "'.", NotificationType.Success)
-                  X: =390
-                  Y: =7
-                  Width: =110
-                  Height: =36
-            - btnDeleteSavedSelection:
-                Control: ModernButton@1.0.0
-                Properties:
-                  Text: ="Delete"
-                  BasePaletteColor: =RGBA(163,45,45,1)
-                  OnSelect: |-
-                    =RemoveIf('BM Saved Selections', SelectionName = ThisItem.Value);
-                    ClearCollect(colSavedSelections, 'BM Saved Selections');
-                    Notify("Deleted '" & ThisItem.Value & "'.", NotificationType.Error)
-                  X: =510
-                  Y: =7
-                  Width: =110
-                  Height: =36
       - galLightboxMembers:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: |-
               =Switch(varLightboxMode,
-                  "members", If(IsBlank(varLightboxGroupID), Filter(colMemberships, false), With({groupTitle: LookUp(colGroups, ID = varLightboxGroupID).Title}, Sort(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Name, SortOrder.Ascending))),
+                  "members", If(varLightboxGroupID = 0, Filter(colMemberships, false), With({groupTitle: LookUp(colGroups, ID = varLightboxGroupID).Title}, Sort(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Name, SortOrder.Ascending))),
                   "batch1", Sort(AddColumns(GroupBy(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.ThursdayBatch.Value)) = "batch 1" && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email, GroupedRows), Name, First(GroupedRows).Name), Name, SortOrder.Ascending),
                   "batch2", Sort(AddColumns(GroupBy(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.ThursdayBatch.Value)) = "batch 2" && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email, GroupedRows), Name, First(GroupedRows).Name), Name, SortOrder.Ascending),
                   Filter(colMemberships, false)
@@ -901,7 +790,7 @@ Screens:
           Properties:
             Items: |-
               =If(
-                  varLightboxMode = "history" && !IsBlank(varLightboxGroupID),
+                  varLightboxMode = "history" && varLightboxGroupID <> 0,
                   With(
                       {groupTitle: LookUp(colGroups, ID = varLightboxGroupID).Title},
                       Sort(Filter('BM History', Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Created, SortOrder.Descending)

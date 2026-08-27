@@ -299,7 +299,7 @@ Screens:
                             {g: Index(source, idx)},
                             With(
                                 {n: CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(g.Title)) && !IsBlank(Trim(Email))))},
-                                n & " member" & If(n = 1, "", "s") & " | Last modified " & Text(g.Modified, "d mmm yyyy")
+                                n & " member" & If(n = 1, "", "s") & " | Last modified " & Text(Coalesce(g.ManuallySetModified, g.Modified), "d mmm yyyy")
                             )
                         )
                     )
@@ -499,7 +499,7 @@ Screens:
                                 {g: Index(source, idx)},
                                 With(
                                     {n: CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(g.Title)) && !IsBlank(Trim(Email))))},
-                                    n & " member" & If(n = 1, "", "s") & " | Last modified " & Text(g.Modified, "d mmm yyyy")
+                                    n & " member" & If(n = 1, "", "s") & " | Last modified " & Text(Coalesce(g.ManuallySetModified, g.Modified), "d mmm yyyy")
                                 )
                             )
                         )

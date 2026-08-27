@@ -9,7 +9,7 @@ Screens:
             ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
             ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
             ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
-            Set(varSelectedPersonEmail, Blank());
+            Set(varSelectedPersonEmail, "");
             Set(varAddPersonNamePrefill, "");
             Set(varAddPersonEmailPrefill, "");
             Set(varConfirmPurgeArmed, false);
@@ -42,7 +42,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.26"
+            Text: ="scrManagePeople v2.39"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -302,7 +302,7 @@ Screens:
                   X: =0
                   Y: =0
                   Width: =1320
-                  Height: =66
+                  Height: =86
       - recLightboxBackdrop:
           Control: Classic/Button@2.2.0
           Properties:
@@ -312,7 +312,7 @@ Screens:
             HoverFill: =Self.Fill
             PressedFill: =Self.Fill
             BorderThickness: =0
-            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank()); Set(varPurgeSelectedEmail, ""); Set(varConfirmPurgeArmed, false)
+            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, ""); Set(varPurgeSelectedEmail, ""); Set(varConfirmPurgeArmed, false)
             X: =0
             Y: =0
             Width: =1366
@@ -354,7 +354,7 @@ Screens:
             Icon: =Icon.Cancel
             Visible: =varShowLightbox
             Color: =RGBA(120,120,120,1)
-            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, Blank()); Set(varPurgeSelectedEmail, ""); Set(varConfirmPurgeArmed, false)
+            OnSelect: =Set(varShowLightbox, false); Set(varSelectedPersonEmail, ""); Set(varPurgeSelectedEmail, ""); Set(varConfirmPurgeArmed, false)
             X: =1093
             Y: =78
             Width: =28
@@ -631,7 +631,7 @@ Screens:
       - txtPersonName:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(IsBlank(varSelectedPersonEmail), "", LookUp(colPeople, Email = varSelectedPersonEmail).Name)
+            Default: =If(IsBlank(varSelectedPersonEmail), "", LookUp(colPeople, Lower(Email) = Lower(varSelectedPersonEmail)).Name)
             Placeholder: ="Full name"
             Visible: =varShowLightbox && varPeopleLightboxMode = "editPerson"
             X: =263
@@ -746,7 +746,8 @@ Screens:
                                   Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
                                   Patch('BM History', Defaults('BM History'), {Title: newName & " removed (" & newEmail & ")", GroupName: grp.Title, EventType: {Value: "Removed"}}),
                                   grp.Picked && !IsBlank(existing) && (existing.Name <> newName || Lower(existing.Email) <> newEmail),
-                                  Patch('BM Memberships', existing, {Title: newName, Name: newName, Email: newEmail})
+                                  Patch('BM Memberships', existing, {Title: newName, Name: newName, Email: newEmail});
+                                  Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title})
                               )
                           )
                       );
@@ -964,7 +965,7 @@ Screens:
                   Reset(txtPurgeSearch);
                   Set(varConfirmPurgeArmed, false);
                   Set(varPurgeSelectedEmail, "");
-                  Set(varSelectedPersonEmail, Blank());
+                  Set(varSelectedPersonEmail, "");
                   Set(varShowLightbox, false);
                   Notify("Removed " & varPurgeName & " from " & varPurgeCount & " group" & If(varPurgeCount = 1, "", "s") & ".", NotificationType.Error)
               )
