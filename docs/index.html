@@ -93,9 +93,11 @@
 <body>
 
 <a class="back" href="https://powerapps.pages.dev/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.44</span></h1>
+<h1>Branch Contact Groups <span class="version">v2.45</span></h1>
 <p class="built">Built 28 Aug 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
+
+<div class="note"><strong>v2.45 — fixed the noticeable delay when saving group edits, adding people, or clicking most action buttons on Manage Groups and Manage People.</strong> Every one of those actions ended by re-fetching every membership for every group from SharePoint, one group at a time (the same ~40-50-sequential-call pattern behind the earlier loading-dots bug) — just to reflect a change to one group or one person. Replaced every one of those full reloads with a direct update to the already-loaded local copy, using the exact same data that was just written to SharePoint, so nothing is re-fetched at all. Affects: Save/Delete group, Add/Edit member manually, paste-replace roster (Manage Groups); Add Person, Save Person changes, Remove Leaver (Manage People). The explicit <strong>Refresh</strong> button on each screen is untouched — it still does a full reload, which is the point of a Refresh button. <code>scrManageGroups</code> and <code>scrManagePeople</code> changed this round.</div>
 
 <div class="note"><strong>v2.44 — fixed a real bug spotted in a screen-recording of the live app: long names overlapped in "Add existing people."</strong> Anyone with a longer name/role (e.g. "2Lt Nicola Reeble County Vocational Qualifications Officer") wrapped onto a second line and visually overlapped the row below it in Manage Groups &rarr; Manage Members &rarr; Add existing. Pre-existing, not something from the v2.42 redesign — Manage People's own list already truncated long names correctly, this one list was simply missed. Fixed with the same truncate-plus-tooltip pattern used everywhere else in the app (full name still visible on hover). <code>scrManageGroups</code> is the only screen that changed this round.</div>
 
@@ -276,35 +278,35 @@ Set(varLastMembershipRefresh, Now())</pre>
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.44">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.43">
     <div>
       <div class="screen-number">Screen 0</div>
-      <div class="screen-name">scrQuickContacts <span class="version">v2.44</span></div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.43</span></div>
       <div class="screen-desc">Quick-copy card screen for one-contact-list clipboard sends. Uses the green/white visual direction, search, filters, member counts, and private-group maintainer visibility.</div>
     </div>
     <div class="screen-cta">Open YAML →</div>
   </a>
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.44">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.43">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail <span class="version">v2.44</span></div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.43</span></div>
       <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, compact maintainer-only Thursday tools (one batch selector instead of two separate buttons), member/history/batch-preview popup, clear-search button, manual Refresh, and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.44">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.45">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.44</span></div>
-      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache.</div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.45</span></div>
+      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache. Save/edit/delete/add/remove/paste-replace actions now update the local cache directly instead of re-fetching everything from SharePoint.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.44">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.45">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
-      <div class="screen-name">scrManagePeople <span class="version">v2.44</span></div>
-      <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp.</div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.45</span></div>
+      <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp. Add/save/purge actions now update the local cache directly instead of re-fetching everything from SharePoint.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>

@@ -766,10 +766,10 @@ Screens:
                       If(
                           Lower(Trim(newTitle)) <> Lower(Trim(oldTitle)),
                           UpdateIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
-                          UpdateIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle})
+                          UpdateIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle});
+                          UpdateIf(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(oldTitle)), {GroupName: newTitle})
                       );
                       ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                      ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                       Patch('BM History', Defaults('BM History'), {Title: "Group details updated", GroupName: newTitle, EventType: {Value: "Edited"}});
                       Set(varShowLightbox, false);
                       Notify("Saved.", NotificationType.Success)
@@ -818,8 +818,8 @@ Screens:
                       RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(deletedTitle)));
                       RemoveIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(deletedTitle)));
                       Remove('BM Groups', LookUp('BM Groups', ID = varManageGroupID));
+                      RemoveIf(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(deletedTitle)));
                       ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                      ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                       Set(varConfirmDeleteGroupArmed, false);
                       Set(varShowLightbox, false);
                       Set(varManageGroupID, 0);
@@ -1788,7 +1788,7 @@ Screens:
                       varEditingMemberID <> 0,
                       Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Name: varAddedName, Email: varAddedEmail, JMC: varAddedJMC, 'County/Contingent': varAddedCounty});
                   Patch('BM History', Defaults('BM History'), {Title: "Member updated (" & varAddedEmail & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Edited"}});
-                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+                  UpdateIf(colMemberships, ID = varEditingMemberID, {Title: varAddedName, Name: varAddedName, Email: varAddedEmail, JMC: varAddedJMC, 'County/Contingent': varAddedCounty});
                   Reset(txtManualName);
                   Reset(txtManualEmail);
                   Reset(txtManualJMC);
@@ -1960,8 +1960,8 @@ Screens:
                   Set(varGroupTitle, LookUp(colGroups, ID = varManageGroupID).Title);
                   Set(varOldRosterCount, CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)))));
                   RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
-                  ForAll(colParsedRosterValid, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Name: Name, Email: Email, GroupName: varGroupTitle, JMC: JMC, 'County/Contingent': County}));
-                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+                  RemoveIf(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
+                  ForAll(colParsedRosterValid, Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Name: Name, Email: Email, GroupName: varGroupTitle, JMC: JMC, 'County/Contingent': County})));
                   Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: varGroupTitle});
                   Patch('BM History', Defaults('BM History'), {Title: "Bulk replace via paste: " & varOldRosterCount & " removed, " & varParsedRosterCount & " added", GroupName: varGroupTitle, EventType: {Value: "Replaced"}});
                   Reset(txtPasteRoster);

@@ -40,7 +40,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.43"
+            Text: ="scrManagePeople v2.45"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -662,11 +662,10 @@ Screens:
                   Notify("Tick at least one group to add them to.", NotificationType.Warning),
                   ForAll(
                       Filter(colAddPersonPicks, Picked = true) As grp,
-                      Patch('BM Memberships', Defaults('BM Memberships'), {Title: varNewPersonName, Name: varNewPersonName, Email: varNewPersonEmail, GroupName: grp.Title});
+                      Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: varNewPersonName, Name: varNewPersonName, Email: varNewPersonEmail, GroupName: grp.Title}));
                       Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
                       Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " added (" & varNewPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}})
                   );
-                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                   ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                   Set(varAddPersonNamePrefill, "");
                   Set(varAddPersonEmailPrefill, "");
@@ -784,7 +783,7 @@ Screens:
                       If(
                           newEmail <> oldEmail,
                           UpdateIf('BM Memberships', Lower(Email) = oldEmail, {Email: newEmail});
-                          ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)))
+                          UpdateIf(colMemberships, Lower(Email) = oldEmail, {Email: newEmail})
                       );
                       ForAll(
                           colPersonGroupPicks As grp,
@@ -792,20 +791,21 @@ Screens:
                               {existing: LookUp(colMemberships As mem, Lower(Trim(mem.GroupName)) = Lower(Trim(grp.Title)) && Lower(mem.Email) = newEmail)},
                               If(
                                   grp.Picked && IsBlank(existing),
-                                  Patch('BM Memberships', Defaults('BM Memberships'), {Title: newName, Name: newName, Email: newEmail, GroupName: grp.Title});
+                                  Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: newName, Name: newName, Email: newEmail, GroupName: grp.Title}));
                                   Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
                                   Patch('BM History', Defaults('BM History'), {Title: newName & " added (" & newEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}}),
                                   !grp.Picked && !IsBlank(existing),
                                   Remove('BM Memberships', existing);
+                                  Remove(colMemberships, existing);
                                   Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
                                   Patch('BM History', Defaults('BM History'), {Title: newName & " removed (" & newEmail & ")", GroupName: grp.Title, EventType: {Value: "Removed"}}),
                                   grp.Picked && !IsBlank(existing) && (existing.Name <> newName || Lower(existing.Email) <> newEmail),
                                   Patch('BM Memberships', existing, {Title: newName, Name: newName, Email: newEmail});
+                                  Patch(colMemberships, existing, {Title: newName, Name: newName, Email: newEmail});
                                   Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title})
                               )
                           )
                       );
-                      ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
                       ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                       Set(varSelectedPersonEmail, newEmail);
                       Set(varShowLightbox, false);
@@ -1014,7 +1014,7 @@ Screens:
                       Patch('BM History', Defaults('BM History'), {Title: varPurgeName & " removed (left branch - removed from all groups)", GroupName: Value, EventType: {Value: "Removed"}})
                   );
                   RemoveIf('BM Memberships', Lower(Email) = Lower(varPurgeEmail));
-                  ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+                  RemoveIf(colMemberships, Lower(Email) = Lower(varPurgeEmail));
                   ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                   Reset(txtPurgeSearch);
                   Set(varConfirmPurgeArmed, false);
