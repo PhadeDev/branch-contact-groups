@@ -11,4 +11,5 @@ Set(varBccForced, false);
 Set(varPreviewGroupID, 0);
 Set(varShowLightbox, false);
 Set(varLightboxMode, "");
-Set(varLightboxGroupID, 0)
+Set(varLightboxGroupID, 0);
+Set(varLastMembershipRefresh, Now())

@@ -93,9 +93,18 @@
 <body>
 
 <a class="back" href="https://powerapps.pages.dev/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.42</span></h1>
-<p class="built">Built 27 Aug 2026 BST</p>
+<h1>Branch Contact Groups <span class="version">v2.43</span></h1>
+<p class="built">Built 28 Aug 2026 BST</p>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
+
+<div class="note"><strong>v2.43 — fixes found by a fresh review pass over the whole v2.42 redesign (5 agents, one per screen plus a cross-screen check), before this got pasted anywhere.</strong>
+<ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
+<li><strong>Fixed:</strong> the To/CC/BCC and Thursday Batch 1/Batch 2 selectors on Send Email would have shown every option as "selected" at once — Power Apps' Modern Button can't reliably render a light/unselected colour state, a documented platform limitation. Switched all five buttons to the classic Button control, which handles this correctly (same technique already used for the filter buttons on Quick Contacts).</li>
+<li><strong>Fixed:</strong> the "Loaded HH:MM" freshness timestamp on all four screens was resetting to "just now" every time you simply navigated back to a screen, even though no data was actually reloaded — a side-effect of the v2.40 performance fix that removed the reload but left the timestamp update behind. It's now set once by <strong>App.OnStart</strong> (the real initial load) and by each screen's own <strong>Refresh</strong> button (a real reload) — never by just visiting a screen.</li>
+<li>Fixed a stale "Covers v2.0" label on the Maintainer Quickstart page.</li>
+</ul>
+<p style="margin:10px 0 0; font-size:0.82rem;">App.OnStart changed this round (one added line) — re-paste that alongside all four screens.</p>
+</div>
 
 <div class="note"><strong>v2.42 — visual redesign pass, plus a real fix to the member-edit flow.</strong> Agreed first as a mockup (design pitch artifact) before any YAML was touched, then built for real:
 <ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
@@ -258,40 +267,41 @@ Set(varBccForced, false);
 Set(varPreviewGroupID, 0);
 Set(varShowLightbox, false);
 Set(varLightboxMode, "");
-Set(varLightboxGroupID, 0)</pre>
+Set(varLightboxGroupID, 0);
+Set(varLastMembershipRefresh, Now())</pre>
 </div>
 
 <h2>Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.42">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.43">
     <div>
       <div class="screen-number">Screen 0</div>
-      <div class="screen-name">scrQuickContacts <span class="version">v2.42</span></div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.43</span></div>
       <div class="screen-desc">Quick-copy card screen for one-contact-list clipboard sends. Uses the green/white visual direction, search, filters, member counts, and private-group maintainer visibility.</div>
     </div>
     <div class="screen-cta">Open YAML →</div>
   </a>
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.42">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.43">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail <span class="version">v2.42</span></div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.43</span></div>
       <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC toggle, compact maintainer-only Thursday tools (one batch selector instead of two separate buttons), member/history/batch-preview popup, clear-search button, manual Refresh, and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.42">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.43">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.42</span></div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.43</span></div>
       <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.42">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.43">
     <div>
       <div class="screen-number">Screen 3 <span style="color:#4dafff;">(new)</span></div>
-      <div class="screen-name">scrManagePeople <span class="version">v2.42</span></div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.43</span></div>
       <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, plus manual Refresh and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>

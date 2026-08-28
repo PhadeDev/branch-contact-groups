@@ -17,8 +17,7 @@ Screens:
             Set(varPeopleLightboxMode, "addPerson");
             ClearCollect(colPersonGroupPicks, Filter(colGroups, false));
             ClearCollect(colAddPersonPicks, AddColumns(colGroups, Picked, false));
-            ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
-            Set(varLastMembershipRefresh, Now())
+            ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
         )
     Children:
       - recHeader:
@@ -41,7 +40,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.42"
+            Text: ="scrManagePeople v2.43"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'

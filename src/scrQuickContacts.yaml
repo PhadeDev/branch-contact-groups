@@ -3,8 +3,7 @@ Screens:
     Properties:
       Fill: =RGBA(246,248,247,1)
       OnVisible: |-
-        =Set(varQuickFilter, "All");
-        Set(varLastMembershipRefresh, Now())
+        =Set(varQuickFilter, "All")
     Children:
       - recHeader:
           Control: Classic/Button@2.2.0

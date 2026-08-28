@@ -9,8 +9,7 @@ Screens:
         Set(varPreviewGroupID, 0);
         Set(varSelectedBatch, "Batch 1");
         Set(varShowThursdayTools, false);
-        Set(varShowLightbox, false);
-        Set(varLastMembershipRefresh, Now())
+        Set(varShowLightbox, false)
     Children:
       - recHeader:
           Control: Classic/Button@2.2.0
@@ -32,7 +31,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrSendEmail v2.42"
+            Text: ="scrSendEmail v2.43"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -543,33 +542,69 @@ Screens:
             Width: =568
             Height: =46
       - segTo:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             Text: ="To"
             Visible: =!varBccForced
-            BasePaletteColor: =If(varRecipientField = "to", RGBA(0,78,66,1), RGBA(220,224,229,1))
+            Fill: =If(varRecipientField = "to", RGBA(0,78,66,1), RGBA(0,0,0,0))
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            Color: =If(varRecipientField = "to", RGBA(255,255,255,1), RGBA(80,90,86,1))
+            HoverColor: =Self.Color
+            PressedColor: =Self.Color
+            BorderThickness: =0
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            RadiusTopLeft: =19
+            RadiusTopRight: =19
+            RadiusBottomLeft: =19
+            RadiusBottomRight: =19
             OnSelect: =Set(varRecipientField, "to")
             X: =760
             Y: =If(varPreviewGroupID = 0, 218, 396)
             Width: =174
             Height: =38
       - segCc:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             Text: ="CC"
             Visible: =!varBccForced
-            BasePaletteColor: =If(varRecipientField = "cc", RGBA(0,78,66,1), RGBA(220,224,229,1))
+            Fill: =If(varRecipientField = "cc", RGBA(0,78,66,1), RGBA(0,0,0,0))
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            Color: =If(varRecipientField = "cc", RGBA(255,255,255,1), RGBA(80,90,86,1))
+            HoverColor: =Self.Color
+            PressedColor: =Self.Color
+            BorderThickness: =0
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            RadiusTopLeft: =19
+            RadiusTopRight: =19
+            RadiusBottomLeft: =19
+            RadiusBottomRight: =19
             OnSelect: =Set(varRecipientField, "cc")
             X: =953
             Y: =If(varPreviewGroupID = 0, 218, 396)
             Width: =174
             Height: =38
       - segBcc:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             Text: ="BCC"
             Visible: =!varBccForced
-            BasePaletteColor: =If(varRecipientField = "bcc", RGBA(0,78,66,1), RGBA(220,224,229,1))
+            Fill: =If(varRecipientField = "bcc", RGBA(0,78,66,1), RGBA(0,0,0,0))
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            Color: =If(varRecipientField = "bcc", RGBA(255,255,255,1), RGBA(80,90,86,1))
+            HoverColor: =Self.Color
+            PressedColor: =Self.Color
+            BorderThickness: =0
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            RadiusTopLeft: =19
+            RadiusTopRight: =19
+            RadiusBottomLeft: =19
+            RadiusBottomRight: =19
             OnSelect: =Set(varRecipientField, "bcc")
             X: =1146
             Y: =If(varPreviewGroupID = 0, 218, 396)
@@ -629,22 +664,46 @@ Screens:
             Width: =366
             Height: =46
       - segBatch1:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             Text: ="Batch 1"
             Visible: =varIsMaintainer && varShowThursdayTools
-            BasePaletteColor: =If(varSelectedBatch = "Batch 1", RGBA(46,110,145,1), RGBA(220,224,229,1))
+            Fill: =If(varSelectedBatch = "Batch 1", RGBA(46,110,145,1), RGBA(0,0,0,0))
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            Color: =If(varSelectedBatch = "Batch 1", RGBA(255,255,255,1), RGBA(80,90,86,1))
+            HoverColor: =Self.Color
+            PressedColor: =Self.Color
+            BorderThickness: =0
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            RadiusTopLeft: =19
+            RadiusTopRight: =19
+            RadiusBottomLeft: =19
+            RadiusBottomRight: =19
             OnSelect: =Set(varSelectedBatch, "Batch 1")
             X: =760
             Y: =If(varPreviewGroupID = 0, 390, 568)
             Width: =174
             Height: =38
       - segBatch2:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             Text: ="Batch 2"
             Visible: =varIsMaintainer && varShowThursdayTools
-            BasePaletteColor: =If(varSelectedBatch = "Batch 2", RGBA(46,110,145,1), RGBA(220,224,229,1))
+            Fill: =If(varSelectedBatch = "Batch 2", RGBA(46,110,145,1), RGBA(0,0,0,0))
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            Color: =If(varSelectedBatch = "Batch 2", RGBA(255,255,255,1), RGBA(80,90,86,1))
+            HoverColor: =Self.Color
+            PressedColor: =Self.Color
+            BorderThickness: =0
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            RadiusTopLeft: =19
+            RadiusTopRight: =19
+            RadiusBottomLeft: =19
+            RadiusBottomRight: =19
             OnSelect: =Set(varSelectedBatch, "Batch 2")
             X: =944
             Y: =If(varPreviewGroupID = 0, 390, 568)

@@ -33,8 +33,7 @@ Screens:
             ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(Filter(colMemberships, false), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
             ClearCollect(colHealthChecks, Table({Severity: "OK", Issue: "Health checks not run yet", Detail: "Open Health Check to scan the current local data cache."}));
             ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
-            ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
-            Set(varLastMembershipRefresh, Now())
+            ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
         )
     Children:
       - recHeader:
