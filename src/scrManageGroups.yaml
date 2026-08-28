@@ -1486,7 +1486,9 @@ Screens:
             - lblExistingPersonName:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Name
+                  Text: =If(Len(ThisItem.Name) > 46, Left(ThisItem.Name, 46) & "...", ThisItem.Name)
+                  Tooltip: =ThisItem.Name
+                  Wrap: =false
                   Color: =RGBA(31,58,95,1)
                   FontWeight: =FontWeight.Semibold
                   Size: =13
@@ -1499,6 +1501,7 @@ Screens:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.Email
+                  Wrap: =false
                   Color: =RGBA(120,120,120,1)
                   Size: =11
                   Font: =Font.'Open Sans'
@@ -1510,11 +1513,21 @@ Screens:
                 Control: Label@2.5.1
                 Properties:
                   Text: |-
+                    =With(
+                        {full: Trim(
+                            If(!IsBlank(Trim(ThisItem.JMC)), ThisItem.JMC & "  ", "") &
+                            If(!IsBlank(Trim(ThisItem.County)), ThisItem.County & "  ", "") &
+                            "member of " & ThisItem.GroupCount & " group" & If(ThisItem.GroupCount = 1, "", "s")
+                        )},
+                        If(Len(full) > 48, Left(full, 48) & "...", full)
+                    )
+                  Tooltip: |-
                     =Trim(
                         If(!IsBlank(Trim(ThisItem.JMC)), ThisItem.JMC & "  ", "") &
                         If(!IsBlank(Trim(ThisItem.County)), ThisItem.County & "  ", "") &
                         "member of " & ThisItem.GroupCount & " group" & If(ThisItem.GroupCount = 1, "", "s")
                     )
+                  Wrap: =false
                   Color: =RGBA(90,90,90,1)
                   Align: =Align.Right
                   Size: =11
