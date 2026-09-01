@@ -5,96 +5,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Branch Contact Groups — PowerApps</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f0f1a;
-      color: #e8e8f0;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 40px 24px 80px;
+    :root {
+      --bg: #f6f8fb; --paper: #ffffff; --ink: #172033; --muted: #637084; --line: #d9e1ec;
+      --primary: #004e42; --primary-soft: #e8f4ef; --green: #1f7a4d; --amber: #a86500; --red: #a33a3a;
+      --code-bg: #111827; --code-ink: #f8fafc;
+      --callout-warn-bg: #fff7e8; --callout-ok-bg: #edf8f2;
+      --table-head-bg: #eef3f8; --table-head-ink: #26364d;
+      --code-pill-bg: #eef3f8; --code-pill-border: #dce5f0;
+      --doc-card-bg: #fbfdff; --blue: #1a5ea8; --blue-soft: #e8f1fb;
+      --radius: 10px; --shadow: 0 12px 32px rgba(20, 34, 56, .10);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    h1 { font-size: 1.8rem; font-weight: 600; color: #c8b8ff; margin-bottom: 4px; }
-    .version { font-size: 0.65em; font-weight: 400; color: #666; vertical-align: middle; margin-left: 8px; }
-    .built { font-size: 0.75rem; color: #3a3a55; font-family: 'Cascadia Code','Consolas',monospace; margin-bottom: 4px; }
-    .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 24px; }
-    h2 { font-size: 1.2rem; color: #a0c0e0; margin: 40px 0 16px; border-bottom: 1px solid #2a2a3a; padding-bottom: 8px; }
-    h3 { font-size: 1rem; color: #e8e8f0; margin: 24px 0 8px; }
-    p { color: #aaa; line-height: 1.6; margin-bottom: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 24px; }
-    th { background: #1a1a2e; color: #c8b8ff; text-align: left; padding: 8px 12px; border: 1px solid #2a2a3a; }
-    td { padding: 8px 12px; border: 1px solid #2a2a3a; color: #d0d0e0; vertical-align: top; }
-    tr:nth-child(even) td { background: #131320; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1520; --paper: #161d2b; --ink: #e8ecf3; --muted: #93a1b8; --line: #2a3347;
+        --primary: #4fd1a5; --primary-soft: rgba(79,209,165,.14); --green: #52c98a; --amber: #d9a441; --red: #e2726f;
+        --callout-warn-bg: rgba(217,164,65,.14); --callout-ok-bg: rgba(82,201,138,.14);
+        --table-head-bg: #1c2434; --table-head-ink: #cdd6e6;
+        --code-pill-bg: #1c2434; --code-pill-border: #34405a;
+        --doc-card-bg: #1c2434; --blue: #6fb3f0; --blue-soft: rgba(111,179,240,.14);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0f1520; --paper: #161d2b; --ink: #e8ecf3; --muted: #93a1b8; --line: #2a3347;
+      --primary: #4fd1a5; --primary-soft: rgba(79,209,165,.14); --green: #52c98a; --amber: #d9a441; --red: #e2726f;
+      --callout-warn-bg: rgba(217,164,65,.14); --callout-ok-bg: rgba(82,201,138,.14);
+      --table-head-bg: #1c2434; --table-head-ink: #cdd6e6;
+      --code-pill-bg: #1c2434; --code-pill-border: #34405a;
+      --doc-card-bg: #1c2434; --blue: #6fb3f0; --blue-soft: rgba(111,179,240,.14);
+    }
+    #theme-toggle {
+      position: fixed; top: 14px; right: 14px; z-index: 50;
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      font-size: 1.1rem; cursor: pointer; box-shadow: var(--shadow);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.6; }
+    a { color: var(--primary); }
+    .shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; max-width: 1320px; margin: 0 auto; padding: 24px; }
+    aside {
+      position: sticky; top: 18px; align-self: start; max-height: calc(100vh - 36px); overflow: auto;
+      background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px;
+    }
+    aside h2 { margin: 0 0 4px; font-size: 1.05rem; }
+    aside p { margin: 0 0 14px; color: var(--muted); font-size: .9rem; }
+    nav { display: grid; gap: 4px; }
+    nav a { text-decoration: none; color: var(--muted); border-radius: 8px; padding: 7px 9px; font-size: .9rem; display: block; }
+    nav a:hover { background: var(--primary-soft); color: var(--primary); }
+    main { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 30px; max-width: 900px; }
+    .topline { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .pill { display: inline-flex; align-items: center; min-height: 28px; padding: 4px 10px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-size: .82rem; font-weight: 700; }
+    h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 4px; }
+    .version { font-size: 0.65em; font-weight: 400; color: var(--muted); vertical-align: middle; margin-left: 8px; }
+    .built { font-size: 0.75rem; color: var(--muted); font-family: var(--mono); margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 24px; max-width: 780px; }
+    h2 { font-size: 1.3rem; margin: 40px 0 16px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+    h3 { font-size: 1.05rem; margin: 24px 0 8px; }
+    h4 { font-size: 0.95rem; margin: 18px 0 8px; }
+    p { color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    th { background: var(--table-head-bg); color: var(--table-head-ink); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    code { font-family: var(--mono); background: var(--code-pill-bg); border: 1px solid var(--code-pill-border); border-radius: 6px; padding: 1px 5px; font-size: .9em; color: var(--ink); }
     .code-block { position: relative; margin: 12px 0 24px; }
     pre {
-      background: #1a1a2e;
-      color: #c8d8f0;
-      padding: 16px;
-      border-radius: 8px;
-      font-family: 'Cascadia Code', 'Consolas', monospace;
-      font-size: 0.82rem;
-      line-height: 1.55;
-      overflow-x: auto;
-      white-space: pre;
+      background: var(--code-bg); color: var(--code-ink); padding: 16px; border-radius: 10px;
+      font-family: var(--mono); font-size: 0.84rem; line-height: 1.55; overflow-x: auto; white-space: pre;
     }
     .copy-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      padding: 4px 12px;
-      background: #7c4dff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.78rem;
+      position: absolute; top: 8px; right: 8px; padding: 4px 12px; background: var(--primary);
+      color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-family: var(--sans);
       transition: background 0.15s;
     }
-    .copy-btn:hover { background: #6a3de8; }
-    .copy-btn.ok { background: #2a7d4e; }
+    .copy-btn:hover { opacity: .88; }
+    .copy-btn.ok { background: var(--green); }
     .screen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
     .screen-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: #1a1a2e;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 20px;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color 0.15s, background 0.15s;
+      display: flex; flex-direction: column; justify-content: space-between;
+      background: var(--doc-card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+      text-decoration: none; color: inherit; transition: border-color 0.15s, background 0.15s;
     }
-    .screen-card:hover { border-color: #7c4dff; background: #1e1e35; }
-    .screen-number { font-size: 0.75rem; color: #666; margin-bottom: 8px; }
-    .screen-name { font-size: 1rem; font-weight: 600; color: #c8b8ff; margin-bottom: 6px; }
-    .screen-desc { font-size: 0.82rem; color: #888; line-height: 1.4; }
-    .screen-cta { margin-top: 16px; font-size: 0.82rem; color: #7c4dff; }
+    .screen-card:hover { border-color: var(--primary); }
+    .screen-number { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+    .screen-name { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .screen-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+    .screen-cta { margin-top: 16px; font-size: 0.82rem; color: var(--primary); font-weight: 700; }
     .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
     .doc-card {
-      background: #16161a;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 18px;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color 0.15s, background 0.15s;
+      background: var(--doc-card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 18px;
+      text-decoration: none; color: inherit; transition: border-color 0.15s, background 0.15s;
     }
-    .doc-card:hover { border-color: #4dafff; background: #1a1e26; }
-    .doc-name { font-size: 0.95rem; font-weight: 600; color: #9fd0ff; margin-bottom: 4px; }
-    .doc-desc { font-size: 0.8rem; color: #888; }
-    .note { background: #1a2a1a; border-left: 3px solid #2a7d4e; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
-    .warning { background: #2a1a1a; border-left: 3px solid #7d2a2a; padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; color: #aaa; margin: 16px 0; }
-    ol { padding-left: 24px; color: #aaa; font-size: 0.9rem; line-height: 2; }
-    a.back { font-size: 0.82rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 32px; }
-    a.back:hover { color: #999; }
+    .doc-card:hover { border-color: var(--blue); }
+    .doc-name { font-size: 0.95rem; font-weight: 600; color: var(--blue); margin-bottom: 4px; }
+    .doc-desc { font-size: 0.8rem; color: var(--muted); }
+    .note { background: var(--callout-ok-bg); border-left: 3px solid var(--green); padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; margin: 16px 0; }
+    .warning { background: var(--callout-warn-bg); border-left: 3px solid var(--amber); padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; margin: 16px 0; }
+    ol, ul { padding-left: 24px; color: var(--muted); font-size: 0.9rem; line-height: 2; }
+    @media (max-width: 860px) {
+      .shell { display: block; padding: 12px; }
+      aside { position: static; margin-bottom: 14px; }
+      main { padding: 18px; max-width: none; }
+      table { display: block; overflow-x: auto; }
+    }
   </style>
 </head>
 <body>
+  <button id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">&#127769;</button>
+  <script>
+  (function(){
+    var key='pa-theme', root=document.documentElement, btn=document.getElementById('theme-toggle');
+    function apply(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'☀️':'🌙';}
+    apply(localStorage.getItem(key)||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
+    btn.addEventListener('click',function(){
+      var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+      apply(next); localStorage.setItem(key,next);
+    });
+  })();
+  </script>
+  <div class="shell">
+    <aside>
+      <h2>Branch Contact Groups</h2>
+      <p>v2.45 build guide. Live-membership replacement for Outlook contact groups.</p>
+      <nav>
+        <a href="https://powerapps.pages.dev/">&larr; Guide library</a>
+        <a href="#before-you-start">Before You Start</a>
+        <a href="#data-connections">Data Connections</a>
+        <a href="#sharepoint-lists">SharePoint Lists</a>
+        <a href="#onstart">App.OnStart</a>
+        <a href="#screens">Screens</a>
+        <a href="#manual-fixes">Manual Fixes</a>
+        <a href="#further-reading">Further Reading</a>
+        <a href="#issues">Issues</a>
+      </nav>
+    </aside>
+    <main>
 
-<a class="back" href="https://powerapps.pages.dev/">← Guide Library</a>
-<h1>Branch Contact Groups <span class="version">v2.45</span></h1>
-<p class="built">Built 28 Aug 2026 BST</p>
+<div class="topline">
+  <span class="pill">v2.45</span>
+  <span class="pill">Built 28 Aug 2026</span>
+</div>
+<h1>Branch Contact Groups</h1>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
 <div class="note"><strong>v2.45 — fixed the noticeable delay when saving group edits, adding people, or clicking most action buttons on Manage Groups and Manage People.</strong> Every one of those actions ended by re-fetching every membership for every group from SharePoint, one group at a time (the same ~40-50-sequential-call pattern behind the earlier loading-dots bug) — just to reflect a change to one group or one person. Replaced every one of those full reloads with a direct update to the already-loaded local copy, using the exact same data that was just written to SharePoint, so nothing is re-fetched at all. Affects: Save/Delete group, Add/Edit member manually, paste-replace roster (Manage Groups); Add Person, Save Person changes, Remove Leaver (Manage People). The explicit <strong>Refresh</strong> button on each screen is untouched — it still does a full reload, which is the point of a Refresh button. <code>scrManageGroups</code> and <code>scrManagePeople</code> changed this round.</div>
@@ -141,7 +195,7 @@
 <li><strong>Trimmed</strong> the Admin Health Check from seven scans down to the three that catch real problems: blank names, invalid/blank emails, and membership rows pointing at a group that no longer exists.</li>
 </ul></div>
 
-<h2>Before You Start</h2>
+<h2 id="before-you-start">Before You Start</h2>
 <ol>
   <li>Create the four SharePoint lists below (all columns, exact names) on <code>&lt;your SharePoint site URL&gt;</code>.</li>
   <li>Add the two maintainer rows to <strong>BM Maintainers</strong> and your real group/member data (see the Migration Plan card below).</li>
@@ -152,7 +206,7 @@
   <li>These screens use manual X/Y positioning throughout. Anything too tall to fit on one screen (Manage Groups' member panel, Manage People's Add Person/Remove Leaver panels) is a centered lightbox instead of a scrolling section — see <strong>Manual Fixes</strong> below for small property-level tweaks that don't need a full re-paste.</li>
 </ol>
 
-<h2>Data Connections</h2>
+<h2 id="data-connections">Data Connections</h2>
 <p>Add these in the Data panel before pasting any YAML:</p>
 <table>
   <thead><tr><th>Connection</th><th>Type</th></tr></thead>
@@ -165,7 +219,7 @@
   </tbody>
 </table>
 
-<h2>SharePoint Lists</h2>
+<h2 id="sharepoint-lists">SharePoint Lists</h2>
 
 <h3>List: <code>BM Groups</code></h3>
 <table>
@@ -253,7 +307,7 @@
 
 <div class="warning">Mark every column <strong>Not Required</strong> in SharePoint on all four lists. Required fields cause network errors — validation (name/email format) is handled inside the app instead.</div>
 
-<h2>App.OnStart</h2>
+<h2 id="onstart">App.OnStart</h2>
 <p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong> — it's set to <code>mod.gov.uk</code> below.</p>
 <div class="note">v2.32 loads <strong>BM Memberships</strong> group-by-group from SharePoint instead of trying to cache the whole list by item ID. That avoids the row-limit/item-ID problem where later alphabetic groups could show as 0 members even when SharePoint had rows.</div>
 <div class="code-block">
@@ -275,7 +329,7 @@ Set(varLightboxGroupID, 0);
 Set(varLastMembershipRefresh, Now())</pre>
 </div>
 
-<h2>Screens</h2>
+<h2 id="screens">Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
   <a class="screen-card" href="screens/scrQuickContacts.html?v=2.43">
@@ -312,7 +366,7 @@ Set(varLastMembershipRefresh, Now())</pre>
   </a>
 </div>
 
-<h2>Manual Fixes</h2>
+<h2 id="manual-fixes">Manual Fixes</h2>
 <p>Small property-level tweaks that are quicker to make directly in Studio than to re-paste a whole screen for. Select the named control, open its property list (Advanced tab, or the dropdown at the top of the formula bar), and edit only the property named — leave everything else on the control alone. This list grows as new ones come up; check it before doing a full delete-and-repaste for something small.</p>
 
 <h3>v2.36 — <code>drpEditThursdayBatch</code> opens blank instead of defaulting to None</h3>
@@ -467,7 +521,7 @@ Set(varLastMembershipRefresh, Now())</pre>
   <li><strong>Send Email</strong>: unchanged — it continues to show groups, not individual people, by design.</li>
 </ul>
 
-<h2>Further Reading</h2>
+<h2 id="further-reading">Further Reading</h2>
 <div class="doc-grid">
   <a class="doc-card" href="flow-spec.html">
     <div class="doc-name">Power Automate Flow Spec</div>
@@ -483,9 +537,11 @@ Set(varLastMembershipRefresh, Now())</pre>
   </a>
 </div>
 
-<h2>Issues</h2>
-<p>Found a problem? <a href="https://github.com/PhadeDev/branch-contact-groups/issues" style="color:#7c4dff">Report it here</a>.</p>
+<h2 id="issues">Issues</h2>
+<p>Found a problem? <a href="https://github.com/PhadeDev/branch-contact-groups/issues">Report it here</a>.</p>
 
+    </main>
+  </div>
 <script>
 async function copyBlock(btn, id) {
   const text = document.getElementById(id).textContent;
