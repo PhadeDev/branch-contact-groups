@@ -14,6 +14,8 @@ Screens:
             Set(varGalSearching, false);
             Set(varMaintainerSearching, false);
             Set(varShowMemberEditDialog, false);
+            Set(varGalPickName, "");
+            Set(varGalPickEmail, "");
             Set(varManageGroupID, 0);
             Set(varEditingMemberID, 0);
             Set(varPendingRemoveMemberID, 0);
@@ -164,6 +166,18 @@ Screens:
             X: =748
             Y: =84
             Width: =180
+            Height: =36
+      - btnThursdayBatchNav:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Thursday Batches"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varLightboxMode, "adminThursdayBatch");
+              Set(varShowLightbox, true)
+            X: =560
+            Y: =84
+            Width: =172
             Height: =36
       - btnHealthCheck:
           Control: ModernButton@1.0.0
@@ -495,6 +509,8 @@ Screens:
               Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
+              Set(varGalPickName, "");
+              Set(varGalPickEmail, "");
               Reset(txtManualJMC);
               Reset(txtManualCounty)
             X: =0
@@ -528,6 +544,7 @@ Screens:
                   "edit", If(varManageGroupID = 0, "New group", "Edit group"),
                   "adminMaintainers", "Manage maintainers",
                   "adminHealth", "Admin health check",
+                  "adminThursdayBatch", "Thursday Batch overview",
                   If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Title & If(varLightboxMode = "history", " - History", ""))
               )
             Visible: =varShowLightbox
@@ -552,6 +569,8 @@ Screens:
               Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
+              Set(varGalPickName, "");
+              Set(varGalPickEmail, "");
               Reset(txtManualJMC);
               Reset(txtManualCounty)
             X: =1209
@@ -636,6 +655,188 @@ Screens:
                   Y: =34
                   Width: =860
                   Height: =22
+      - lblBatchHint:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Reflects the currently loaded cache. Set or change a group's batch from its Edit panel."
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch"
+            Color: =RGBA(120,120,120,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =124
+            Width: =1000
+            Height: =24
+      - lblBatch1Heading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Batch 1 (" & CountRows(Filter(colGroups, ThursdayBatch.Value = "Batch 1")) & " groups)"
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =15
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =156
+            Width: =480
+            Height: =26
+      - galBatch1Groups:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =Sort(Filter(colGroups, ThursdayBatch.Value = "Batch 1"), Title, SortOrder.Ascending)
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch"
+            TemplateSize: =44
+            TemplatePadding: =0
+            X: =183
+            Y: =188
+            Width: =480
+            Height: =430
+          Children:
+            - recBatch1RowBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(248,250,252,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =2
+                  Width: =480
+                  Height: =38
+            - lblBatch1RowTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title
+                  Tooltip: =ThisItem.Title
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =12
+                  Y: =8
+                  Width: =340
+                  Height: =22
+            - lblBatch1RowCount:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(ThisItem.Title)))) & " members"
+                  Wrap: =false
+                  Align: =Align.Right
+                  Color: =RGBA(120,120,120,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =356
+                  Y: =10
+                  Width: =112
+                  Height: =20
+      - lblBatch1Empty:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="No groups assigned to Batch 1 yet."
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch" && CountRows(Filter(colGroups, ThursdayBatch.Value = "Batch 1")) = 0
+            Color: =RGBA(120,120,120,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =192
+            Width: =480
+            Height: =24
+      - lblBatch2Heading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Batch 2 (" & CountRows(Filter(colGroups, ThursdayBatch.Value = "Batch 2")) & " groups)"
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch"
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =15
+            Font: =Font.'Open Sans'
+            X: =703
+            Y: =156
+            Width: =480
+            Height: =26
+      - galBatch2Groups:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =Sort(Filter(colGroups, ThursdayBatch.Value = "Batch 2"), Title, SortOrder.Ascending)
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch"
+            TemplateSize: =44
+            TemplatePadding: =0
+            X: =703
+            Y: =188
+            Width: =480
+            Height: =430
+          Children:
+            - recBatch2RowBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(248,250,252,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =2
+                  Width: =480
+                  Height: =38
+            - lblBatch2RowTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title
+                  Tooltip: =ThisItem.Title
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =12
+                  Y: =8
+                  Width: =340
+                  Height: =22
+            - lblBatch2RowCount:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(ThisItem.Title)))) & " members"
+                  Wrap: =false
+                  Align: =Align.Right
+                  Color: =RGBA(120,120,120,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =356
+                  Y: =10
+                  Width: =112
+                  Height: =20
+      - lblBatch2Empty:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="No groups assigned to Batch 2 yet."
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch" && CountRows(Filter(colGroups, ThursdayBatch.Value = "Batch 2")) = 0
+            Color: =RGBA(120,120,120,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =703
+            Y: =192
+            Width: =480
+            Height: =24
+      - lblBatchUnassignedSummary:
+          Control: Label@2.5.1
+          Properties:
+            Text: =CountRows(Filter(colGroups, ThursdayBatch.Value <> "Batch 1" && ThursdayBatch.Value <> "Batch 2")) & " group(s) have no Thursday batch assigned."
+            Visible: =varShowLightbox && varLightboxMode = "adminThursdayBatch"
+            Color: =RGBA(120,120,120,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =183
+            Y: =626
+            Width: =1000
+            Height: =22
       - txtEditTitle:
           Control: ModernTextInput@1.1.0
           Properties:
@@ -792,6 +993,8 @@ Screens:
               Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
+              Set(varGalPickName, "");
+              Set(varGalPickEmail, "");
               Reset(txtManualJMC);
               Reset(txtManualCounty)
             X: =353
@@ -1289,6 +1492,8 @@ Screens:
                     Set(varShowMemberEditDialog, true);
                     Reset(txtManualName);
                     Reset(txtManualEmail);
+                    Set(varGalPickName, "");
+                    Set(varGalPickEmail, "");
                     Reset(txtManualJMC);
                     Reset(txtManualCounty)
                   X: =880
@@ -1349,6 +1554,8 @@ Screens:
               Set(varEditingMemberID, 0);
               Reset(txtManualName);
               Reset(txtManualEmail);
+              Set(varGalPickName, "");
+              Set(varGalPickEmail, "");
               Reset(txtManualJMC);
               Reset(txtManualCounty)
             X: =0
@@ -1385,6 +1592,8 @@ Screens:
               Set(varEditingMemberID, 0);
               Reset(txtManualName);
               Reset(txtManualEmail);
+              Set(varGalPickName, "");
+              Set(varGalPickEmail, "");
               Reset(txtManualJMC);
               Reset(txtManualCounty)
             X: =905
@@ -1700,13 +1909,18 @@ Screens:
                             CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle)) && Lower(Email) = Lower(ThisItem.Mail))) > 0
                         ),
                         Notify(ThisItem.DisplayName & " is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
-                        Set(varNewRow, Patch('BM Memberships', Defaults('BM Memberships'), {Title: ThisItem.DisplayName, Name: ThisItem.DisplayName, Email: Lower(ThisItem.Mail), GroupName: LookUp(colGroups, ID = varManageGroupID).Title}));
-                        Collect(colMemberships, varNewRow);
-                        Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: LookUp(colGroups, ID = varManageGroupID).Title});
-                        Patch('BM History', Defaults('BM History'), {Title: ThisItem.DisplayName & " added (" & Lower(ThisItem.Mail) & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Added"}});
+                        Set(varGalPickName, ThisItem.DisplayName);
+                        Set(varGalPickEmail, Lower(ThisItem.Mail));
+                        Set(varEditingMemberID, 0);
+                        Set(varErrManualName, false);
+                        Set(varErrManualEmail, false);
+                        Reset(txtManualName);
+                        Reset(txtManualEmail);
+                        Reset(txtManualJMC);
+                        Reset(txtManualCounty);
                         Reset(txtGalSearch);
                         ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
-                        Notify("Added " & ThisItem.DisplayName & " to " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Success)
+                        Notify("Add " & ThisItem.DisplayName & "'s JMC/County on the right, then hit Add.", NotificationType.Information)
                     )
                   X: =0
                   Y: =0
@@ -1715,7 +1929,7 @@ Screens:
       - lblManualHeading:
           Control: Label@2.5.1
           Properties:
-            Text: =If(varShowMemberEditDialog, "Edit member", If(varEditingMemberID = 0, "Add manually (non-GAL address)", "Edit member"))
+            Text: =If(varShowMemberEditDialog, "Edit member", If(!IsBlank(varGalPickEmail), "Confirm details for " & varGalPickName, If(varEditingMemberID = 0, "Add manually (non-GAL address)", "Edit member")))
             Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
@@ -1728,7 +1942,7 @@ Screens:
       - txtManualName:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Name)
+            Default: =If(!IsBlank(varGalPickEmail), varGalPickName, If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Name))
             Placeholder: ="Full name"
             Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             OnChange: =Set(varErrManualName, false)
@@ -1739,7 +1953,7 @@ Screens:
       - txtManualEmail:
           Control: ModernTextInput@1.1.0
           Properties:
-            Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Email)
+            Default: =If(!IsBlank(varGalPickEmail), varGalPickEmail, If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Email))
             Placeholder: ="Email address"
             Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             OnChange: =Set(varErrManualEmail, false)
@@ -1791,6 +2005,8 @@ Screens:
                   UpdateIf(colMemberships, ID = varEditingMemberID, {Title: varAddedName, Name: varAddedName, Email: varAddedEmail, JMC: varAddedJMC, 'County/Contingent': varAddedCounty});
                   Reset(txtManualName);
                   Reset(txtManualEmail);
+                  Set(varGalPickName, "");
+                  Set(varGalPickEmail, "");
                   Reset(txtManualJMC);
                   Reset(txtManualCounty);
                   Set(varEditingMemberID, 0);
@@ -1807,6 +2023,8 @@ Screens:
                   Patch('BM History', Defaults('BM History'), {Title: varAddedName & " added manually (" & varAddedEmail & ")", GroupName: LookUp(colGroups, ID = varManageGroupID).Title, EventType: {Value: "Added"}});
                   Reset(txtManualName);
                   Reset(txtManualEmail);
+                  Set(varGalPickName, "");
+                  Set(varGalPickEmail, "");
                   Reset(txtManualJMC);
                   Reset(txtManualCounty);
                   Notify("Added " & varAddedName & ".", NotificationType.Success)
@@ -1826,6 +2044,8 @@ Screens:
               Set(varShowMemberEditDialog, false);
               Reset(txtManualName);
               Reset(txtManualEmail);
+              Set(varGalPickName, "");
+              Set(varGalPickEmail, "");
               Reset(txtManualJMC);
               Reset(txtManualCounty)
             X: =If(varShowMemberEditDialog, 683, 703)

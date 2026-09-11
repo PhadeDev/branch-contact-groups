@@ -83,6 +83,14 @@
     }
     .copy-btn:hover { opacity: .88; }
     .copy-btn.ok { background: var(--green); }
+    .code-stamp { display: block; color: var(--muted); font-size: .72rem; font-weight: 500; margin-bottom: 6px; }
+    .update-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-left: 8px; padding: 2px 8px; border-radius: 999px;
+      background: var(--callout-ok-bg); color: var(--green);
+      font-size: .72rem; font-weight: 800; white-space: nowrap;
+    }
+    .update-pill::before { content: "●"; font-size: .6rem; }
     .screen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
     .screen-card {
       display: flex; flex-direction: column; justify-content: space-between;
@@ -129,7 +137,7 @@
   <div class="shell">
     <aside>
       <h2>Branch Contact Groups</h2>
-      <p>v2.45 build guide. Live-membership replacement for Outlook contact groups.</p>
+      <p>v2.46 build guide. Live-membership replacement for Outlook contact groups.</p>
       <nav>
         <a href="https://powerapps.pages.dev/">&larr; Guide library</a>
         <a href="#before-you-start">Before You Start</a>
@@ -137,7 +145,6 @@
         <a href="#sharepoint-lists">SharePoint Lists</a>
         <a href="#onstart">App.OnStart</a>
         <a href="#screens">Screens</a>
-        <a href="#manual-fixes">Manual Fixes</a>
         <a href="#further-reading">Further Reading</a>
         <a href="#issues">Issues</a>
       </nav>
@@ -145,55 +152,15 @@
     <main>
 
 <div class="topline">
-  <span class="pill">v2.45</span>
-  <span class="pill">Built 28 Aug 2026</span>
+  <span class="pill">v2.46</span>
+  <span class="pill">Built 11 Sep 2026</span>
 </div>
 <h1>Branch Contact Groups</h1>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
-<div class="note"><strong>v2.45 — fixed the noticeable delay when saving group edits, adding people, or clicking most action buttons on Manage Groups and Manage People.</strong> Every one of those actions ended by re-fetching every membership for every group from SharePoint, one group at a time (the same ~40-50-sequential-call pattern behind the earlier loading-dots bug) — just to reflect a change to one group or one person. Replaced every one of those full reloads with a direct update to the already-loaded local copy, using the exact same data that was just written to SharePoint, so nothing is re-fetched at all. Affects: Save/Delete group, Add/Edit member manually, paste-replace roster (Manage Groups); Add Person, Save Person changes, Remove Leaver (Manage People). The explicit <strong>Refresh</strong> button on each screen is untouched — it still does a full reload, which is the point of a Refresh button. <code>scrManageGroups</code> and <code>scrManagePeople</code> changed this round.</div>
+<div class="note"><strong>v2.46 — added a Thursday Batch overview, and fixed GAL-added members skipping JMC/County entirely.</strong> Manage Groups now has a <strong>Thursday Batches</strong> button on the header that opens a read-only, two-column view of every group in Batch&nbsp;1 and Batch&nbsp;2 with live member counts, plus a count of groups with no batch set — previously the only way to check a group's batch was opening its Edit panel one group at a time. Separately, picking someone from GAL search inside Manage Members used to add them to the group immediately with blank JMC/County, forcing a second trip through Edit &rarr; pencil &rarr; JMC/County afterwards; the GAL pick now stages into the existing "Add manually" panel right next to it (prefilled with their name and email), so JMC/County get entered in the same step as the add. No SharePoint schema changes and no App.OnStart changes this round. <code>scrManageGroups</code> is the only screen that changed.</div>
 
-<div class="note"><strong>v2.44 — fixed a real bug spotted in a screen-recording of the live app: long names overlapped in "Add existing people."</strong> Anyone with a longer name/role (e.g. "2Lt Nicola Reeble County Vocational Qualifications Officer") wrapped onto a second line and visually overlapped the row below it in Manage Groups &rarr; Manage Members &rarr; Add existing. Pre-existing, not something from the v2.42 redesign — Manage People's own list already truncated long names correctly, this one list was simply missed. Fixed with the same truncate-plus-tooltip pattern used everywhere else in the app (full name still visible on hover). <code>scrManageGroups</code> is the only screen that changed this round.</div>
-
-<div class="note"><strong>v2.43 — fixes found by a fresh review pass over the whole v2.42 redesign (5 agents, one per screen plus a cross-screen check), before this got pasted anywhere.</strong>
-<ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
-<li><strong>Fixed:</strong> the To/CC/BCC and Thursday Batch 1/Batch 2 selectors on Send Email would have shown every option as "selected" at once — Power Apps' Modern Button can't reliably render a light/unselected colour state, a documented platform limitation. Switched all five buttons to the classic Button control, which handles this correctly (same technique already used for the filter buttons on Quick Contacts).</li>
-<li><strong>Fixed:</strong> the "Loaded HH:MM" freshness timestamp on all four screens was resetting to "just now" every time you simply navigated back to a screen, even though no data was actually reloaded — a side-effect of the v2.40 performance fix that removed the reload but left the timestamp update behind. It's now set once by <strong>App.OnStart</strong> (the real initial load) and by each screen's own <strong>Refresh</strong> button (a real reload) — never by just visiting a screen.</li>
-<li>Fixed a stale "Covers v2.0" label on the Maintainer Quickstart page.</li>
-</ul>
-<p style="margin:10px 0 0; font-size:0.82rem;">App.OnStart changed this round (one added line) — re-paste that alongside all four screens.</p>
-</div>
-
-<div class="note"><strong>v2.42 — visual redesign pass, plus a real fix to the member-edit flow.</strong> Agreed first as a mockup (design pitch artifact) before any YAML was touched, then built for real:
-<ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
-<li><strong>Fixed the behaviour, not just the look:</strong> clicking the pencil to edit a member used to silently jump you from the Members tab over to "Add from GAL" to show the edit form. It now opens a proper small popup right there, on top of the Members tab — no tab-jump, no confusion. Same Save/Cancel logic as before, just presented properly.</li>
-<li><strong>Icon-chips:</strong> the small action icons (Manage Members, History, Edit group, Edit member, Remove member, View members/history on Send Email) now sit on a soft tinted circle instead of floating bare — Power Apps has no real "modern icon" control, so this is the honest fix rather than a workaround.</li>
-<li><strong>Segmented selectors get one shared rounded track</strong> instead of reading as separate loose buttons — To/CC/BCC and the Thursday Batch 1/Batch 2 picker on Send Email.</li>
-<li><strong>Initials avatars</strong> on Manage People — colour is deterministic per name (same person always gets the same colour), no manual picking needed.</li>
-<li><strong>Off-white page background</strong> app-wide (was pure white on Send Email/Manage Groups/Manage People; Quick Contacts already had this) so white cards/rows read as sitting above the page instead of blending into it.</li>
-</ul>
-<p style="margin:10px 0 0; font-size:0.82rem;">No new SharePoint columns and no App.OnStart changes this round — every new bit of state lives in the screen it's used on. All four screens changed — full re-paste needed. <strong>Not done this round</strong> (kept for a future pass, deliberately not rushed): separating "Add from GAL" and "Add manually" onto their own tabs instead of sharing one, a proper timeline view for group history, and summary stat strips on the other three screens.</p>
-</div>
-
-<div class="note"><strong>v2.41 — fixed the GAL search hang.</strong> Every GAL search box (Manage Members "Add from GAL", Manage Maintainers, Manage People "Add Person") searched live on every keystroke — each keystroke fired its own real network call to the Office 365 Users connector, with no cancellation of the previous one, so typing a full name could queue up several slow calls that finished out of order. That's the "typed a name, nothing happened for almost a minute" behaviour. Fixed: typing no longer searches by itself — press the new <strong>Search</strong> button once you've typed a surname, which shows "Searching..." while the one request is in flight. Placeholder text now also hints at surname-first search (e.g. "Hughes"), matching how your GAL already stores display names ("Surname, Firstname"). All four screens changed — full re-paste needed.</div>
-
-<div class="note"><strong>v2.40 — fixed the constantly-spinning loading dots / sluggish clicking.</strong> Every screen's own <code>OnVisible</code> was redundantly re-running the full ~50-sequential-call group/membership fetch on top of <strong>App.OnStart</strong> already doing it once at launch — so navigating between any two screens re-triggered the whole slow load. That per-screen reload is now removed; the data loads once at app start, plus on demand via each screen's own <strong>Refresh</strong> button. All four screens changed — full re-paste needed. See the "Fixed in v2.40" note further down for detail.</div>
-
-<div class="note"><strong>v2.39 — pre-launch bug pass and simplification. All four screens changed, please do a full delete-and-repaste of every screen rather than a partial fix this round.</strong>
-<ul style="margin:8px 0 0; padding-left:20px; color:#aaa; font-size:0.85rem; line-height:1.7;">
-<li><strong>Removed</strong> the "Saved selections" feature on Send Email (and the <code>BM Saved Selections</code> list it needed) — it was undocumented in the setup steps and added risk for little day-to-day benefit. Ticking groups and Clear Selection still work exactly as before.</li>
-<li><strong>Fixed</strong> a real publish-risk bug: several screen-local ID variables (<code>varPreviewGroupID</code>, <code>varLightboxGroupID</code>, <code>varManageGroupID</code>, <code>varEditingMemberID</code>) were first set to <code>Blank()</code>, which Power Fx can refuse with "No type found for variable" even though a real value is set later. All four now use <code>0</code> ("nothing selected") instead.</li>
-<li><strong>Fixed</strong> a Manage Groups bug where renaming a group showed "0 members" everywhere until you refreshed — the membership cache was rebuilt one line before the group list itself was.</li>
-<li><strong>Fixed</strong> a Manage Groups bug where the "Add manually" member form could show a previous group's leftover name/email/JMC/County if you closed the Manage Members popup without saving.</li>
-<li><strong>Fixed</strong> a Manage People bug where the bottom of a person's row (email/group-count line) didn't respond to taps when both JMC and County/Contingent were shown.</li>
-<li><strong>Fixed</strong> a Manage People bug where the Edit Person name field could show blank for a person whose email is stored with different capitalisation than what you typed.</li>
-<li><strong>Fixed</strong> a Manage People bug where renaming someone (or changing just their email) didn't update the group's "Last modified" date the way adding/removing a member does.</li>
-<li><strong>Fixed</strong> Quick Contacts showing the wrong "Last modified" date for any group with a manually-overridden date (it now matches what Manage Groups shows).</li>
-<li><strong>Fixed</strong> a non-maintainer getting stuck on Send Email with no way back — it now shows a Back button for anyone who isn't a maintainer.</li>
-<li><strong>Removed</strong> a leftover debug line ("Raw stored value: [...]") from the Manage Groups edit form.</li>
-<li><strong>Simplified</strong> the two separate Thursday Batch 1 / Batch 2 buttons into one Batch 1/Batch 2 selector plus a single Apply and Preview action.</li>
-<li><strong>Trimmed</strong> the Admin Health Check from seven scans down to the three that catch real problems: blank names, invalid/blank emails, and membership rows pointing at a group that no longer exists.</li>
-</ul></div>
+<p style="font-size:0.82rem; color:var(--muted);">Older release notes have been retired from this page to keep it current and skimmable — every fix through v2.45 is already baked into the screen YAML below, so a fresh paste always reflects the latest state without needing the history. Full commit history remains in the <a href="https://github.com/PhadeDev/branch-contact-groups/commits/main">GitHub repo</a>.</p>
 
 <h2 id="before-you-start">Before You Start</h2>
 <ol>
@@ -203,7 +170,7 @@
   <li>Add all data sources listed below (Data panel → Add data).</li>
   <li>Set App → OnStart using the code block below.</li>
   <li>Create four blank screens (name them exactly as shown), then paste each YAML in order: scrQuickContacts, scrSendEmail, scrManageGroups, scrManagePeople.</li>
-  <li>These screens use manual X/Y positioning throughout. Anything too tall to fit on one screen (Manage Groups' member panel, Manage People's Add Person/Remove Leaver panels) is a centered lightbox instead of a scrolling section — see <strong>Manual Fixes</strong> below for small property-level tweaks that don't need a full re-paste.</li>
+  <li>These screens use manual X/Y positioning throughout. Anything too tall to fit on one screen (Manage Groups' member panel, Manage People's Add Person/Remove Leaver panels) is a centered lightbox instead of a scrolling section.</li>
 </ol>
 
 <h2 id="data-connections">Data Connections</h2>
@@ -311,6 +278,7 @@
 <p>Paste into <strong>App → OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong> — it's set to <code>mod.gov.uk</code> below.</p>
 <div class="note">v2.32 loads <strong>BM Memberships</strong> group-by-group from SharePoint instead of trying to cache the whole list by item ID. That avoids the row-limit/item-ID problem where later alphabetic groups could show as 0 members even when SharePoint had rows.</div>
 <div class="code-block">
+  <span class="code-stamp" data-updated="2026-09-11T08:42:52Z">v2.32 &middot; 2026-09-11 09:42 BST &mdash; stamp added, content unchanged since v2.32</span>
   <button class="copy-btn" onclick="copyBlock(this, 'on-start')">Copy</button>
   <pre id="on-start">Set(varModDomain, "mod.gov.uk");
 Set(varMyEmail, Lower(User().Email));
@@ -348,11 +316,11 @@ Set(varLastMembershipRefresh, Now())</pre>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.45">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.46">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.45</span></div>
-      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache. Save/edit/delete/add/remove/paste-replace actions now update the local cache directly instead of re-fetching everything from SharePoint.</div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.46</span></div>
+      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL (JMC/County captured inline before saving, no separate edit trip needed) or manually, paste-replace rosters with add/remove/unchanged diff counts, manage maintainers, a Thursday Batches overview (Batch 1/Batch 2 groups with live member counts, plus a count of unassigned groups), run a read-only Admin Health Check (blank name, invalid email, orphaned membership rows), and manually refresh the loaded SharePoint cache. Save/edit/delete/add/remove/paste-replace actions update the local cache directly instead of re-fetching everything from SharePoint.</div>
     </div>
     <div class="screen-cta">Open and copy →</div>
   </a>
@@ -365,161 +333,6 @@ Set(varLastMembershipRefresh, Now())</pre>
     <div class="screen-cta">Open and copy →</div>
   </a>
 </div>
-
-<h2 id="manual-fixes">Manual Fixes</h2>
-<p>Small property-level tweaks that are quicker to make directly in Studio than to re-paste a whole screen for. Select the named control, open its property list (Advanced tab, or the dropdown at the top of the formula bar), and edit only the property named — leave everything else on the control alone. This list grows as new ones come up; check it before doing a full delete-and-repaste for something small.</p>
-
-<h3>v2.36 — <code>drpEditThursdayBatch</code> opens blank instead of defaulting to None</h3>
-<p>For existing groups, the old <code>Default</code> formula only looked for the raw stored SharePoint choice value. If that value is blank, stale in <code>colGroups</code>, or has whitespace/casing differences, the dropdown cannot find a matching row in <code>colThursdayBatchOptions</code> and renders blank. Select <strong>scrManageGroups</strong> → <code>drpEditThursdayBatch</code> and replace the <strong>Default</strong> property with:</p>
-<pre>LookUp(
-    colThursdayBatchOptions,
-    Lower(Trim(Value)) =
-        Lower(Trim(Coalesce(LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value, "None")))
-)</pre>
-
-<h3>v2.8 — Dead click: <code>DisplayMode.View</code> combined with <code>OnSelect</code></h3>
-<p><code>DisplayMode.View</code> disables interaction entirely on a <code>Classic/Button</code>, not just its hover/press styling — a button with both properties set looks completely normal but never responds to a tap, with no error anywhere. Fix: select the control, delete its <strong>DisplayMode</strong> property so it goes back to default. Nothing else on the control needs to change.</p>
-<table>
-  <thead><tr><th>Screen</th><th>Control</th><th>What it's for</th></tr></thead>
-  <tbody>
-    <tr><td>scrSendEmail</td><td><code>recCheckBox</code></td><td>Group-tick checkbox overlay on each card</td></tr>
-    <tr><td>scrSendEmail</td><td><code>recLightboxBackdrop</code></td><td>Click outside the preview/history/batch popup to close it</td></tr>
-    <tr><td>scrManageGroups</td><td><code>recResultTap</code></td><td>Tapping a GAL search result to add them</td></tr>
-    <tr><td>scrManageGroups</td><td><code>recLightboxBackdrop</code></td><td>Click outside the Manage Members lightbox to close it</td></tr>
-    <tr><td>scrManagePeople</td><td><code>recPersonRowFrame</code></td><td>Tapping a person row to select them</td></tr>
-    <tr><td>scrManagePeople</td><td><code>recLightboxBackdrop</code></td><td>Click outside the Add Person/Remove Leaver lightbox to close it</td></tr>
-  </tbody>
-</table>
-
-<h3>v2.9 — Clicking a group card on Send Email did nothing</h3>
-<p><code>galGroups</code>' own <code>OnSelect</code> (<code>Set(varPreviewGroupID, ThisItem.ID)</code>) never fired, because its child <code>recRowFrame</code> covers the entire card. <strong>Correction, found in v2.10 below:</strong> the real reason was that <code>recRowFrame</code> still had <code>DisplayMode: =DisplayMode.View</code> left over from before this app's DisplayMode scrub — it hadn't been caught earlier because at scrub time it had no <code>OnSelect</code> yet, so it didn't match the "View + OnSelect" search. It still fully absorbed the tap (per the v2.8 entry above) without being able to act on it, which is why the gallery's own OnSelect never got a chance to fire either.</p>
-<p>Fix on <strong>scrSendEmail</strong>, gallery <code>galGroups</code> → child <code>recRowFrame</code>: add a new <strong>OnSelect</strong> property with the formula <code>Set(varPreviewGroupID, ThisItem.ID)</code>, <strong>and</strong> delete its <strong>DisplayMode</strong> property if it's still set to View. Both steps are needed together. The gallery's own (now-dead) OnSelect can be deleted, but leaving it doesn't hurt anything.</p>
-
-<h3>v2.10 — Tapping the visible text on a card/row does nothing, only the blank margins respond</h3>
-<p>Once a background control like <code>recRowFrame</code> has a working <code>OnSelect</code>, any Label sitting on top of it (group name, member count, notes line, etc.) still blocks the tap from reaching it — in Power Apps, a control fully occupies its own space for hit-testing regardless of whether it has any click behavior of its own, so a Label with no <code>OnSelect</code> does not let clicks pass through to whatever's behind it. The practical result: only the empty gaps around the text respond, not the text itself.</p>
-<p><strong>Fix (built into the YAML as of v2.10, no manual action needed if you re-paste)</strong>: rather than repeating the same <code>OnSelect</code> on every Label — fragile, easy to miss one — a single fully transparent Button (<code>Fill: =RGBA(0,0,0,0)</code>, no border, full row size) sits <em>in front of</em> the Labels but <em>behind</em> any small control that needs its own distinct click (a checkbox, an icon). Being transparent, it doesn't hide anything visually; being in front of the Labels, it catches every tap across the whole row regardless of where the text sits. Z-order in this app's YAML is simple: later children render in front of earlier ones, so the order that makes this work is: decorative background → Labels → transparent click-catcher → any small distinct-action controls (checkbox/icons) last.</p>
-<table>
-  <thead><tr><th>Screen</th><th>New control</th><th>Sits in front of</th><th>Sits behind</th></tr></thead>
-  <tbody>
-    <tr><td>scrSendEmail</td><td><code>recRowClickCatcher</code></td><td><code>recRowFrame</code>, <code>lblGroupName</code>, <code>lblMemberMeta</code>, <code>lblGroupNotesLine</code></td><td><code>recCheckBox</code>, <code>icoViewMembers</code>, <code>icoViewHistory</code> (unaffected, still independently clickable)</td></tr>
-    <tr><td>scrManagePeople</td><td><code>recPersonRowClickCatcher</code></td><td><code>recPersonRowFrame</code>, <code>lblPersonRowName</code>, <code>lblPersonRowEmail</code></td><td>nothing else in this row — it's the frontmost control</td></tr>
-  </tbody>
-</table>
-
-<h3>v2.33 — Six fixes, as hand-applied edits (no full-screen re-paste needed)</h3>
-<p>These are written as targeted property edits on named controls (find the control in the tree, open its formula bar, paste in just the one property) plus a short list of brand-new controls to insert. Nothing here requires deleting or re-pasting a whole screen, so any manual text-size/spacing tweaks you've already made elsewhere are untouched.</p>
-
-<h4>1. scrSendEmail — Thursday Batch buttons ticking nothing</h4>
-<p>Cause: the buttons always forced BCC-locked mode even when zero groups actually had that Thursday Batch set, which read as "broken" rather than "nothing to select yet."</p>
-<table>
-  <thead><tr><th>Control</th><th>Property</th><th>New formula</th></tr></thead>
-  <tbody>
-    <tr><td><code>btnThursdayBatch1</code></td><td>OnSelect</td><td><code>=If(CountRows(Filter(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 1")) = 0, Notify("No groups are currently set to Thursday Batch 1. Set a group's Thursday Batch in Manage Groups first.", NotificationType.Warning), UpdateIf(colGroups, true, {Ticked: false}); UpdateIf(colGroups, Lower(Trim(ThursdayBatch.Value)) = "batch 1", {Ticked: true}); Set(varBccForcedByBatch, true); Set(varBccForced, true))</code></td></tr>
-    <tr><td><code>btnThursdayBatch2</code></td><td>OnSelect</td><td>Same shape as above with every <code>"batch 1"</code> → <code>"batch 2"</code> and the notify text saying "Batch 2".</td></tr>
-    <tr><td><code>galLightboxMembers</code></td><td>Items</td><td>In the existing <code>Switch(varLightboxMode, ...)</code> formula, in the <code>"batch1"</code> and <code>"batch2"</code> branches, change <code>grp.ThursdayBatch.Value = "Batch 1"</code> (and <code>"Batch 2"</code>) to <code>Lower(Trim(grp.ThursdayBatch.Value)) = "batch 1"</code> (and <code>"batch 2"</code>) — same trim/case-insensitive treatment, for the batch-preview popup to match what the buttons now select.</td></tr>
-  </tbody>
-</table>
-
-<h4>2. scrSendEmail — clear (X) button on group search</h4>
-<p>New control to insert: an Icon, positioned just inside the right edge of <code>txtGroupSearch</code>.</p>
-<table>
-  <thead><tr><th>Property</th><th>Value</th></tr></thead>
-  <tbody>
-    <tr><td>Name</td><td><code>icoClearGroupSearch</code></td></tr>
-    <tr><td>Icon</td><td><code>=Icon.Cancel</code></td></tr>
-    <tr><td>Visible</td><td><code>=!IsBlank(Trim(txtGroupSearch.Text))</code></td></tr>
-    <tr><td>Color</td><td><code>=RGBA(160,160,160,1)</code></td></tr>
-    <tr><td>Tooltip</td><td><code>="Clear search"</code></td></tr>
-    <tr><td>OnSelect</td><td><code>=Reset(txtGroupSearch)</code></td></tr>
-    <tr><td>X / Y / Width / Height</td><td><code>668 / 131 / 22 / 22</code></td></tr>
-  </tbody>
-</table>
-
-<h4>3. scrManageGroups — Delete group button</h4>
-<p>New control in the edit-group lightbox, next to Cancel. Uses the same tap-twice-to-confirm pattern as the member/maintainer trash icons already in this app.</p>
-<table>
-  <thead><tr><th>Property</th><th>Value</th></tr></thead>
-  <tbody>
-    <tr><td>Name</td><td><code>btnDeleteGroup</code> (ModernButton)</td></tr>
-    <tr><td>Text</td><td><code>=If(varConfirmDeleteGroupArmed, "Tap again to confirm - deletes " & CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)))) & " member(s)", "Delete group")</code></td></tr>
-    <tr><td>Visible</td><td><code>=varShowLightbox && varLightboxMode = "edit" && !IsBlank(varManageGroupID)</code></td></tr>
-    <tr><td>BasePaletteColor</td><td><code>=RGBA(163,45,45,1)</code></td></tr>
-    <tr><td>OnSelect</td><td><code>=If(!varConfirmDeleteGroupArmed, Set(varConfirmDeleteGroupArmed, true), With({deletedTitle: LookUp(colGroups, ID = varManageGroupID).Title}, RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(deletedTitle))); RemoveIf('BM History', Lower(Trim(GroupName)) = Lower(Trim(deletedTitle))); Remove('BM Groups', LookUp('BM Groups', ID = varManageGroupID)); ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false)); ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title))); Set(varConfirmDeleteGroupArmed, false); Set(varShowLightbox, false); Set(varManageGroupID, Blank()); Notify("Deleted " & deletedTitle & ".", NotificationType.Error)))</code></td></tr>
-    <tr><td>X / Y / Width / Height</td><td><code>523 / 466 / 300 / 44</code></td></tr>
-  </tbody>
-</table>
-<p>Also add a new global variable — it needs initialising to <code>false</code> somewhere it's set before first use. Simplest: add <code>Set(varConfirmDeleteGroupArmed, false);</code> as one more line in the <strong>Screen's own OnVisible</strong> property (select the screen itself in the tree, not a control), and again at the end of each of these three existing OnSelect formulas so the confirm-state resets whenever a different group's edit lightbox opens: <code>btnNewGroup</code>, the group row's <code>recRowClickCatcher</code>, and <code>icoRowEdit</code> — in each, add <code>Set(varConfirmDeleteGroupArmed, false);</code> right before the final <code>Set(varShowLightbox, true)</code> line.</p>
-
-<h4>4. scrManageGroups — GAL search flicker fix (two search boxes)</h4>
-<p>Same cause as the Manage People one below — <code>Office365Users.SearchUserV2(...)</code> was called directly in a gallery's <code>Items</code>, causing background flicker. Fix for the "Add people" tab's GAL search:</p>
-<table>
-  <thead><tr><th>Control</th><th>Property</th><th>New formula</th></tr></thead>
-  <tbody>
-    <tr><td><code>txtGalSearch</code></td><td>OnChange (new property)</td><td><code>=If(IsBlank(Trim(txtGalSearch.Text)), ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)), ClearCollect(colGalSearchResults, Office365Users.SearchUserV2({searchTerm: txtGalSearch.Text, top: 10}).value))</code></td></tr>
-    <tr><td><code>galGalResults</code></td><td>Items</td><td><code>=colGalSearchResults</code></td></tr>
-    <tr><td><code>txtMaintainerSearch</code></td><td>OnChange (new property)</td><td>Same shape, <code>colMaintainerGalSearchResults</code>, <code>top: 5</code>.</td></tr>
-    <tr><td><code>galMaintainerGalResults</code></td><td>Items</td><td><code>=colMaintainerGalSearchResults</code></td></tr>
-  </tbody>
-</table>
-<p>Because <code>Reset()</code> doesn't fire <code>OnChange</code>, also add a line re-seeding the empty-result collection wherever these two search boxes get <code>Reset()</code>'d: <code>icoRowManageMembers.OnSelect</code> (after <code>Reset(txtGalSearch)</code>, add <code>ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));</code>), the "add from GAL" tile's tap handler (same line, after its own <code>Reset(txtGalSearch)</code>), <code>btnMaintainersNav.OnSelect</code> and <code>btnUseMaintainerGal.OnSelect</code> (same pattern with <code>colMaintainerGalSearchResults</code>). Also seed both collections once in the <strong>Screen's OnVisible</strong>, same empty-filter formula.</p>
-
-<h4>5. scrManageGroups — clear (X) buttons</h4>
-<table>
-  <thead><tr><th>Name</th><th>Icon</th><th>Visible</th><th>OnSelect</th><th>X / Y / W / H</th></tr></thead>
-  <tbody>
-    <tr><td><code>icoClearGroupSearch</code></td><td>Icon.Cancel</td><td><code>=!IsBlank(Trim(txtGroupSearch.Text))</code></td><td><code>=Reset(txtGroupSearch)</code></td><td>588 / 137 / 22 / 22</td></tr>
-    <tr><td><code>icoClearGalSearch</code></td><td>Icon.Cancel</td><td><code>=varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add" && !IsBlank(Trim(txtGalSearch.Text))</code></td><td><code>=Reset(txtGalSearch); ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))</code></td><td>571 / 220 / 22 / 22</td></tr>
-    <tr><td><code>icoClearMaintainerSearch</code></td><td>Icon.Cancel</td><td><code>=varShowLightbox && varLightboxMode = "adminMaintainers" && !IsBlank(Trim(txtMaintainerSearch.Text))</code></td><td><code>=Reset(txtMaintainerSearch); ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))</code></td><td>1091 / 170 / 22 / 22</td></tr>
-  </tbody>
-</table>
-<p>All three: <code>Color: =RGBA(160,160,160,1)</code>, <code>Tooltip: ="Clear search"</code>.</p>
-
-<h4>6. scrManagePeople — Remove Leaver group list, clear buttons, and its own GAL search flicker fix</h4>
-<p><strong>Remove Leaver group list</strong>: new Gallery inserted between the existing <code>lblPurgeMatch</code> label and the <code>btnPurgeFromAll</code> button.</p>
-<table>
-  <thead><tr><th>Property</th><th>Value</th></tr></thead>
-  <tbody>
-    <tr><td>Name</td><td><code>galPurgeMatchGroups</code> (Vertical Gallery)</td></tr>
-    <tr><td>Items</td><td><code>=With({p: LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email)}, If(IsBlank(Trim(txtPurgeSearch.Text)) || IsBlank(p), Filter(colMemberships, false), Sort(Distinct(Filter(colMemberships, Lower(Email) = Lower(p.Email)), GroupName), Value, SortOrder.Ascending)))</code></td></tr>
-    <tr><td>Visible</td><td><code>=varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text)) && !IsBlank(LookUp(colPeople, txtPurgeSearch.Text in Name || txtPurgeSearch.Text in Email))</code></td></tr>
-    <tr><td>TemplateSize / X / Y / Width / Height</td><td>28 / 283 / 294 / 780 / 130</td></tr>
-    <tr><td>Child label <code>lblPurgeMatchGroupRow</code></td><td>Text: <code>="•  " & ThisItem.Value</code>, size 12, colour <code>RGBA(120,120,120,1)</code></td></tr>
-  </tbody>
-</table>
-<p>Then two small existing-control edits: shrink <code>lblPurgeMatch</code>'s Height from 50 to 30 (its X/Y stay the same, it just no longer needs room for a second line), and move <code>btnPurgeFromAll</code>'s Y from 320 down to 436 so it sits below the new list.</p>
-
-<p><strong>Clear (X) buttons:</strong></p>
-<table>
-  <thead><tr><th>Name</th><th>Visible</th><th>OnSelect</th><th>X / Y / W / H</th></tr></thead>
-  <tbody>
-    <tr><td><code>icoClearPeopleSearch</code></td><td><code>=!IsBlank(Trim(txtPeopleSearch.Text))</code></td><td><code>=Reset(txtPeopleSearch)</code></td><td>588 / 137 / 22 / 22</td></tr>
-    <tr><td><code>icoClearPurgeSearch</code></td><td><code>=varShowLightbox && varPeopleLightboxMode = "purge" && !IsBlank(Trim(txtPurgeSearch.Text))</code></td><td><code>=Reset(txtPurgeSearch); Set(varConfirmPurgeArmed, false)</code></td><td>1051 / 217 / 22 / 22</td></tr>
-    <tr><td><code>icoClearAddPersonSearch</code></td><td><code>=varShowLightbox && varPeopleLightboxMode = "addPerson" && !IsBlank(Trim(txtAddPersonSearch.Text))</code></td><td><code>=Reset(txtAddPersonSearch); ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))</code></td><td>1051 / 158 / 22 / 22</td></tr>
-  </tbody>
-</table>
-<p>All three: Icon.Cancel, <code>Color: =RGBA(160,160,160,1)</code>, <code>Tooltip: ="Clear search"</code>.</p>
-
-<p><strong>GAL search flicker fix</strong> (Add Person tab), same pattern as item 4 above:</p>
-<table>
-  <thead><tr><th>Control</th><th>Property</th><th>New formula</th></tr></thead>
-  <tbody>
-    <tr><td><code>txtAddPersonSearch</code></td><td>OnChange (new property)</td><td><code>=If(IsBlank(Trim(txtAddPersonSearch.Text)), ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false)), ClearCollect(colAddPersonGalResults, Office365Users.SearchUserV2({searchTerm: txtAddPersonSearch.Text, top: 5}).value))</code></td></tr>
-    <tr><td><code>galAddPersonGalResults</code></td><td>Items</td><td><code>=colAddPersonGalResults</code></td></tr>
-  </tbody>
-</table>
-<p>Re-seed <code>colAddPersonGalResults</code> (same empty-filter formula) wherever <code>txtAddPersonSearch</code> gets <code>Reset()</code>'d: <code>btnAddPersonTrigger.OnSelect</code> and the successful-add branch of <code>btnAddPerson.OnSelect</code>. Also seed it once in the <strong>Screen's OnVisible</strong>.</p>
-
-<div class="note"><strong>Fixed in v2.40:</strong> every screen was redundantly re-running the full group-by-group fetch (~50 sequential SharePoint round trips) on its own <code>OnVisible</code>, on top of <strong>App.OnStart</strong> already doing it once at launch — so simply navigating between screens (Quick Contacts → Send Email → Manage Groups → Manage People) re-triggered the whole slow load every time, which is what showed up as the constantly-spinning loading dots and sluggish clicks. The group-by-group fetch itself is unchanged (still needed to avoid the v2.30→v2.32 row-limit truncation bug) — it now only runs once at app launch, plus on demand via each screen's own <strong>Refresh</strong> button.</div>
-
-<h3>v2.34 — JMC / County-Contingent / Name split out of Title, and the standard import sheet</h3>
-<p>Given the size of this change, it's applied as a full screen re-paste rather than a manual property list — see the SharePoint schema notes above (<strong>BM Memberships</strong> section) for the new <strong>Name</strong>, <strong>JMC</strong>, and <strong>County/Contingent</strong> columns and the exact import-sheet mapping.</p>
-<p><strong>Add the three new columns to BM Memberships in SharePoint first</strong> (Name, JMC, County/Contingent — all Single line of text, Not Required), then delete each of the three screens and paste fresh into new blank screens rather than pasting over the existing ones — Studio's paste is additive/merge, not a full replace, so a control that got renamed or removed as part of a fix can be left behind on the canvas with its old bindings still intact.</p>
-<ul>
-  <li><strong>Name is now the field the app actually reads and writes</strong> for a person's display name — <code>Title</code> is kept only as a mirror so SharePoint's own list view still shows something readable; the app itself never reads Title again.</li>
-  <li><strong>Manage Groups</strong>: the member card in "Manage Members" now shows JMC and County/Contingent above Name/Email (each line hidden automatically when blank); the manual add/edit form has two new optional fields for them; the paste-import box auto-detects the standard 7-column sheet vs. the old 2-column Name/Email format by counting columns per pasted line.</li>
-  <li><strong>Manage People</strong>: person cards in the main list now show the same JMC/County/Contingent/Name/Email layout — since these two fields technically belong to a specific group-membership row rather than the person, the card shows whichever membership row is found first as a reasonable approximation.</li>
-  <li><strong>Send Email</strong>: unchanged — it continues to show groups, not individual people, by design.</li>
-</ul>
 
 <h2 id="further-reading">Further Reading</h2>
 <div class="doc-grid">
@@ -554,6 +367,31 @@ async function copyBlock(btn, id) {
     btn.textContent = 'Failed';
   }
 }
+(function () {
+  var RECENT_WINDOW_MS = 48 * 60 * 60 * 1000; // 48 hours - past this, no pill, just the plain stamp
+  var now = Date.now();
+
+  function formatAge(ms) {
+    var mins = Math.round(ms / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    var hours = Math.round(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    return Math.round(hours / 24) + 'd ago';
+  }
+
+  document.querySelectorAll('.code-stamp[data-updated]').forEach(function (stamp) {
+    var updated = new Date(stamp.getAttribute('data-updated')).getTime();
+    if (isNaN(updated)) return;
+    var age = now - updated;
+    if (age >= 0 && age < RECENT_WINDOW_MS) {
+      var pill = document.createElement('span');
+      pill.className = 'update-pill';
+      pill.textContent = 'Updated ' + formatAge(age);
+      stamp.after(pill);
+    }
+  });
+})();
 </script>
 </body>
 </html>
