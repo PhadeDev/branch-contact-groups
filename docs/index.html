@@ -291,7 +291,7 @@
 <p>New in v2.47. Paste into <strong>App &rarr; Formulas</strong> in Power Apps Studio, <strong>before</strong> App.OnStart. It holds <code>LoadCache()</code>, the one function every screen and every Refresh button uses to load maintainers, groups, memberships and the history list. It loads the memberships group by group in four parallel streams, which avoids the row-limit problem where later groups could show 0 members.</p>
 <div class="note">If Studio underlines <code>Concurrent</code> inside this function, replace each <code>Concurrent( A, B )</code> with <code>A; B</code> (it still works, just slower) and tell me so I can adjust the guide.</div>
 <div class="code-block">
-  <span class="code-stamp" data-updated="2026-11-18T08:57:04Z">v2.47 &middot; 2026-11-18 08:57 GMT &mdash; new</span>
+  <span class="code-stamp" data-updated="2026-11-18T08:57:04Z">v2.47 &middot; 18/11/2026 08:57 GMT &mdash; new</span>
   <button class="copy-btn" onclick="copyBlock(this, 'formulas-code')">Copy</button>
   <pre id="formulas-code">LoadCache(): Boolean = {
     Set(varLoading, true);
@@ -326,7 +326,7 @@
 <p>Paste into <strong>App &rarr; OnStart</strong> in Power Apps Studio. This is never part of any screen's YAML. <strong>Check <code>varModDomain</code> matches your real domain</strong>; it is set to <code>mod.gov.uk</code> below.</p>
 <div class="note">v2.47 OnStart no longer loads any SharePoint data. That now happens in <code>LoadCache()</code> behind the Quick Contacts loading screen, so the app opens immediately. It also creates three empty GAL result tables locally (this replaces the 15 fake GAL lookups).</div>
 <div class="code-block">
-  <span class="code-stamp" data-updated="2026-11-18T08:57:04Z">v2.47 &middot; 2026-11-18 08:57 GMT &mdash; changed</span>
+  <span class="code-stamp" data-updated="2026-11-18T08:57:04Z">v2.47 &middot; 18/11/2026 08:57 GMT &mdash; changed</span>
   <button class="copy-btn" onclick="copyBlock(this, 'on-start')">Copy</button>
   <pre id="on-start">Set(varModDomain, "mod.gov.uk");
 Set(varMyEmail, Lower(User().Email));
