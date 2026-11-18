@@ -4,6 +4,7 @@ Screens:
       Fill: =RGBA(246,248,247,1)
       OnVisible: |-
         =Set(varQuickFilter, "All");
+        Set(varQuickPreviewTitle, "");
         If(!varCacheReady && !varLoading, LoadCache())
     Children:
       - recHeader:
@@ -23,17 +24,6 @@ Screens:
             Y: =0
             Width: =1366
             Height: =76
-      - lblAppVersion:
-          Control: Label@2.5.1
-          Properties:
-            Text: ="scrQuickContacts v2.47"
-            Color: =RGBA(214,232,227,1)
-            Size: =9
-            Font: =Font.'Open Sans'
-            X: =1246
-            Y: =3
-            Width: =110
-            Height: =12
       - lblHeaderTitle:
           Control: Label@2.5.1
           Properties:
@@ -336,7 +326,7 @@ Screens:
                   Font: =Font.'Open Sans'
                   X: =84
                   Y: =12
-                  Width: =860
+                  Width: =820
                   Height: =26
             - lblMeta:
                 Control: Label@2.5.1
@@ -419,6 +409,29 @@ Screens:
                   Y: =62
                   Width: =78
                   Height: =20
+            - btnMembers:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Who's in it"
+                  Fill: =RGBA(255,255,255,1)
+                  HoverFill: =RGBA(225,239,235,1)
+                  PressedFill: =RGBA(210,230,224,1)
+                  BorderColor: =RGBA(0,78,66,1)
+                  BorderThickness: =1
+                  Color: =RGBA(0,78,66,1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  RadiusTopLeft: =20
+                  RadiusTopRight: =20
+                  RadiusBottomLeft: =20
+                  RadiusBottomRight: =20
+                  Tooltip: ="See who is in this list before you copy it"
+                  OnSelect: =Set(varQuickPreviewTitle, ThisItem.Title)
+                  X: =916
+                  Y: =26
+                  Width: =170
+                  Height: =40
             - btnCopy:
                 Control: Classic/Button@2.2.0
                 Properties:
@@ -457,11 +470,11 @@ Screens:
                   HoverFill: =RGBA(0,78,66,0.04)
                   PressedFill: =RGBA(0,78,66,0.08)
                   BorderThickness: =0
-                  Tooltip: ="Copy addresses"
-                  OnSelect: =Select(btnCopy)
+                  Tooltip: ="See who is in this list"
+                  OnSelect: =Set(varQuickPreviewTitle, ThisItem.Title)
                   X: =0
                   Y: =0
-                  Width: =1294
+                  Width: =904
                   Height: =92
       - lblNoQuickResults:
           Control: Label@2.5.1
@@ -476,6 +489,204 @@ Screens:
             Y: =330
             Width: =1294
             Height: =40
+      - recMembersShade:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Fill: =RGBA(0,0,0,0.5)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            Tooltip: ="Close"
+            OnSelect: =Set(varQuickPreviewTitle, "")
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =768
+      - recMembersPanel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            X: =413
+            Y: =70
+            Width: =540
+            Height: =628
+      - lblMembersTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =varQuickPreviewTitle
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =18
+            Font: =Font.'Open Sans'
+            X: =437
+            Y: =90
+            Width: =450
+            Height: =32
+      - icoMembersClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Cancel
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Color: =RGBA(96,105,103,1)
+            Tooltip: ="Close"
+            OnSelect: =Set(varQuickPreviewTitle, "")
+            X: =905
+            Y: =94
+            Width: =24
+            Height: =24
+      - lblMembersSub:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {n: CountRows(Filter(colMemberships, GroupName = varQuickPreviewTitle && !IsBlank(Trim(Email))))},
+                  n & " member" & If(n = 1, "", "s") & ". Check these are the right people, then copy the addresses."
+              )
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Color: =RGBA(96,105,103,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =437
+            Y: =124
+            Width: =492
+            Height: =40
+      - galMembers:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =Sort(
+                  Filter(colMemberships, GroupName = varQuickPreviewTitle && !IsBlank(Trim(Email))),
+                  Coalesce(Title, Email),
+                  SortOrder.Ascending
+              )
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            TemplateSize: =54
+            TemplatePadding: =0
+            X: =437
+            Y: =172
+            Width: =492
+            Height: =430
+          Children:
+            - lblMemberName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =If(IsBlank(Trim(ThisItem.Title)), ThisItem.Email, ThisItem.Title)
+                  Wrap: =false
+                  Color: =RGBA(24,45,55,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =4
+                  Y: =6
+                  Width: =470
+                  Height: =22
+            - lblMemberEmail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email & If(!EndsWith(Lower(ThisItem.Email), "@" & varModDomain), "   (external)", "")
+                  Wrap: =false
+                  Color: =If(!EndsWith(Lower(ThisItem.Email), "@" & varModDomain), RGBA(163,45,45,1), RGBA(96,105,103,1))
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =4
+                  Y: =27
+                  Width: =470
+                  Height: =20
+            - lblMemberLine:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =""
+                  Fill: =RGBA(228,233,231,1)
+                  X: =4
+                  Y: =52
+                  Width: =470
+                  Height: =1
+      - lblNoMembers:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="There are no members in this list yet."
+            Visible: =!IsBlank(varQuickPreviewTitle) && CountRows(galMembers.AllItems) = 0
+            Color: =RGBA(96,105,103,1)
+            Size: =13
+            Font: =Font.'Open Sans'
+            Align: =Align.Center
+            X: =437
+            Y: =300
+            Width: =492
+            Height: =40
+      - btnMembersCopy:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Copy addresses"
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Fill: =RGBA(0,78,66,1)
+            HoverFill: =RGBA(0,98,84,1)
+            PressedFill: =RGBA(0,62,52,1)
+            BorderThickness: =0
+            Color: =RGBA(255,255,255,1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            RadiusTopLeft: =20
+            RadiusTopRight: =20
+            RadiusBottomLeft: =20
+            RadiusBottomRight: =20
+            OnSelect: |-
+              =With(
+                  {recipients: Distinct(Filter(colMemberships, GroupName = varQuickPreviewTitle && !IsBlank(Trim(Email))), Email)},
+                  If(
+                      CountRows(recipients) = 0,
+                      Notify("No member email addresses found for " & varQuickPreviewTitle & ".", NotificationType.Warning),
+                      Copy(Concat(recipients, Value, "; "));
+                      Notify("Copied " & CountRows(recipients) & " address" & If(CountRows(recipients) = 1, "", "es") & " from " & varQuickPreviewTitle & ".", NotificationType.Success)
+                  )
+              )
+            X: =437
+            Y: =632
+            Width: =230
+            Height: =44
+      - btnMembersClose:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Close"
+            Visible: =!IsBlank(varQuickPreviewTitle)
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =RGBA(232,237,235,1)
+            PressedFill: =RGBA(222,229,226,1)
+            BorderColor: =RGBA(190,201,197,1)
+            BorderThickness: =1
+            Color: =RGBA(45,58,64,1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            RadiusTopLeft: =20
+            RadiusTopRight: =20
+            RadiusBottomLeft: =20
+            RadiusBottomRight: =20
+            OnSelect: =Set(varQuickPreviewTitle, "")
+            X: =687
+            Y: =632
+            Width: =230
+            Height: =44
       - recLoadingBg:
           Control: Classic/Button@2.2.0
           Properties:

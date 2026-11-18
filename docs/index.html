@@ -137,7 +137,7 @@
   <div class="shell">
     <aside>
       <h2>Branch Contact Groups</h2>
-      <p>v2.47 build guide. Live-membership replacement for Outlook contact groups.</p>
+      <p>v2.48 build guide. Live-membership replacement for Outlook contact groups.</p>
       <nav>
         <a href="https://powerapps.pages.dev/">&larr; Guide library</a>
         <a href="yaml.html" style="font-weight:800;">📋 Screen YAML Vault</a>
@@ -154,21 +154,19 @@
     <main>
 
 <div class="topline">
-  <span class="pill">v2.47</span>
+  <span class="pill">v2.48</span>
   <span class="pill">Built 18 Nov 2026</span>
   <a class="pill" href="yaml.html" style="text-decoration:none;">📋 Screen YAML Vault →</a>
 </div>
 <h1>Branch Contact Groups</h1>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
-<div class="note"><strong>v2.47: faster, and a fresh look. Re-paste all four screens plus the new App.Formulas and the new App.OnStart.</strong>
+<div class="note"><strong>v2.48: Quick Contacts now shows who is in each list. Re-paste scrQuickContacts, and the other three screens (version labels removed).</strong>
 <ul style="margin:8px 0 0; padding-left:20px; font-size:0.85rem; line-height:1.7;">
-<li><strong>Removed 15 hidden live GAL lookups.</strong> The app ran a fake Office 365 Users search just to create empty tables. It fired when screens opened, when Manage Members opened (the popup waited for it) and whenever a search box was cleared. They are now local and instant.</li>
-<li><strong>History loads only when you open it.</strong> The history lists used to query SharePoint again whenever anything on screen changed, which is what kept the loading dots going.</li>
-<li><strong>Add existing</strong> no longer re-scans every membership for every person on each keystroke, and the Send Email recipient count does one pass instead of two.</li>
-<li><strong>Start-up</strong> now shows a loading screen on Quick Contacts and loads the group memberships in four parallel streams instead of one long sequence. Refresh buttons use the same loader.</li>
-<li><strong>Quick Contacts redesigned:</strong> single-column rounded rows with initials tiles, rounded filter pills and header buttons. The list is calculated once for the whole screen instead of twenty times per row.</li>
-<li>Includes everything from v2.46 (Thursday Batches overview; picking someone from GAL captures JMC/County before they are added). No SharePoint changes.</li>
+<li><strong>Who's in it:</strong> every Quick Contacts row has a "Who's in it" button (tapping the row does the same). A popup lists each member's name and email, flags external addresses, and has its own Copy addresses and Close buttons.</li>
+<li><strong>Version labels removed</strong> from the top right of all four screens, and none will be added again. Delete any copy you still have of the old ones.</li>
+<li><strong>App.Formulas fixed:</strong> the four parallel streams now write to separate collections and merge, which is what Studio requires.</li>
+<li>Everything else from v2.47 is unchanged (speed pass, Thursday Batches overview, GAL pick captures JMC/County). No SharePoint changes.</li>
 </ul></div>
 
 <p style="font-size:0.82rem; color:var(--muted);">Older release notes have been retired from this page to keep it current and skimmable — every fix through v2.46 is already baked into the screen YAML below, so a fresh paste always reflects the latest state without needing the history. Full commit history remains in the <a href="https://github.com/PhadeDev/branch-contact-groups/commits/main">GitHub repo</a>.</p>
@@ -354,34 +352,34 @@ Set(varLightboxGroupID, 0)</pre>
 <h2 id="screens">Screens</h2>
 <p>Paste each screen in order. Create a new blank screen first, name it exactly as shown, then paste.</p>
 <div class="screen-grid">
-  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.47">
+  <a class="screen-card" href="screens/scrQuickContacts.html?v=2.48">
     <div>
       <div class="screen-number">Screen 0</div>
-      <div class="screen-name">scrQuickContacts <span class="version">v2.47</span></div>
-      <div class="screen-desc">Start screen. Shows a loading screen while the data loads, then a single-column list of contact lists with initials tiles, search, filter pills, member counts, Official Use / Sensitive / Private tags and one-tap Copy addresses. Private lists are only shown to maintainers.</div>
+      <div class="screen-name">scrQuickContacts <span class="version">v2.48</span></div>
+      <div class="screen-desc">Start screen. Shows a loading screen while the data loads, then a single-column list of contact lists with initials tiles, search, filter pills, member counts, Official Use / Sensitive / Private tags, a Who's in it popup to check the members, and one-tap Copy addresses. Private lists are only shown to maintainers.</div>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>
   </a>
-  <a class="screen-card" href="screens/scrSendEmail.html?v=2.47">
+  <a class="screen-card" href="screens/scrSendEmail.html?v=2.48">
     <div>
       <div class="screen-number">Screen 1</div>
-      <div class="screen-name">scrSendEmail <span class="version">v2.47</span></div>
+      <div class="screen-name">scrSendEmail <span class="version">v2.48</span></div>
       <div class="screen-desc">Tick groups, preview a group, live recipient count, To/CC/BCC selector, maintainer-only Thursday tools (one batch selector), member / history / batch-preview popup (history loads when you open it), clear-search button, manual Refresh and last-loaded timestamp.</div>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.47">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.48">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.47</span></div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.48</span></div>
       <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL (JMC/County captured before saving) or manually, paste-replace rosters with add/remove/unchanged counts, manage maintainers, Thursday Batches overview, read-only Admin Health Check, and manual Refresh. No hidden GAL lookups, history loads on demand, faster Add existing.</div>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>
   </a>
-  <a class="screen-card" href="screens/scrManagePeople.html?v=2.47">
+  <a class="screen-card" href="screens/scrManagePeople.html?v=2.48">
     <div>
       <div class="screen-number">Screen 3</div>
-      <div class="screen-name">scrManagePeople <span class="version">v2.47</span></div>
+      <div class="screen-name">scrManagePeople <span class="version">v2.48</span></div>
       <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, manual Refresh and last-loaded timestamp. No hidden GAL lookups.</div>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>

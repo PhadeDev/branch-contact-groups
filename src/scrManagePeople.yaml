@@ -37,17 +37,6 @@ Screens:
             Y: =0
             Width: =1366
             Height: =72
-      - lblAppVersion:
-          Control: Label@2.5.1
-          Properties:
-            Text: ="scrManagePeople v2.47"
-            Color: =RGBA(214,232,227,1)
-            Size: =9
-            Font: =Font.'Open Sans'
-            X: =1226
-            Y: =3
-            Width: =130
-            Height: =12
       - icoBack:
           Control: Classic/Icon@2.5.0
           Properties:
