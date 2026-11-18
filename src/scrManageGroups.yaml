@@ -6,7 +6,6 @@ Screens:
         =If(
             !varIsMaintainer,
             Back(),
-            ClearCollect(colMaintainers, 'BM Maintainers');
             Set(varErrManualName, false);
             Set(varErrManualEmail, false);
             Set(varErrMaintainerName, false);
@@ -34,8 +33,8 @@ Screens:
             ClearCollect(colParsedRoster, Filter(colMemberships, false));
             ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(Filter(colMemberships, false), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
             ClearCollect(colHealthChecks, Table({Severity: "OK", Issue: "Health checks not run yet", Detail: "Open Health Check to scan the current local data cache."}));
-            ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
-            ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
+            Clear(colGalSearchResults);
+            Clear(colMaintainerGalSearchResults)
         )
     Children:
       - recHeader:
@@ -55,6 +54,17 @@ Screens:
             Y: =0
             Width: =1366
             Height: =72
+      - lblAppVersion:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="scrManageGroups v2.47"
+            Color: =RGBA(214,232,227,1)
+            Size: =9
+            Font: =Font.'Open Sans'
+            X: =1226
+            Y: =3
+            Width: =130
+            Height: =12
       - icoBack:
           Control: Classic/Icon@2.5.0
           Properties:
@@ -112,7 +122,7 @@ Screens:
               Reset(txtMaintainerSearch);
               Reset(txtMaintainerName);
               Reset(txtMaintainerEmail);
-              ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+              Clear(colMaintainerGalSearchResults);
               Set(varShowLightbox, true)
             X: =990
             Y: =16
@@ -155,14 +165,11 @@ Screens:
       - btnRefreshManageData:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Refresh"
+            Text: =If(varCacheReady, "Refresh", "Refreshing...")
+            DisplayMode: =If(varCacheReady, DisplayMode.Edit, DisplayMode.Disabled)
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: |-
-              =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-              ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
-              ClearCollect(colMaintainers, 'BM Maintainers');
-              Set(varLastMembershipRefresh, Now());
-              Notify("Refreshed groups and memberships.", NotificationType.Success)
+              =If(LoadCache(), Notify("Refreshed groups and memberships.", NotificationType.Success))
             X: =748
             Y: =84
             Width: =180
@@ -413,8 +420,7 @@ Screens:
                     Reset(txtPasteRoster);
                     Reset(txtGalSearch);
                     Reset(txtExistingPeopleSearch);
-                    ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
-                    ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                    Clear(colGalSearchResults);
                     Set(varParsedRosterCount, 0);
                     Set(varConfirmReplaceArmed, false);
                     Set(varShowLightbox, true)
@@ -448,7 +454,9 @@ Screens:
                   OnSelect: |-
                     =Set(varManageGroupID, ThisItem.ID);
                     Set(varLightboxMode, "history");
-                    Set(varShowLightbox, true)
+                    Clear(colHistoryView);
+                    Set(varShowLightbox, true);
+                    ClearCollect(colHistoryView, Sort(Filter('BM History', GroupName = ThisItem.Title), Created, SortOrder.Descending))
                   X: =1220
                   Y: =16
                   Width: =28
@@ -1084,15 +1092,7 @@ Screens:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: |-
-              =If(
-                  varLightboxMode = "history" && varManageGroupID <> 0,
-                  With(
-                      {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
-                      Sort(Filter('BM History', Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Created, SortOrder.Descending)
-                  ),
-                  Filter('BM History', false)
-              )
+            Items: =colHistoryView
             Visible: =varShowLightbox && varLightboxMode = "history"
             TemplateSize: =40
             TemplatePadding: =0
@@ -1224,7 +1224,7 @@ Screens:
             OnChange: |-
               =If(
                   IsBlank(Trim(txtMaintainerSearch.Text)),
-                  ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Clear(colMaintainerGalSearchResults);
                   Set(varMaintainerSearching, false)
               )
             X: =703
@@ -1241,7 +1241,7 @@ Screens:
             OnSelect: |-
               =Reset(txtMaintainerSearch);
               Set(varMaintainerSearching, false);
-              ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
+              Clear(colMaintainerGalSearchResults)
             X: =961
             Y: =170
             Width: =22
@@ -1328,7 +1328,7 @@ Screens:
                         ClearCollect(colMaintainers, 'BM Maintainers');
                         Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
                         Reset(txtMaintainerSearch);
-                        ClearCollect(colMaintainerGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                        Clear(colMaintainerGalSearchResults);
                         Notify("Added " & ThisItem.DisplayName & " as a maintainer.", NotificationType.Success)
                     )
                   X: =320
@@ -1641,14 +1641,17 @@ Screens:
             Items: |-
               =With(
                   {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title, searchText: Lower(Trim(txtExistingPeopleSearch.Text))},
-                  Sort(
-                      Filter(
-                          colExistingPeoplePicks As person,
-                          CountRows(Filter(colMemberships As mem, Lower(mem.Email) = Lower(person.Email) && Lower(Trim(mem.GroupName)) = Lower(Trim(groupTitle)))) = 0 &&
-                          (IsBlank(searchText) || searchText in Lower(person.Name) || searchText in Lower(person.Email))
-                      ),
-                      Name,
-                      SortOrder.Ascending
+                  With(
+                      {inGroup: Filter(colMemberships, GroupName = groupTitle).Email},
+                      Sort(
+                          Filter(
+                              colExistingPeoplePicks,
+                              !(Email in inGroup) &&
+                              (IsBlank(searchText) || searchText in Lower(Name) || searchText in Lower(Email))
+                          ),
+                          Name,
+                          SortOrder.Ascending
+                      )
                   )
               )
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing"
@@ -1806,7 +1809,7 @@ Screens:
             OnChange: |-
               =If(
                   IsBlank(Trim(txtGalSearch.Text)),
-                  ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Clear(colGalSearchResults);
                   Set(varGalSearching, false)
               )
             X: =183
@@ -1823,7 +1826,7 @@ Screens:
             OnSelect: |-
               =Reset(txtGalSearch);
               Set(varGalSearching, false);
-              ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
+              Clear(colGalSearchResults)
             X: =481
             Y: =220
             Width: =22
@@ -1919,7 +1922,7 @@ Screens:
                         Reset(txtManualJMC);
                         Reset(txtManualCounty);
                         Reset(txtGalSearch);
-                        ClearCollect(colGalSearchResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                        Clear(colGalSearchResults);
                         Notify("Add " & ThisItem.DisplayName & "'s JMC/County on the right, then hit Add.", NotificationType.Information)
                     )
                   X: =0

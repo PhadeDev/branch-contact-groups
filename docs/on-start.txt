@@ -1,15 +1,17 @@
 Set(varModDomain, "mod.gov.uk");
 Set(varMyEmail, Lower(User().Email));
-ClearCollect(colMaintainers, 'BM Maintainers');
-Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) > 0);
-ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
+Set(varIsMaintainer, false);
+Set(varCacheReady, false);
+Set(varLoading, false);
+Set(varLastMembershipRefresh, Now());
 ClearCollect(colThursdayBatchOptions, ["None", "Batch 1", "Batch 2"]);
+ClearCollect(colGalSearchResults, Filter(Table({DisplayName: "", Mail: ""}), false));
+ClearCollect(colMaintainerGalSearchResults, Filter(Table({DisplayName: "", Mail: ""}), false));
+ClearCollect(colAddPersonGalResults, Filter(Table({DisplayName: "", Mail: ""}), false));
 Set(varRecipientField, "bcc");
 Set(varBccForcedByBatch, false);
 Set(varBccForced, false);
 Set(varPreviewGroupID, 0);
 Set(varShowLightbox, false);
 Set(varLightboxMode, "");
-Set(varLightboxGroupID, 0);
-Set(varLastMembershipRefresh, Now())
+Set(varLightboxGroupID, 0)

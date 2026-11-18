@@ -17,7 +17,7 @@ Screens:
             Set(varPeopleLightboxMode, "addPerson");
             ClearCollect(colPersonGroupPicks, Filter(colGroups, false));
             ClearCollect(colAddPersonPicks, AddColumns(colGroups, Picked, false));
-            ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
+            Clear(colAddPersonGalResults)
         )
     Children:
       - recHeader:
@@ -40,7 +40,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrManagePeople v2.45"
+            Text: ="scrManagePeople v2.47"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -94,7 +94,7 @@ Screens:
               Reset(txtAddPersonSearch);
               Reset(txtAddPersonName);
               Reset(txtAddPersonEmail);
-              ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+              Clear(colAddPersonGalResults);
               Set(varShowLightbox, true)
             X: =1000
             Y: =16
@@ -118,14 +118,15 @@ Screens:
       - btnRefreshPeopleData:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Refresh"
+            Text: =If(varCacheReady, "Refresh", "Refreshing...")
+            DisplayMode: =If(varCacheReady, DisplayMode.Edit, DisplayMode.Disabled)
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: |-
-              =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-              ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
-              ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
-              Set(varLastMembershipRefresh, Now());
-              Notify("Refreshed people and memberships.", NotificationType.Success)
+              =If(
+                  LoadCache(),
+                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
+                  Notify("Refreshed people and memberships.", NotificationType.Success)
+              )
             X: =820
             Y: =16
             Width: =160
@@ -418,7 +419,7 @@ Screens:
             OnChange: |-
               =If(
                   IsBlank(Trim(txtAddPersonSearch.Text)),
-                  ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Clear(colAddPersonGalResults);
                   Set(varAddPersonSearching, false)
               )
             X: =263
@@ -435,7 +436,7 @@ Screens:
             OnSelect: |-
               =Reset(txtAddPersonSearch);
               Set(varAddPersonSearching, false);
-              ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false))
+              Clear(colAddPersonGalResults)
             X: =881
             Y: =158
             Width: =22
@@ -672,7 +673,7 @@ Screens:
                   Reset(txtAddPersonSearch);
                   Reset(txtAddPersonName);
                   Reset(txtAddPersonEmail);
-                  ClearCollect(colAddPersonGalResults, Filter(Office365Users.SearchUserV2({searchTerm: "zzzzzzzzzz", top: 1}).value, false));
+                  Clear(colAddPersonGalResults);
                   ClearCollect(colAddPersonPicks, AddColumns(colGroups, Picked, false));
                   Set(varShowLightbox, false);
                   Notify("Added " & varNewPersonName & ".", NotificationType.Success)

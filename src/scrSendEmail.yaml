@@ -31,7 +31,7 @@ Screens:
       - lblAppVersion:
           Control: Label@2.5.1
           Properties:
-            Text: ="scrSendEmail v2.43"
+            Text: ="scrSendEmail v2.47"
             Color: =RGBA(214,232,227,1)
             Size: =9
             Font: =Font.'Open Sans'
@@ -87,17 +87,15 @@ Screens:
       - btnRefreshData:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Refresh"
+            Text: =If(varCacheReady, "Refresh", "Refreshing...")
+            DisplayMode: =If(varCacheReady, DisplayMode.Edit, DisplayMode.Disabled)
             BasePaletteColor: =RGBA(120,120,120,1)
             OnSelect: |-
-              =ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-              ClearCollect(colMemberships, Filter('BM Memberships', false)); ForAll(colGroups As grp, Collect(colMemberships, Filter('BM Memberships', GroupName = grp.Title)));
-              Set(varBccForcedByBatch, false);
+              =Set(varBccForcedByBatch, false);
               Set(varBccForced, false);
               Set(varPreviewGroupID, 0);
               Set(varShowThursdayTools, false);
-              Set(varLastMembershipRefresh, Now());
-              Notify("Refreshed groups and memberships.", NotificationType.Success)
+              If(LoadCache(), Notify("Refreshed groups and memberships.", NotificationType.Success))
             X: =1010
             Y: =16
             Width: =150
@@ -389,7 +387,9 @@ Screens:
                   OnSelect: |-
                     =Set(varLightboxGroupID, ThisItem.ID);
                     Set(varLightboxMode, "history");
-                    Set(varShowLightbox, true)
+                    Clear(colHistoryView);
+                    Set(varShowLightbox, true);
+                    ClearCollect(colHistoryView, Sort(Filter('BM History', GroupName = ThisItem.Title), Created, SortOrder.Descending))
                   X: =640
                   Y: =27
                   Width: =28
@@ -514,7 +514,14 @@ Screens:
       - lblRecipientCount:
           Control: Label@2.5.1
           Properties:
-            Text: '="Recipients: " & CountRows(Distinct(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email)) & "  ·  Groups: " & CountRows(Filter(colGroups, Ticked=true)) & "  ·  External: " & CountRows(Filter(Distinct(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0), Email), !EndsWith(Lower(Value), "@" & varModDomain)))'
+            Text: |-
+              =With(
+                  {picked: Filter(colGroups, Ticked).Title},
+                  With(
+                      {recipients: Distinct(Filter(colMemberships, GroupName in picked), Email)},
+                      "Recipients: " & CountRows(recipients) & "  ·  Groups: " & CountRows(picked) & "  ·  External: " & CountRows(Filter(recipients, !EndsWith(Lower(Value), "@" & varModDomain)))
+                  )
+              )
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
             Size: =14
@@ -915,15 +922,7 @@ Screens:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: |-
-              =If(
-                  varLightboxMode = "history" && varLightboxGroupID <> 0,
-                  With(
-                      {groupTitle: LookUp(colGroups, ID = varLightboxGroupID).Title},
-                      Sort(Filter('BM History', Lower(Trim(GroupName)) = Lower(Trim(groupTitle))), Created, SortOrder.Descending)
-                  ),
-                  Filter('BM History', false)
-              )
+            Items: =colHistoryView
             Visible: =varShowLightbox && varLightboxMode = "history"
             TemplateSize: =40
             TemplatePadding: =0
