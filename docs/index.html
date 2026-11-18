@@ -289,9 +289,9 @@
 
 <h2 id="formulas">App.Formulas</h2>
 <p>New in v2.47. Paste into <strong>App &rarr; Formulas</strong> in Power Apps Studio, <strong>before</strong> App.OnStart. It holds <code>LoadCache()</code>, the one function every screen and every Refresh button uses to load maintainers, groups, memberships and the history list. It loads the memberships group by group in four parallel streams, which avoids the row-limit problem where later groups could show 0 members.</p>
-<div class="note">If Studio underlines <code>Concurrent</code> inside this function, replace each <code>Concurrent( A, B )</code> with <code>A; B</code> (it still works, just slower) and tell me so I can adjust the guide.</div>
+<div class="note">Studio rejects four parallel streams writing into the same collection ("a dependency between two different formulas in the Concurrent function"). So each stream fills its own <code>colMemPart0</code> to <code>colMemPart3</code>, and one line afterwards merges them into <code>colMemberships</code>. If Studio still underlines anything, tell me which line.</div>
 <div class="code-block">
-  <span class="code-stamp" data-updated="2026-11-18T08:57:04Z">v2.47 &middot; 18/11/2026 08:57 GMT &mdash; new</span>
+  <span class="code-stamp" data-updated="2026-11-18T11:52:14Z">v2.47 &middot; 18/11/2026 11:52 GMT &mdash; fixed</span>
   <button class="copy-btn" onclick="copyBlock(this, 'formulas-code')">Copy</button>
   <pre id="formulas-code">LoadCache(): Boolean = {
     Set(varLoading, true);
@@ -300,15 +300,19 @@
         Concurrent(
             ClearCollect(colMaintainers, 'BM Maintainers'),
             ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false)),
-            ClearCollect(colMemberships, Filter('BM Memberships', false)),
-            ClearCollect(colHistoryView, Filter('BM History', false))
+            ClearCollect(colHistoryView, Filter('BM History', false)),
+            ClearCollect(colMemPart0, Filter('BM Memberships', false)),
+            ClearCollect(colMemPart1, Filter('BM Memberships', false)),
+            ClearCollect(colMemPart2, Filter('BM Memberships', false)),
+            ClearCollect(colMemPart3, Filter('BM Memberships', false))
         );
         Concurrent(
-            ForAll(Filter(colGroups, Mod(ID, 4) = 0) As g, Collect(colMemberships, Filter('BM Memberships', GroupName = g.Title))),
-            ForAll(Filter(colGroups, Mod(ID, 4) = 1) As g, Collect(colMemberships, Filter('BM Memberships', GroupName = g.Title))),
-            ForAll(Filter(colGroups, Mod(ID, 4) = 2) As g, Collect(colMemberships, Filter('BM Memberships', GroupName = g.Title))),
-            ForAll(Filter(colGroups, Mod(ID, 4) = 3) As g, Collect(colMemberships, Filter('BM Memberships', GroupName = g.Title)))
+            ForAll(Filter(colGroups, Mod(ID, 4) = 0) As g, Collect(colMemPart0, Filter('BM Memberships', GroupName = g.Title))),
+            ForAll(Filter(colGroups, Mod(ID, 4) = 1) As g, Collect(colMemPart1, Filter('BM Memberships', GroupName = g.Title))),
+            ForAll(Filter(colGroups, Mod(ID, 4) = 2) As g, Collect(colMemPart2, Filter('BM Memberships', GroupName = g.Title))),
+            ForAll(Filter(colGroups, Mod(ID, 4) = 3) As g, Collect(colMemPart3, Filter('BM Memberships', GroupName = g.Title)))
         );
+        ClearCollect(colMemberships, colMemPart0, colMemPart1, colMemPart2, colMemPart3);
         Set(varIsMaintainer, CountRows(Filter(colMaintainers, Lower(Email) = varMyEmail)) &gt; 0);
         Set(varLastMembershipRefresh, Now());
         Set(varCacheReady, true);
