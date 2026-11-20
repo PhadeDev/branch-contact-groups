@@ -575,7 +575,7 @@ Screens:
             Items: |-
               =Sort(
                   Filter(colMemberships, GroupName = varQuickPreviewTitle && !IsBlank(Trim(Email))),
-                  Coalesce(Title, Email),
+                  If(IsBlank(Trim(Name)), Email, Name),
                   SortOrder.Ascending
               )
             Visible: =!IsBlank(varQuickPreviewTitle)
@@ -589,7 +589,7 @@ Screens:
             - lblMemberName:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =If(IsBlank(Trim(ThisItem.Title)), ThisItem.Email, ThisItem.Title)
+                  Text: =If(IsBlank(Trim(ThisItem.Name)), ThisItem.Email, ThisItem.Name)
                   Wrap: =false
                   Color: =RGBA(24,45,55,1)
                   FontWeight: =FontWeight.Semibold
