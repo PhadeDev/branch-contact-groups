@@ -1,4 +1,3 @@
-Set(varModDomain, "mod.gov.uk");
 Set(varMyEmail, Lower(User().Email));
 Set(varIsMaintainer, false);
 Set(varCacheReady, false);

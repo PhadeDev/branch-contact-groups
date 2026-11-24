@@ -1,3 +1,8 @@
+IsApprovedAddress(addr: Text): Boolean = (
+    EndsWith(Lower(Trim(addr)), "@mod.gov.uk") ||
+    EndsWith(Lower(Trim(addr)), "@cadetnet.mod.uk")
+);
+
 LoadCache(): Boolean = {
     Set(varLoading, true);
     Set(varCacheReady, false);

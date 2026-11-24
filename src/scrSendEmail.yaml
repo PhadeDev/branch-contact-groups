@@ -310,11 +310,11 @@ Screens:
                   OnCheck: |-
                     =Patch(colGroups, ThisItem, {Ticked: true});
                     Set(varBccForcedByBatch, false);
-                    Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !EndsWith(Lower(mem.Email), "@" & varModDomain))) > 0 || varBccForcedByBatch)
+                    Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !IsApprovedAddress(mem.Email))) > 0 || varBccForcedByBatch)
                   OnUncheck: |-
                     =Patch(colGroups, ThisItem, {Ticked: false});
                     Set(varBccForcedByBatch, false);
-                    Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !EndsWith(Lower(mem.Email), "@" & varModDomain))) > 0 || varBccForcedByBatch)
+                    Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !IsApprovedAddress(mem.Email))) > 0 || varBccForcedByBatch)
                   X: =20
                   Y: =22
                   Width: =38
@@ -458,7 +458,7 @@ Screens:
               =UpdateIf(colGroups, true, {Ticked: false});
               UpdateIf(colGroups, ID = varPreviewGroupID, {Ticked: true});
               Set(varBccForcedByBatch, false);
-              Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !EndsWith(Lower(mem.Email), "@" & varModDomain))) > 0)
+              Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !IsApprovedAddress(mem.Email))) > 0)
             X: =778
             Y: =188
             Width: =260
@@ -472,7 +472,7 @@ Screens:
             OnSelect: |-
               =UpdateIf(colGroups, ID = varPreviewGroupID, {Ticked: !LookUp(colGroups, ID = varPreviewGroupID).Ticked});
               Set(varBccForcedByBatch, false);
-              Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !EndsWith(Lower(mem.Email), "@" & varModDomain))) > 0)
+              Set(varBccForced, CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, grp.Ticked = true && Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) > 0 && !IsApprovedAddress(mem.Email))) > 0)
             X: =1042
             Y: =188
             Width: =260
@@ -508,7 +508,7 @@ Screens:
                   {picked: Filter(colGroups, Ticked).Title},
                   With(
                       {recipients: Distinct(Filter(colMemberships, GroupName in picked), Email)},
-                      "Recipients: " & CountRows(recipients) & "  ·  Groups: " & CountRows(picked) & "  ·  External: " & CountRows(Filter(recipients, !EndsWith(Lower(Value), "@" & varModDomain)))
+                      "Recipients: " & CountRows(recipients) & "  ·  Groups: " & CountRows(picked) & "  ·  Other domains: " & CountRows(Filter(recipients, !IsApprovedAddress(Value)))
                   )
               )
             Color: =RGBA(31,58,95,1)
@@ -609,7 +609,7 @@ Screens:
       - lblBccForcedNotice:
           Control: Label@2.5.1
           Properties:
-            Text: ="BCC is locked for this selection because it includes external addresses or a Thursday batch send."
+            Text: ="BCC is locked for this selection because it includes addresses outside the approved domains, or a Thursday batch send."
             Visible: =varBccForced
             Color: =RGBA(138,80,0,1)
             Size: =12

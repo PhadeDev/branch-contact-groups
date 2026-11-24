@@ -602,9 +602,9 @@ Screens:
             - lblMemberEmail:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Email & If(!EndsWith(Lower(ThisItem.Email), "@" & varModDomain), "   (external)", "")
+                  Text: =ThisItem.Email & If(!IsApprovedAddress(ThisItem.Email), "   (other domain)", "")
                   Wrap: =false
-                  Color: =If(!EndsWith(Lower(ThisItem.Email), "@" & varModDomain), RGBA(163,45,45,1), RGBA(96,105,103,1))
+                  Color: =If(!IsApprovedAddress(ThisItem.Email), RGBA(163,45,45,1), RGBA(96,105,103,1))
                   Size: =11
                   Font: =Font.'Open Sans'
                   X: =4
