@@ -1,0 +1,1067 @@
+Screens:
+  scrImport:
+    Properties:
+      Fill: =RGBA(246,248,247,1)
+      OnVisible: |-
+        =If(
+            !varIsMaintainer,
+            Back(),
+            Set(varImpMode, "add");
+            Set(varImpArmed, false);
+            Set(varImpBusy, false);
+            ClearCollect(colImpParsed, Filter(Table({Tag: "", Email: "", Name: ""}), false));
+            ClearCollect(colImpClean, AddColumns(GroupBy(Filter(colImpParsed, false), Tag, Email, Rows), Name, First(Rows).Name, Dups, CountRows(Rows) - 1));
+            ClearCollect(colImpTags, Filter(Table({Tag: "", N: 0}), false));
+            ClearCollect(colImpResults, Filter(Table({Group: "", Added: 0, Updated: 0, Removed: 0}), false))
+        )
+    Children:
+      - recHeader:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(0,78,66,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderThickness: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            X: =0
+            Y: =0
+            Width: =1366
+            Height: =72
+      - icoBack:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.ChevronLeft
+            Color: =RGBA(255,255,255,1)
+            Tooltip: ="Back"
+            OnSelect: =Back()
+            X: =16
+            Y: =24
+            Width: =24
+            Height: =24
+      - lblHeaderTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Import from paste"
+            Color: =RGBA(255,255,255,1)
+            FontWeight: =FontWeight.Bold
+            Size: =20
+            Font: =Font.'Open Sans'
+            X: =52
+            Y: =10
+            Width: =600
+            Height: =32
+      - lblHeaderSub:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Create or update contact groups from a pasted list of names and email addresses"
+            Color: =RGBA(214,232,227,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =52
+            Y: =44
+            Width: =800
+            Height: =22
+      - lblImpStep1:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="1. Paste your list"
+            Color: =RGBA(0,78,66,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =88
+            Width: =560
+            Height: =26
+      - lblImpHelp:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Paste straight from Outlook or Excel. A line ending in a colon (for example NAL:) starts a new list. Each entry is a name followed by an email address, separated by semicolons or new lines."
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =116
+            Width: =560
+            Height: =54
+      - txtImportPaste:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            HintText: ="Paste your list here"
+            Mode: =TextMode.MultiLine
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =20
+            Y: =176
+            Width: =560
+            Height: =280
+      - btnImpCheck:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Check paste"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varImpArmed, false);
+              Clear(colImpResults);
+              With(
+                  {
+                      lines: With(
+                          {raw: Split(Substitute(Substitute(txtImportPaste.Text, Char(13), ""), Char(160), " "), Char(10))},
+                          ForAll(Sequence(CountRows(raw)) As s, {Idx: s.Value, Line: Trim(Index(raw, s.Value).Value)})
+                      )
+                  },
+                  With(
+                      {
+                          heads: ForAll(
+                              Filter(lines, !IsBlank(Line) && Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 40) As h,
+                              {HIdx: h.Idx, Tag: Trim(Left(h.Line, Len(h.Line) - 1))}
+                          )
+                      },
+                      ClearCollect(
+                          colImpParsed,
+                          ForAll(
+                              Ungroup(
+                                  ForAll(
+                                      Filter(lines, !IsBlank(Line) && !(Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 40)) As ln,
+                                      {
+                                          Tag: If(CountRows(Filter(heads, HIdx < ln.Idx)) = 0, "Pasted list", Last(Filter(heads, HIdx < ln.Idx)).Tag),
+                                          Segs: Filter(Split(ln.Line, ";"), !IsBlank(Trim(Value)))
+                                      }
+                                  ),
+                                  Segs
+                              ) As sg,
+                              With(
+                                  {seg: Trim(sg.Value), em: Last(MatchAll(Trim(sg.Value), "[A-Za-z0-9._%+'\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")).FullMatch},
+                                  {
+                                      Tag: sg.Tag,
+                                      Email: Lower(em),
+                                      Name: If(IsBlank(em), seg, Coalesce(Trim(Substitute(Substitute(Substitute(Substitute(seg, em, ""), "<>", ""), "()", ""), Char(34), "")), em))
+                                  }
+                              )
+                          )
+                      )
+                  )
+              );
+              ClearCollect(colImpClean, AddColumns(GroupBy(Filter(colImpParsed, !IsBlank(Email)), Tag, Email, Rows), Name, First(Rows).Name, Dups, CountRows(Rows) - 1));
+              ClearCollect(colImpTags, ForAll(Distinct(colImpClean, Tag) As t, {Tag: t.Value, N: CountRows(Filter(colImpClean, Tag = t.Value))}));
+              Reset(txtImpTitle1);
+              Reset(txtImpTitle2);
+              Reset(txtImpTitle3);
+              Reset(txtImpTitle4);
+              Reset(txtImpTitle5);
+              Reset(txtImpTitle6);
+              If(CountRows(colImpClean) = 0, Notify("No email addresses were found in that paste.", NotificationType.Warning))
+            X: =20
+            Y: =470
+            Width: =170
+            Height: =42
+      - btnImpClear:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Clear"
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =RGBA(232,237,235,1)
+            PressedFill: =RGBA(222,229,226,1)
+            BorderColor: =RGBA(190,201,197,1)
+            BorderThickness: =1
+            Color: =RGBA(45,58,64,1)
+            RadiusTopLeft: =20
+            RadiusTopRight: =20
+            RadiusBottomLeft: =20
+            RadiusBottomRight: =20
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            OnSelect: |-
+              =Reset(txtImportPaste);
+              Clear(colImpParsed);
+              Clear(colImpClean);
+              Clear(colImpTags);
+              Clear(colImpResults);
+              Set(varImpArmed, false);
+              Reset(txtImpTitle1);
+              Reset(txtImpTitle2);
+              Reset(txtImpTitle3);
+              Reset(txtImpTitle4);
+              Reset(txtImpTitle5);
+              Reset(txtImpTitle6)
+            X: =204
+            Y: =470
+            Width: =110
+            Height: =42
+      - lblImpSummary:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  CountRows(colImpParsed) = 0,
+                  "Nothing checked yet. Paste your list, then press Check paste.",
+                  With(
+                      {
+                          found: CountRows(colImpClean),
+                          lists: CountRows(colImpTags),
+                          skipped: CountRows(Filter(colImpParsed, IsBlank(Email))),
+                          dupes: CountRows(Filter(colImpParsed, !IsBlank(Email))) - CountRows(colImpClean),
+                          other: CountRows(Filter(colImpClean, !IsApprovedAddress(Email)))
+                      },
+                      found & " address" & If(found = 1, "", "es") & " found in " & lists & " list" & If(lists = 1, "", "s") & "." &
+                      If(dupes > 0, "  " & dupes & " repeated address" & If(dupes = 1, "", "es") & " ignored.", "") &
+                      If(skipped > 0, "  " & skipped & " entr" & If(skipped = 1, "y", "ies") & " had no email address.", "") &
+                      If(other > 0, "  " & other & " are not on an approved domain (they are still imported).", "")
+                  )
+              )
+            Color: =RGBA(24,45,55,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =522
+            Width: =560
+            Height: =64
+      - lblImpSkippedHead:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Could not read these (no email address found):"
+            Visible: =CountRows(Filter(colImpParsed, IsBlank(Email))) > 0
+            Color: =RGBA(163,45,45,1)
+            FontWeight: =FontWeight.Bold
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =20
+            Y: =592
+            Width: =560
+            Height: =22
+      - galImpSkipped:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =Filter(colImpParsed, IsBlank(Email))
+            Visible: =CountRows(Filter(colImpParsed, IsBlank(Email))) > 0
+            TemplateSize: =28
+            TemplatePadding: =0
+            X: =20
+            Y: =616
+            Width: =560
+            Height: =120
+          Children:
+            - lblSkippedLine:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Name
+                  Wrap: =false
+                  Color: =RGBA(96,105,103,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =0
+                  Y: =2
+                  Width: =540
+                  Height: =24
+      - lblImpStep2:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="2. Name each list and choose what to do"
+            Color: =RGBA(0,78,66,1)
+            FontWeight: =FontWeight.Bold
+            Size: =16
+            Font: =Font.'Open Sans'
+            X: =610
+            Y: =88
+            Width: =736
+            Height: =26
+      - btnImpModeAdd:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Add only"
+            Fill: =If(varImpMode = "add", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varImpMode = "add", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varImpMode = "add", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =18
+            RadiusTopRight: =18
+            RadiusBottomLeft: =18
+            RadiusBottomRight: =18
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =12
+            OnSelect: =Set(varImpMode, "add"); Set(varImpArmed, false)
+            X: =610
+            Y: =122
+            Width: =130
+            Height: =36
+      - btnImpModeUpdate:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Add + update by role"
+            Fill: =If(varImpMode = "update", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varImpMode = "update", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varImpMode = "update", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =18
+            RadiusTopRight: =18
+            RadiusBottomLeft: =18
+            RadiusBottomRight: =18
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =12
+            OnSelect: =Set(varImpMode, "update"); Set(varImpArmed, false)
+            X: =750
+            Y: =122
+            Width: =210
+            Height: =36
+      - btnImpModeReplace:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Replace"
+            Fill: =If(varImpMode = "replace", RGBA(0,78,66,1), RGBA(232,237,235,1))
+            HoverFill: =If(varImpMode = "replace", RGBA(0,78,66,1), RGBA(222,229,226,1))
+            PressedFill: =Self.HoverFill
+            Color: =If(varImpMode = "replace", RGBA(255,255,255,1), RGBA(45,58,64,1))
+            BorderThickness: =0
+            RadiusTopLeft: =18
+            RadiusTopRight: =18
+            RadiusBottomLeft: =18
+            RadiusBottomRight: =18
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =12
+            OnSelect: =Set(varImpMode, "replace"); Set(varImpArmed, false)
+            X: =970
+            Y: =122
+            Width: =130
+            Height: =36
+      - lblImpModeHint:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =Switch(
+                  varImpMode,
+                  "add", "Adds anyone who is not already in the group. Never removes or changes anyone.",
+                  "update", "Adds new people. If a pasted name matches someone already in the group but with a different email, their email is updated instead of adding a second row.",
+                  "Makes each group match the paste exactly: adds new people and removes anyone who is not in the paste."
+              )
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =610
+            Y: =164
+            Width: =736
+            Height: =36
+      - recImpCard1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =CountRows(colImpTags) >= 1
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            X: =610
+            Y: =206
+            Width: =736
+            Height: =66
+      - lblImpTag1:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 1).Tag
+            Visible: =CountRows(colImpTags) >= 1
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =216
+            Width: =170
+            Height: =24
+      - lblImpCount1:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 1).N & " address" & If(Index(colImpTags, 1).N = 1, "", "es")
+            Visible: =CountRows(colImpTags) >= 1
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =242
+            Width: =170
+            Height: =20
+      - txtImpTitle1:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =If(CountRows(colImpTags) >= 1, If(Index(colImpTags, 1).Tag = "Pasted list", "", Index(colImpTags, 1).Tag), "")
+            HintText: ="Group name (leave blank to skip)"
+            Visible: =CountRows(colImpTags) >= 1
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =800
+            Y: =213
+            Width: =330
+            Height: =34
+      - lblImpStatus1:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {title: Trim(txtImpTitle1.Text), tag: Index(colImpTags, 1).Tag},
+                  With(
+                      {
+                          ents: Filter(colImpClean, Tag = tag),
+                          cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(title)), NameKey, Lower(Trim(Name))),
+                          exists: CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) > 0
+                      },
+                      With(
+                          {
+                              same: CountRows(Filter(ents, Email in cur.Email)),
+                              byRole: If(varImpMode = "update", CountRows(Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey)), 0),
+                              gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
+                          },
+                          If(
+                              IsBlank(title),
+                              "Leave blank to skip this list.",
+                              !exists,
+                              "New group. " & CountRows(ents) & " people will be added.",
+                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
+                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                          )
+                      )
+                  )
+              )
+            Visible: =CountRows(colImpTags) >= 1
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =800
+            Y: =249
+            Width: =538
+            Height: =20
+      - recImpCard2:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =CountRows(colImpTags) >= 2
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            X: =610
+            Y: =278
+            Width: =736
+            Height: =66
+      - lblImpTag2:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 2).Tag
+            Visible: =CountRows(colImpTags) >= 2
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =288
+            Width: =170
+            Height: =24
+      - lblImpCount2:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 2).N & " address" & If(Index(colImpTags, 2).N = 1, "", "es")
+            Visible: =CountRows(colImpTags) >= 2
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =314
+            Width: =170
+            Height: =20
+      - txtImpTitle2:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =If(CountRows(colImpTags) >= 2, If(Index(colImpTags, 2).Tag = "Pasted list", "", Index(colImpTags, 2).Tag), "")
+            HintText: ="Group name (leave blank to skip)"
+            Visible: =CountRows(colImpTags) >= 2
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =800
+            Y: =285
+            Width: =330
+            Height: =34
+      - lblImpStatus2:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {title: Trim(txtImpTitle2.Text), tag: Index(colImpTags, 2).Tag},
+                  With(
+                      {
+                          ents: Filter(colImpClean, Tag = tag),
+                          cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(title)), NameKey, Lower(Trim(Name))),
+                          exists: CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) > 0
+                      },
+                      With(
+                          {
+                              same: CountRows(Filter(ents, Email in cur.Email)),
+                              byRole: If(varImpMode = "update", CountRows(Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey)), 0),
+                              gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
+                          },
+                          If(
+                              IsBlank(title),
+                              "Leave blank to skip this list.",
+                              !exists,
+                              "New group. " & CountRows(ents) & " people will be added.",
+                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
+                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                          )
+                      )
+                  )
+              )
+            Visible: =CountRows(colImpTags) >= 2
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =800
+            Y: =321
+            Width: =538
+            Height: =20
+      - recImpCard3:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =CountRows(colImpTags) >= 3
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            X: =610
+            Y: =350
+            Width: =736
+            Height: =66
+      - lblImpTag3:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 3).Tag
+            Visible: =CountRows(colImpTags) >= 3
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =360
+            Width: =170
+            Height: =24
+      - lblImpCount3:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 3).N & " address" & If(Index(colImpTags, 3).N = 1, "", "es")
+            Visible: =CountRows(colImpTags) >= 3
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =386
+            Width: =170
+            Height: =20
+      - txtImpTitle3:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =If(CountRows(colImpTags) >= 3, If(Index(colImpTags, 3).Tag = "Pasted list", "", Index(colImpTags, 3).Tag), "")
+            HintText: ="Group name (leave blank to skip)"
+            Visible: =CountRows(colImpTags) >= 3
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =800
+            Y: =357
+            Width: =330
+            Height: =34
+      - lblImpStatus3:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {title: Trim(txtImpTitle3.Text), tag: Index(colImpTags, 3).Tag},
+                  With(
+                      {
+                          ents: Filter(colImpClean, Tag = tag),
+                          cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(title)), NameKey, Lower(Trim(Name))),
+                          exists: CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) > 0
+                      },
+                      With(
+                          {
+                              same: CountRows(Filter(ents, Email in cur.Email)),
+                              byRole: If(varImpMode = "update", CountRows(Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey)), 0),
+                              gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
+                          },
+                          If(
+                              IsBlank(title),
+                              "Leave blank to skip this list.",
+                              !exists,
+                              "New group. " & CountRows(ents) & " people will be added.",
+                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
+                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                          )
+                      )
+                  )
+              )
+            Visible: =CountRows(colImpTags) >= 3
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =800
+            Y: =393
+            Width: =538
+            Height: =20
+      - recImpCard4:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =CountRows(colImpTags) >= 4
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            X: =610
+            Y: =422
+            Width: =736
+            Height: =66
+      - lblImpTag4:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 4).Tag
+            Visible: =CountRows(colImpTags) >= 4
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =432
+            Width: =170
+            Height: =24
+      - lblImpCount4:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 4).N & " address" & If(Index(colImpTags, 4).N = 1, "", "es")
+            Visible: =CountRows(colImpTags) >= 4
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =458
+            Width: =170
+            Height: =20
+      - txtImpTitle4:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =If(CountRows(colImpTags) >= 4, If(Index(colImpTags, 4).Tag = "Pasted list", "", Index(colImpTags, 4).Tag), "")
+            HintText: ="Group name (leave blank to skip)"
+            Visible: =CountRows(colImpTags) >= 4
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =800
+            Y: =429
+            Width: =330
+            Height: =34
+      - lblImpStatus4:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {title: Trim(txtImpTitle4.Text), tag: Index(colImpTags, 4).Tag},
+                  With(
+                      {
+                          ents: Filter(colImpClean, Tag = tag),
+                          cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(title)), NameKey, Lower(Trim(Name))),
+                          exists: CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) > 0
+                      },
+                      With(
+                          {
+                              same: CountRows(Filter(ents, Email in cur.Email)),
+                              byRole: If(varImpMode = "update", CountRows(Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey)), 0),
+                              gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
+                          },
+                          If(
+                              IsBlank(title),
+                              "Leave blank to skip this list.",
+                              !exists,
+                              "New group. " & CountRows(ents) & " people will be added.",
+                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
+                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                          )
+                      )
+                  )
+              )
+            Visible: =CountRows(colImpTags) >= 4
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =800
+            Y: =465
+            Width: =538
+            Height: =20
+      - recImpCard5:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =CountRows(colImpTags) >= 5
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            X: =610
+            Y: =494
+            Width: =736
+            Height: =66
+      - lblImpTag5:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 5).Tag
+            Visible: =CountRows(colImpTags) >= 5
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =504
+            Width: =170
+            Height: =24
+      - lblImpCount5:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 5).N & " address" & If(Index(colImpTags, 5).N = 1, "", "es")
+            Visible: =CountRows(colImpTags) >= 5
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =530
+            Width: =170
+            Height: =20
+      - txtImpTitle5:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =If(CountRows(colImpTags) >= 5, If(Index(colImpTags, 5).Tag = "Pasted list", "", Index(colImpTags, 5).Tag), "")
+            HintText: ="Group name (leave blank to skip)"
+            Visible: =CountRows(colImpTags) >= 5
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =800
+            Y: =501
+            Width: =330
+            Height: =34
+      - lblImpStatus5:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {title: Trim(txtImpTitle5.Text), tag: Index(colImpTags, 5).Tag},
+                  With(
+                      {
+                          ents: Filter(colImpClean, Tag = tag),
+                          cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(title)), NameKey, Lower(Trim(Name))),
+                          exists: CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) > 0
+                      },
+                      With(
+                          {
+                              same: CountRows(Filter(ents, Email in cur.Email)),
+                              byRole: If(varImpMode = "update", CountRows(Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey)), 0),
+                              gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
+                          },
+                          If(
+                              IsBlank(title),
+                              "Leave blank to skip this list.",
+                              !exists,
+                              "New group. " & CountRows(ents) & " people will be added.",
+                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
+                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                          )
+                      )
+                  )
+              )
+            Visible: =CountRows(colImpTags) >= 5
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =800
+            Y: =537
+            Width: =538
+            Height: =20
+      - recImpCard6:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =""
+            DisplayMode: =DisplayMode.View
+            Visible: =CountRows(colImpTags) >= 6
+            Fill: =RGBA(255,255,255,1)
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            BorderColor: =RGBA(220,228,225,1)
+            BorderThickness: =1
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            X: =610
+            Y: =566
+            Width: =736
+            Height: =66
+      - lblImpTag6:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 6).Tag
+            Visible: =CountRows(colImpTags) >= 6
+            Color: =RGBA(24,45,55,1)
+            FontWeight: =FontWeight.Bold
+            Size: =14
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =576
+            Width: =170
+            Height: =24
+      - lblImpCount6:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Index(colImpTags, 6).N & " address" & If(Index(colImpTags, 6).N = 1, "", "es")
+            Visible: =CountRows(colImpTags) >= 6
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =624
+            Y: =602
+            Width: =170
+            Height: =20
+      - txtImpTitle6:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =If(CountRows(colImpTags) >= 6, If(Index(colImpTags, 6).Tag = "Pasted list", "", Index(colImpTags, 6).Tag), "")
+            HintText: ="Group name (leave blank to skip)"
+            Visible: =CountRows(colImpTags) >= 6
+            Font: =Font.'Open Sans'
+            Size: =12
+            BorderColor: =RGBA(190,201,197,1)
+            HoverBorderColor: =RGBA(0,78,66,1)
+            PressedBorderColor: =RGBA(0,78,66,1)
+            FocusedBorderColor: =RGBA(0,78,66,1)
+            X: =800
+            Y: =573
+            Width: =330
+            Height: =34
+      - lblImpStatus6:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {title: Trim(txtImpTitle6.Text), tag: Index(colImpTags, 6).Tag},
+                  With(
+                      {
+                          ents: Filter(colImpClean, Tag = tag),
+                          cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(title)), NameKey, Lower(Trim(Name))),
+                          exists: CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) > 0
+                      },
+                      With(
+                          {
+                              same: CountRows(Filter(ents, Email in cur.Email)),
+                              byRole: If(varImpMode = "update", CountRows(Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey)), 0),
+                              gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
+                          },
+                          If(
+                              IsBlank(title),
+                              "Leave blank to skip this list.",
+                              !exists,
+                              "New group. " & CountRows(ents) & " people will be added.",
+                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
+                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                          )
+                      )
+                  )
+              )
+            Visible: =CountRows(colImpTags) >= 6
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =800
+            Y: =609
+            Width: =538
+            Height: =20
+      - lblImpCapWarn:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Only the first 6 lists can be imported at once. Split the paste and import the rest separately."
+            Visible: =CountRows(colImpTags) > 6
+            Color: =RGBA(163,45,45,1)
+            FontWeight: =FontWeight.Bold
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =610
+            Y: =640
+            Width: =736
+            Height: =22
+      - btnImpGo:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varImpBusy, "Importing... please wait", If(varImpMode = "replace" && varImpArmed, "Tap again to confirm replace", "Import now"))
+            BasePaletteColor: =If(varImpMode = "replace", RGBA(163,45,45,1), RGBA(0,78,66,1))
+            DisplayMode: =If(varImpBusy || CountRows(colImpClean) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =With(
+                  {
+                      titled: CountRows(Filter(Sequence(CountRows(colImpTags)) As q, q.Value <= 6 && !IsBlank(Choose(q.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text))))),
+                      titles: Filter(ForAll(Sequence(CountRows(colImpTags)) As q, {T: Lower(Choose(q.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))}), !IsBlank(T))
+                  },
+                  If(
+                      varImpBusy,
+                      Blank(),
+                      CountRows(colImpClean) = 0,
+                      Notify("Check a paste first.", NotificationType.Warning),
+                      titled = 0,
+                      Notify("Type a group name for at least one list.", NotificationType.Warning),
+                      CountRows(titles) <> CountRows(Distinct(titles, T)),
+                      Notify("Two lists have the same group name. Give each list its own name.", NotificationType.Warning),
+                      varImpMode = "replace" && !varImpArmed,
+                      Set(varImpArmed, true),
+                      Set(varImpBusy, true);
+                      Clear(colImpResults);
+                      ForAll(
+                          Sequence(CountRows(colImpTags)) As s,
+                          With(
+                              {title: Trim(Choose(s.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))},
+                              If(
+                                  s.Value <= 6 && !IsBlank(title) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) = 0,
+                                  Patch('BM Groups', Defaults('BM Groups'), {Title: title, ThursdayBatch: {Value: "None"}, Private: false, OfficialSensitiveApproved: false, OfficialUseOnly: false});
+                                  Patch('BM History', Defaults('BM History'), {Title: "Group created via import", GroupName: title, EventType: {Value: "Created"}})
+                              )
+                          )
+                      );
+                      ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                      ForAll(
+                          Sequence(CountRows(colImpTags)) As s,
+                          With(
+                              {
+                                  tag: Index(colImpTags, s.Value).Tag,
+                                  typed: Trim(Choose(s.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))
+                              },
+                              If(
+                                  s.Value <= 6 && !IsBlank(typed),
+                                  With(
+                                      {gTitle: Coalesce(LookUp(colGroups, Lower(Trim(Title)) = Lower(typed)).Title, typed)},
+                                      With(
+                                          {
+                                              ents: Filter(colImpClean, Tag = tag),
+                                              cur: AddColumns(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(gTitle)), NameKey, Lower(Trim(Name)))
+                                          },
+                                          With(
+                                              {
+                                                  toAdd: Filter(ents, !(Email in cur.Email) && !(varImpMode = "update" && Lower(Trim(Name)) in cur.NameKey)),
+                                                  toUpd: If(varImpMode = "update", Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey), Filter(ents, false)),
+                                                  toRem: If(varImpMode = "replace", Filter(cur, !(Email in ents.Email)), Filter(cur, false))
+                                              },
+                                              Collect(colImpResults, {Group: gTitle, Added: CountRows(toAdd), Updated: CountRows(toUpd), Removed: CountRows(toRem)});
+                                              ForAll(
+                                                  toRem As r,
+                                                  Remove('BM Memberships', LookUp('BM Memberships', ID = r.ID));
+                                                  RemoveIf(colMemberships, ID = r.ID)
+                                              );
+                                              ForAll(
+                                                  toUpd As e,
+                                                  With(
+                                                      {m: LookUp(cur, NameKey = Lower(Trim(e.Name)))},
+                                                      Patch('BM Memberships', LookUp('BM Memberships', ID = m.ID), {Email: e.Email});
+                                                      UpdateIf(colMemberships, ID = m.ID, {Email: e.Email})
+                                                  )
+                                              );
+                                              ForAll(
+                                                  toAdd As e,
+                                                  Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: e.Name, Name: e.Name, Email: e.Email, GroupName: gTitle}))
+                                              );
+                                              Patch('BM History', Defaults('BM History'), {Title: "Import via paste: " & CountRows(toAdd) & " added, " & CountRows(toUpd) & " updated, " & CountRows(toRem) & " removed", GroupName: gTitle, EventType: {Value: Switch(varImpMode, "replace", "Replaced", "update", "Edited", "Added")}});
+                                              Patch('BM Groups', LookUp('BM Groups', Title = gTitle), {Title: gTitle})
+                                          )
+                                      )
+                                  )
+                              )
+                          )
+                      );
+                      Set(varImpBusy, false);
+                      Set(varImpArmed, false);
+                      Clear(colImpParsed);
+                      Clear(colImpClean);
+                      Clear(colImpTags);
+                      Reset(txtImportPaste);
+                      Notify("Import finished for " & CountRows(colImpResults) & " group" & If(CountRows(colImpResults) = 1, "", "s") & ".", NotificationType.Success)
+                  )
+              )
+            X: =610
+            Y: =650
+            Width: =300
+            Height: =46
+      - lblImpResult:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  CountRows(colImpResults) = 0,
+                  "",
+                  "Last import: " & Concat(colImpResults, Group & " (" & Added & " added, " & Updated & " updated, " & Removed & " removed)", "; ")
+              )
+            Color: =RGBA(24,45,55,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =610
+            Y: =704
+            Width: =736
+            Height: =52

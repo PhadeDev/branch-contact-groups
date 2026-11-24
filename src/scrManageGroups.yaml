@@ -127,7 +127,7 @@ Screens:
             Font: =Font.'Open Sans'
             X: =20
             Y: =88
-            Width: =400
+            Width: =340
             Height: =26
       - btnNewGroup:
           Control: ModernButton@1.0.0
@@ -162,6 +162,16 @@ Screens:
             X: =748
             Y: =84
             Width: =180
+            Height: =36
+      - btnImportNav:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="Import from paste"
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: =Navigate(scrImport, ScreenTransition.Cover)
+            X: =372
+            Y: =84
+            Width: =172
             Height: =36
       - btnThursdayBatchNav:
           Control: ModernButton@1.0.0

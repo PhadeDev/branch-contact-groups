@@ -137,7 +137,7 @@
   <div class="shell">
     <aside>
       <h2>Branch Contact Groups</h2>
-      <p>v2.49 build guide. Live-membership replacement for Outlook contact groups.</p>
+      <p>v2.50 build guide. Live-membership replacement for Outlook contact groups.</p>
       <nav>
         <a href="https://powerapps.pages.dev/">&larr; Guide library</a>
         <a href="yaml.html" style="font-weight:800;">📋 Screen YAML Vault</a>
@@ -154,18 +154,20 @@
     <main>
 
 <div class="topline">
-  <span class="pill">v2.49</span>
+  <span class="pill">v2.50</span>
   <span class="pill">Built 18 Nov 2026</span>
   <a class="pill" href="yaml.html" style="text-decoration:none;">📋 Screen YAML Vault →</a>
 </div>
 <h1>Branch Contact Groups</h1>
 <p class="subtitle">Live-membership replacement for ~50 Outlook contact groups in the zero mailbox — send to groups with always-current membership, no more manual weekly rebuilds. v2.0 adds a dedicated People screen, Thursday send-splitting into two independent batches, automatic BCC-locking for external addresses, per-group history, and paste-to-replace bulk roster updates.</p>
 
-<div class="note"><strong>v2.49: cadetnet addresses are approved. Re-paste App.Formulas, then scrQuickContacts and scrSendEmail. App.OnStart is optional (the only change is one unused line removed).</strong>
+<div class="note"><strong>v2.50: new Import from paste screen. Paste scrManageGroups again (it has a new button) and create the new scrImport screen. If you have not yet pasted v2.49, do that first.</strong>
 <ul style="margin:8px 0 0; padding-left:20px; font-size:0.85rem; line-height:1.7;">
-<li><strong>Approved domains.</strong> Addresses ending <code>@mod.gov.uk</code> or <code>@cadetnet.mod.uk</code> (accredited for OFFICIAL-SENSITIVE) no longer count as external. They are not flagged in the Who's in it popup, they do not force BCC on Send Email, and they are not counted in the summary line, which now reads "Other domains". Any other domain (for example armymail.mod.uk) is still flagged until you tell me otherwise.</li>
-<li>The approved list lives in one place: the new <code>IsApprovedAddress()</code> function at the top of App.Formulas. Adding another domain is a one-line change there.</li>
-<li>Carries forward v2.48 (Who's in it popup, version labels removed) and v2.47 (speed pass). No SharePoint changes.</li>
+<li><strong>Import from paste</strong> (Manage Groups, next to Thursday Batches) turns a pasted list into group members in one go. Paste straight from an Outlook contact group or Excel. A line ending in a colon (for example <code>NAL:</code>) starts a new list; each entry is a name followed by an email address, separated by semicolons or new lines.</li>
+<li>Each list gets its own group name box. Type a new name to create a group, or an existing name to update it, or leave it blank to skip that list.</li>
+<li>Three modes: <strong>Add only</strong> (default, never removes), <strong>Add + update by role</strong> (a pasted name that matches an existing member but with a different email updates that email), and <strong>Replace</strong> (makes the group match the paste exactly, with a tap-twice confirmation).</li>
+<li>The preview shows new / already there / email updates / to be removed for each group before anything is saved. Addresses on any domain are kept; the ones outside the approved domains are counted in the summary.</li>
+<li>Carries forward v2.49 (cadetnet approved) and earlier. No SharePoint changes. History records every import.</li>
 </ul></div>
 
 <p style="font-size:0.82rem; color:var(--muted);">Older release notes have been retired from this page to keep it current and skimmable — every fix through v2.46 is already baked into the screen YAML below, so a fresh paste always reflects the latest state without needing the history. Full commit history remains in the <a href="https://github.com/PhadeDev/branch-contact-groups/commits/main">GitHub repo</a>.</p>
@@ -178,7 +180,7 @@
   <li>Add all data sources listed below (Data panel → Add data).</li>
   <li>Paste the <strong>App.Formulas</strong> block below into <strong>App → Formulas</strong>, then the <strong>App.OnStart</strong> block into <strong>App → OnStart</strong> (v2.47 needs both).</li>
   <li><strong>Updating an existing app?</strong> Delete the four existing screens first. Studio's paste is additive, so pasting over them leaves renamed duplicates (controls ending _1, _2, _3).</li>
-  <li>Create four blank screens (name them exactly as shown), then paste each YAML in order: scrQuickContacts, scrSendEmail, scrManageGroups, scrManagePeople.</li>
+  <li>Create five blank screens (name them exactly as shown), then paste each YAML in order: scrQuickContacts, scrSendEmail, scrManageGroups, scrManagePeople, scrImport.</li>
   <li>Set <strong>App → StartScreen</strong> to <code>scrQuickContacts</code>. That screen starts the data load and shows the loading overlay.</li>
   <li>These screens use manual X/Y positioning throughout. Anything too tall to fit on one screen (Manage Groups' member panel, Manage People's Add Person/Remove Leaver panels) is a centered lightbox instead of a scrolling section.</li>
 </ol>
@@ -371,11 +373,11 @@ Set(varLightboxGroupID, 0)</pre>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>
   </a>
-  <a class="screen-card" href="screens/scrManageGroups.html?v=2.49">
+  <a class="screen-card" href="screens/scrManageGroups.html?v=2.50">
     <div>
       <div class="screen-number">Screen 2</div>
-      <div class="screen-name">scrManageGroups <span class="version">v2.49</span></div>
-      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, manage membership, add existing people in bulk, add from GAL (JMC/County captured before saving) or manually, paste-replace rosters with add/remove/unchanged counts, manage maintainers, Thursday Batches overview, read-only Admin Health Check, and manual Refresh. No hidden GAL lookups, history loads on demand, faster Add existing.</div>
+      <div class="screen-name">scrManageGroups <span class="version">v2.50</span></div>
+      <div class="screen-desc">Maintainer-only. Create/edit/delete groups, Import from paste button, manage membership, add existing people in bulk, add from GAL (JMC/County captured before saving) or manually, paste-replace rosters with add/remove/unchanged counts, manage maintainers, Thursday Batches overview, read-only Admin Health Check, and manual Refresh. No hidden GAL lookups, history loads on demand, faster Add existing.</div>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>
   </a>
@@ -384,6 +386,14 @@ Set(varLightboxGroupID, 0)</pre>
       <div class="screen-number">Screen 3</div>
       <div class="screen-name">scrManagePeople <span class="version">v2.49</span></div>
       <div class="screen-desc">Maintainer-only. One record per person, GAL-backed add, edit-person group checklist, leaver cleanup with tickable multi-match search and affected group list, JMC/County fields, manual Refresh and last-loaded timestamp. No hidden GAL lookups.</div>
+    </div>
+    <div class="screen-cta">Open and copy &rarr;</div>
+  </a>
+  <a class="screen-card" href="screens/scrImport.html?v=2.49">
+    <div>
+      <div class="screen-number">Screen 4</div>
+      <div class="screen-name">scrImport <span class="version">v2.50</span></div>
+      <div class="screen-desc">Maintainer-only. Paste a list from Outlook or Excel (lines like NAL: start a new list), name each list, choose Add only, Add + update by role or Replace, see the new / already there / removed counts, then import. Any email domain is kept as it is.</div>
     </div>
     <div class="screen-cta">Open and copy &rarr;</div>
   </a>
