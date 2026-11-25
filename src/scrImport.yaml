@@ -958,7 +958,8 @@ Screens:
             BasePaletteColor: =If(varImpMode = "replace", RGBA(163,45,45,1), RGBA(0,78,66,1))
             DisplayMode: =If(varImpBusy || CountRows(colImpClean) = 0, DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
-              =With(
+              =Notify("Import button pressed.", NotificationType.Information);
+              With(
                   {
                       titled: CountRows(Filter(Sequence(CountRows(colImpTags)) As q, q.Value <= 6 && !IsBlank(Choose(q.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text))))),
                       titles: Filter(ForAll(Sequence(CountRows(colImpTags)) As q, {T: Lower(Choose(q.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))}), !IsBlank(T))
