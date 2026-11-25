@@ -225,7 +225,7 @@ BODY = '''
 
       <section id="manage">
         <h2><span class="step">6</span>scrManageGroups %(d_manage)s</h2>
-        <p>Add a blank screen named exactly <span class="kb">scrManageGroups</span>, then paste. (It has a new <strong>Import from paste</strong> button.)</p>
+        <p>Add a blank screen named exactly <span class="kb">scrManageGroups</span>, then paste. (It has the <strong>Import from paste</strong> button, A to Z sorting, and a progress bar when you rename a group.)</p>
 %(c_manage)s
       </section>
 
@@ -255,6 +255,7 @@ BODY = '''
           %(t4)s
           %(t5)s
           %(t6)s
+          %(t7)s
         </ul>
       </section>
 
@@ -284,6 +285,7 @@ BODY = '''
     't3': tick('t3', 'Send Email: tick a group of cadetnet addresses. BCC is not forced.'),
     't4': tick('t4', 'Manage Groups &rarr; <strong>Import from paste</strong> opens the Import screen.'),
     't5': tick('t5', 'Import: paste 3 or 4 made-up lines (for example <span class="kb">TEST: Role One alex@example.test; Role Two sam@example.test</span>), Check paste, name it, Import. Delete the test group afterwards.'),
+    't7': tick('t7', 'Manage Groups: edit a group, change its name, Save. A box appears with a progress bar counting up, then a green Saved message. Groups are listed A to Z.'),
     't6': tick('t6', 'Import: the real lists, only after the test worked.'),
     'lists': list_tables(),
 }
