@@ -961,8 +961,8 @@ Screens:
               =Notify("Import button pressed.", NotificationType.Information);
               With(
                   {
-                      titled: CountRows(Filter(Sequence(CountRows(colImpTags)) As q, q.Value <= 6 && !IsBlank(Choose(q.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text))))),
-                      titles: Filter(ForAll(Sequence(CountRows(colImpTags)) As q, {T: Lower(Choose(q.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))}), !IsBlank(T))
+                      titled: CountRows(Filter(Sequence(CountRows(colImpTags)) As q, q.Value <= 6 && !IsBlank(Switch(q.Value, 1, Trim(txtImpTitle1.Text), 2, Trim(txtImpTitle2.Text), 3, Trim(txtImpTitle3.Text), 4, Trim(txtImpTitle4.Text), 5, Trim(txtImpTitle5.Text), 6, Trim(txtImpTitle6.Text))))),
+                      titles: Filter(ForAll(Sequence(CountRows(colImpTags)) As q, {T: Lower(Switch(q.Value, 1, Trim(txtImpTitle1.Text), 2, Trim(txtImpTitle2.Text), 3, Trim(txtImpTitle3.Text), 4, Trim(txtImpTitle4.Text), 5, Trim(txtImpTitle5.Text), 6, Trim(txtImpTitle6.Text)))}), !IsBlank(T))
                   },
                   If(
                       varImpBusy,
@@ -982,7 +982,7 @@ Screens:
                       ForAll(
                           Sequence(CountRows(colImpTags)) As s,
                           With(
-                              {title: Trim(Choose(s.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))},
+                              {title: Trim(Switch(s.Value, 1, Trim(txtImpTitle1.Text), 2, Trim(txtImpTitle2.Text), 3, Trim(txtImpTitle3.Text), 4, Trim(txtImpTitle4.Text), 5, Trim(txtImpTitle5.Text), 6, Trim(txtImpTitle6.Text)))},
                               If(
                                   s.Value <= 6 && !IsBlank(title) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(title))) = 0,
                                   Patch('BM Groups', Defaults('BM Groups'), {Title: title, ThursdayBatch: {Value: "None"}, Private: false, OfficialSensitiveApproved: false, OfficialUseOnly: false});
@@ -996,7 +996,7 @@ Screens:
                           With(
                               {
                                   tag: Index(colImpTags, s.Value).Tag,
-                                  typed: Trim(Choose(s.Value, Trim(txtImpTitle1.Text), Trim(txtImpTitle2.Text), Trim(txtImpTitle3.Text), Trim(txtImpTitle4.Text), Trim(txtImpTitle5.Text), Trim(txtImpTitle6.Text)))
+                                  typed: Trim(Switch(s.Value, 1, Trim(txtImpTitle1.Text), 2, Trim(txtImpTitle2.Text), 3, Trim(txtImpTitle3.Text), 4, Trim(txtImpTitle4.Text), 5, Trim(txtImpTitle5.Text), 6, Trim(txtImpTitle6.Text)))
                               },
                               If(
                                   s.Value <= 6 && !IsBlank(typed),
