@@ -73,7 +73,11 @@ CSS += """
 
 
 def card(cid, label, content, ver, relpath, crlf=False, note=''):
-    stamp_html = '<span class="code-stamp">Replace all of it%s</span>' % ((' &mdash; ' + esc(note)) if note else '')
+    iso, text = stamp(relpath, '')
+    when = ''
+    if iso:
+        when = '<span class="code-stamp" data-updated="%s">%s <span class="code-age"></span></span>' % (iso, text.split('&middot; ', 1)[1])
+    stamp_html = when + '<span class="code-stamp">Replace all of it%s</span>' % ((' &mdash; ' + esc(note)) if note else '')
     return '''        <div class="code-card">
           <div class="code-toolbar">
             <div class="code-meta">
@@ -332,6 +336,29 @@ SCRIPTS = r'''
       setActive(visible[0].target.id);
     }, { rootMargin: '-15%% 0px -70%% 0px', threshold: 0 });
     sections.forEach(function (s) { observer.observe(s); });
+  })();
+  </script>
+  <script>
+  (function () {
+    function age(ms) {
+      var m = Math.floor(ms / 60000);
+      if (m < 1) return 'just now';
+      if (m < 120) return m + ' minute' + (m === 1 ? '' : 's') + ' ago';
+      var h = Math.floor(m / 60);
+      if (h < 48) return h + ' hours ago';
+      return Math.floor(h / 24) + ' days ago';
+    }
+    function refresh() {
+      var now = Date.now();
+      document.querySelectorAll('.code-stamp[data-updated]').forEach(function (el) {
+        var t = new Date(el.getAttribute('data-updated')).getTime();
+        var out = el.querySelector('.code-age');
+        if (isNaN(t) || !out) return;
+        out.textContent = '(' + age(Math.max(0, now - t)) + ')';
+      });
+    }
+    refresh();
+    setInterval(refresh, 30000);
   })();
   </script>
 ''' % {'key': KEY}
