@@ -240,7 +240,7 @@ Screens:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: =Filter(colGroups, IsBlank(Trim(txtGroupSearch.Text)) || txtGroupSearch.Text in Title)
+            Items: =Sort(Filter(colGroups, IsBlank(Trim(txtGroupSearch.Text)) || txtGroupSearch.Text in Title), Title, SortOrder.Ascending)
             TemplateSize: =60
             TemplatePadding: =4
             X: =20

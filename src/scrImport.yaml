@@ -12,7 +12,7 @@ Screens:
             ClearCollect(colImpParsed, Filter(Table({Tag: "", Email: "", Name: ""}), false));
             ClearCollect(colImpClean, AddColumns(GroupBy(Filter(colImpParsed, false), Tag, Email, Rows), Name, First(Rows).Name, Dups, CountRows(Rows) - 1));
             ClearCollect(colImpTags, Filter(Table({Tag: "", N: 0}), false));
-            ClearCollect(colImpResults, Filter(Table({Group: "", Added: 0, Updated: 0, Removed: 0}), false))
+            ClearCollect(colImpResults, Filter(Table({Group: "", Before: 0, Added: 0, Updated: 0, Removed: 0}), false))
         )
     Children:
       - recHeader:
@@ -279,7 +279,7 @@ Screens:
       - btnImpModeAdd:
           Control: Classic/Button@2.2.0
           Properties:
-            Text: ="Add only"
+            Text: ="Create / add new people"
             Fill: =If(varImpMode = "add", RGBA(0,78,66,1), RGBA(232,237,235,1))
             HoverFill: =If(varImpMode = "add", RGBA(0,78,66,1), RGBA(222,229,226,1))
             PressedFill: =Self.HoverFill
@@ -295,12 +295,12 @@ Screens:
             OnSelect: =Set(varImpMode, "add"); Set(varImpArmed, false)
             X: =610
             Y: =122
-            Width: =130
+            Width: =200
             Height: =36
       - btnImpModeUpdate:
           Control: Classic/Button@2.2.0
           Properties:
-            Text: ="Add + update by role"
+            Text: ="Add and correct emails"
             Fill: =If(varImpMode = "update", RGBA(0,78,66,1), RGBA(232,237,235,1))
             HoverFill: =If(varImpMode = "update", RGBA(0,78,66,1), RGBA(222,229,226,1))
             PressedFill: =Self.HoverFill
@@ -314,14 +314,14 @@ Screens:
             FontWeight: =FontWeight.Semibold
             Size: =12
             OnSelect: =Set(varImpMode, "update"); Set(varImpArmed, false)
-            X: =750
+            X: =820
             Y: =122
-            Width: =210
+            Width: =200
             Height: =36
       - btnImpModeReplace:
           Control: Classic/Button@2.2.0
           Properties:
-            Text: ="Replace"
+            Text: ="Replace whole group"
             Fill: =If(varImpMode = "replace", RGBA(0,78,66,1), RGBA(232,237,235,1))
             HoverFill: =If(varImpMode = "replace", RGBA(0,78,66,1), RGBA(222,229,226,1))
             PressedFill: =Self.HoverFill
@@ -335,9 +335,9 @@ Screens:
             FontWeight: =FontWeight.Semibold
             Size: =12
             OnSelect: =Set(varImpMode, "replace"); Set(varImpArmed, false)
-            X: =970
+            X: =1030
             Y: =122
-            Width: =130
+            Width: =200
             Height: =36
       - lblImpModeHint:
           Control: Label@2.5.1
@@ -345,9 +345,9 @@ Screens:
             Text: |-
               =Switch(
                   varImpMode,
-                  "add", "Adds anyone who is not already in the group. Never removes or changes anyone.",
-                  "update", "Adds new people. If a pasted name matches someone already in the group but with a different email, their email is updated instead of adding a second row.",
-                  "Makes each group match the paste exactly: adds new people and removes anyone who is not in the paste."
+                  "add", "Use this for a new list. Creates the group if the name is new. If the group already exists, only adds people who are not in it yet. Nobody is removed or changed.",
+                  "update", "Adds new people. If a pasted name matches someone already in the group but with a different email address (for example a new post-holder), the email is changed instead of adding a second entry. Nobody is removed.",
+                  "Makes the group match your paste exactly. New people are added and anyone who is NOT in the paste is REMOVED. You are asked to confirm first. A new group simply gets everyone."
               )
             Color: =RGBA(96,105,103,1)
             Size: =11
@@ -435,18 +435,20 @@ Screens:
                               gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
                           },
                           If(
+                              varImpBusy,
+                              "Importing this list. Please wait.",
                               IsBlank(title),
-                              "Leave blank to skip this list.",
+                              "Type a group name to import this list, or leave it blank to skip it.",
                               !exists,
-                              "New group. " & CountRows(ents) & " people will be added.",
-                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
-                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                              "NEW group: it will be created with " & CountRows(ents) & " people.",
+                              "ALREADY EXISTS (has " & CountRows(cur) & " people): " & (CountRows(ents) - same - byRole) & " to add, " & same & " already in it" &
+                              If(byRole > 0, ", " & byRole & " emails changed", "") & If(gone > 0, ", " & gone & " to remove", "") & "."
                           )
                       )
                   )
               )
             Visible: =CountRows(colImpTags) >= 1
-            Color: =RGBA(96,105,103,1)
+            Color: =If(!varImpBusy && !IsBlank(Trim(txtImpTitle1.Text)) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(Trim(txtImpTitle1.Text)))) > 0, RGBA(150,85,0,1), RGBA(96,105,103,1))
             Size: =11
             Font: =Font.'Open Sans'
             X: =800
@@ -532,18 +534,20 @@ Screens:
                               gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
                           },
                           If(
+                              varImpBusy,
+                              "Importing this list. Please wait.",
                               IsBlank(title),
-                              "Leave blank to skip this list.",
+                              "Type a group name to import this list, or leave it blank to skip it.",
                               !exists,
-                              "New group. " & CountRows(ents) & " people will be added.",
-                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
-                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                              "NEW group: it will be created with " & CountRows(ents) & " people.",
+                              "ALREADY EXISTS (has " & CountRows(cur) & " people): " & (CountRows(ents) - same - byRole) & " to add, " & same & " already in it" &
+                              If(byRole > 0, ", " & byRole & " emails changed", "") & If(gone > 0, ", " & gone & " to remove", "") & "."
                           )
                       )
                   )
               )
             Visible: =CountRows(colImpTags) >= 2
-            Color: =RGBA(96,105,103,1)
+            Color: =If(!varImpBusy && !IsBlank(Trim(txtImpTitle2.Text)) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(Trim(txtImpTitle2.Text)))) > 0, RGBA(150,85,0,1), RGBA(96,105,103,1))
             Size: =11
             Font: =Font.'Open Sans'
             X: =800
@@ -629,18 +633,20 @@ Screens:
                               gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
                           },
                           If(
+                              varImpBusy,
+                              "Importing this list. Please wait.",
                               IsBlank(title),
-                              "Leave blank to skip this list.",
+                              "Type a group name to import this list, or leave it blank to skip it.",
                               !exists,
-                              "New group. " & CountRows(ents) & " people will be added.",
-                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
-                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                              "NEW group: it will be created with " & CountRows(ents) & " people.",
+                              "ALREADY EXISTS (has " & CountRows(cur) & " people): " & (CountRows(ents) - same - byRole) & " to add, " & same & " already in it" &
+                              If(byRole > 0, ", " & byRole & " emails changed", "") & If(gone > 0, ", " & gone & " to remove", "") & "."
                           )
                       )
                   )
               )
             Visible: =CountRows(colImpTags) >= 3
-            Color: =RGBA(96,105,103,1)
+            Color: =If(!varImpBusy && !IsBlank(Trim(txtImpTitle3.Text)) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(Trim(txtImpTitle3.Text)))) > 0, RGBA(150,85,0,1), RGBA(96,105,103,1))
             Size: =11
             Font: =Font.'Open Sans'
             X: =800
@@ -726,18 +732,20 @@ Screens:
                               gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
                           },
                           If(
+                              varImpBusy,
+                              "Importing this list. Please wait.",
                               IsBlank(title),
-                              "Leave blank to skip this list.",
+                              "Type a group name to import this list, or leave it blank to skip it.",
                               !exists,
-                              "New group. " & CountRows(ents) & " people will be added.",
-                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
-                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                              "NEW group: it will be created with " & CountRows(ents) & " people.",
+                              "ALREADY EXISTS (has " & CountRows(cur) & " people): " & (CountRows(ents) - same - byRole) & " to add, " & same & " already in it" &
+                              If(byRole > 0, ", " & byRole & " emails changed", "") & If(gone > 0, ", " & gone & " to remove", "") & "."
                           )
                       )
                   )
               )
             Visible: =CountRows(colImpTags) >= 4
-            Color: =RGBA(96,105,103,1)
+            Color: =If(!varImpBusy && !IsBlank(Trim(txtImpTitle4.Text)) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(Trim(txtImpTitle4.Text)))) > 0, RGBA(150,85,0,1), RGBA(96,105,103,1))
             Size: =11
             Font: =Font.'Open Sans'
             X: =800
@@ -823,18 +831,20 @@ Screens:
                               gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
                           },
                           If(
+                              varImpBusy,
+                              "Importing this list. Please wait.",
                               IsBlank(title),
-                              "Leave blank to skip this list.",
+                              "Type a group name to import this list, or leave it blank to skip it.",
                               !exists,
-                              "New group. " & CountRows(ents) & " people will be added.",
-                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
-                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                              "NEW group: it will be created with " & CountRows(ents) & " people.",
+                              "ALREADY EXISTS (has " & CountRows(cur) & " people): " & (CountRows(ents) - same - byRole) & " to add, " & same & " already in it" &
+                              If(byRole > 0, ", " & byRole & " emails changed", "") & If(gone > 0, ", " & gone & " to remove", "") & "."
                           )
                       )
                   )
               )
             Visible: =CountRows(colImpTags) >= 5
-            Color: =RGBA(96,105,103,1)
+            Color: =If(!varImpBusy && !IsBlank(Trim(txtImpTitle5.Text)) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(Trim(txtImpTitle5.Text)))) > 0, RGBA(150,85,0,1), RGBA(96,105,103,1))
             Size: =11
             Font: =Font.'Open Sans'
             X: =800
@@ -920,18 +930,20 @@ Screens:
                               gone: If(varImpMode = "replace", CountRows(Filter(cur, !(Email in ents.Email))), 0)
                           },
                           If(
+                              varImpBusy,
+                              "Importing this list. Please wait.",
                               IsBlank(title),
-                              "Leave blank to skip this list.",
+                              "Type a group name to import this list, or leave it blank to skip it.",
                               !exists,
-                              "New group. " & CountRows(ents) & " people will be added.",
-                              "Existing group, " & CountRows(cur) & " now. " & (CountRows(ents) - same - byRole) & " new, " & same & " already there" &
-                              If(byRole > 0, ", " & byRole & " email updates", "") & If(gone > 0, ", " & gone & " to be removed", "") & "."
+                              "NEW group: it will be created with " & CountRows(ents) & " people.",
+                              "ALREADY EXISTS (has " & CountRows(cur) & " people): " & (CountRows(ents) - same - byRole) & " to add, " & same & " already in it" &
+                              If(byRole > 0, ", " & byRole & " emails changed", "") & If(gone > 0, ", " & gone & " to remove", "") & "."
                           )
                       )
                   )
               )
             Visible: =CountRows(colImpTags) >= 6
-            Color: =RGBA(96,105,103,1)
+            Color: =If(!varImpBusy && !IsBlank(Trim(txtImpTitle6.Text)) && CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(Trim(txtImpTitle6.Text)))) > 0, RGBA(150,85,0,1), RGBA(96,105,103,1))
             Size: =11
             Font: =Font.'Open Sans'
             X: =800
@@ -1012,7 +1024,7 @@ Screens:
                                                   toUpd: If(varImpMode = "update", Filter(ents, !(Email in cur.Email) && Lower(Trim(Name)) in cur.NameKey), Filter(ents, false)),
                                                   toRem: If(varImpMode = "replace", Filter(cur, !(Email in ents.Email)), Filter(cur, false))
                                               },
-                                              Collect(colImpResults, {Group: gTitle, Added: CountRows(toAdd), Updated: CountRows(toUpd), Removed: CountRows(toRem)});
+                                              Collect(colImpResults, {Group: gTitle, Before: CountRows(cur), Added: CountRows(toAdd), Updated: CountRows(toUpd), Removed: CountRows(toRem)});
                                               ForAll(
                                                   toRem As r,
                                                   Remove('BM Memberships', LookUp('BM Memberships', ID = r.ID));
@@ -1042,7 +1054,7 @@ Screens:
                       Clear(colImpClean);
                       Clear(colImpTags);
                       Reset(txtImportPaste);
-                      Notify("Import finished for " & CountRows(colImpResults) & " group" & If(CountRows(colImpResults) = 1, "", "s") & ".", NotificationType.Success),
+                      Notify("Import finished: " & CountRows(colImpResults) & " group" & If(CountRows(colImpResults) = 1, "", "s") & " saved. The summary is under the button.", NotificationType.Success),
                       Notify("Import stopped: " & FirstError.Message & " Some rows may already be saved, so check the group before trying again.", NotificationType.Error)
                       );
                       Set(varImpBusy, false);
@@ -1060,7 +1072,7 @@ Screens:
               =If(
                   CountRows(colImpResults) = 0,
                   If(CountRows(colImpClean) > 0, "A large list can take a minute or two. Keep this screen open until the green message appears.", ""),
-                  "Last import: " & Concat(colImpResults, Group & " (" & Added & " added, " & Updated & " updated, " & Removed & " removed)", "; ")
+                  "Finished. " & Concat(colImpResults, Group & ": " & If(Before = 0, "created as a new group with " & Added & " people", "already existed (" & Before & " people before), " & Added & " added" & If(Updated > 0, ", " & Updated & " emails changed", "") & If(Removed > 0, ", " & Removed & " removed", "")), "; ")
               )
             Color: =RGBA(24,45,55,1)
             Size: =11
