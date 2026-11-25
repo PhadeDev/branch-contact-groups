@@ -975,6 +975,8 @@ Screens:
                       varImpMode = "replace" && !varImpArmed,
                       Set(varImpArmed, true),
                       Set(varImpBusy, true);
+                      Notify("Import started. Keep this screen open until the green message appears.", NotificationType.Information);
+                      IfError(
                       Clear(colImpResults);
                       ForAll(
                           Sequence(CountRows(colImpTags)) As s,
@@ -1036,13 +1038,15 @@ Screens:
                               )
                           )
                       );
-                      Set(varImpBusy, false);
-                      Set(varImpArmed, false);
                       Clear(colImpParsed);
                       Clear(colImpClean);
                       Clear(colImpTags);
                       Reset(txtImportPaste);
-                      Notify("Import finished for " & CountRows(colImpResults) & " group" & If(CountRows(colImpResults) = 1, "", "s") & ".", NotificationType.Success)
+                      Notify("Import finished for " & CountRows(colImpResults) & " group" & If(CountRows(colImpResults) = 1, "", "s") & ".", NotificationType.Success),
+                      Notify("Import stopped: " & FirstError.Message & " Some rows may already be saved, so check the group before trying again.", NotificationType.Error)
+                      );
+                      Set(varImpBusy, false);
+                      Set(varImpArmed, false)
                   )
               )
             X: =610
@@ -1055,7 +1059,7 @@ Screens:
             Text: |-
               =If(
                   CountRows(colImpResults) = 0,
-                  "",
+                  If(CountRows(colImpClean) > 0, "A large list can take a minute or two. Keep this screen open until the green message appears.", ""),
                   "Last import: " & Concat(colImpResults, Group & " (" & Added & " added, " & Updated & " updated, " & Removed & " removed)", "; ")
               )
             Color: =RGBA(24,45,55,1)
