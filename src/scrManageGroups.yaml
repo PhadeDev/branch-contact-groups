@@ -6,6 +6,7 @@ Screens:
         =If(
             !varIsMaintainer,
             Back(),
+            Set(varPasteFormat, "csv");
             Set(varRenameBusy, false);
             Set(varRenameTimerOn, false);
             Set(varRenameTotal, 0);
@@ -1089,7 +1090,7 @@ Screens:
       - btnLbTabPaste:
           Control: ModernButton@1.0.0
           Properties:
-            Text: ="Replace all (paste)"
+            Text: ="Replace all (CSV / Outlook)"
             Visible: =varShowLightbox && varLightboxMode = "manage"
             BasePaletteColor: =If(varManageSubTab = "paste", RGBA(0,78,66,1), RGBA(46,110,145,1))
             OnSelect: =Set(varManageSubTab, "paste")
@@ -2064,10 +2065,46 @@ Screens:
             Y: =If(varShowMemberEditDialog, 442, 464)
             Width: =If(varShowMemberEditDialog, 250, 420)
             Height: =48
+      - btnPasteFmtCsv:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="From CSV / Excel"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
+            BasePaletteColor: =If(varPasteFormat = "csv", RGBA(0,78,66,1), RGBA(46,110,145,1))
+            OnSelect: |-
+              =Set(varPasteFormat, "csv");
+              Reset(txtPasteRoster);
+              Clear(colParsedRoster);
+              Clear(colParsedRosterValid);
+              Set(varParsedRosterCount, 0);
+              Set(varParsedRosterSkipped, 0);
+              Set(varConfirmReplaceArmed, false)
+            X: =713
+            Y: =172
+            Width: =230
+            Height: =32
+      - btnPasteFmtOutlook:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: ="From Outlook"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
+            BasePaletteColor: =If(varPasteFormat = "outlook", RGBA(0,78,66,1), RGBA(46,110,145,1))
+            OnSelect: |-
+              =Set(varPasteFormat, "outlook");
+              Reset(txtPasteRoster);
+              Clear(colParsedRoster);
+              Clear(colParsedRosterValid);
+              Set(varParsedRosterCount, 0);
+              Set(varParsedRosterSkipped, 0);
+              Set(varConfirmReplaceArmed, false)
+            X: =953
+            Y: =172
+            Width: =230
+            Height: =32
       - lblPasteHeading:
           Control: Label@2.5.1
           Properties:
-            Text: ="Replace entire membership (paste from Excel/CSV)"
+            Text: =If(varPasteFormat = "outlook", "Replace everything - from an Outlook list", "Replace everything - from a CSV / Excel sheet")
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             Color: =RGBA(31,58,95,1)
             FontWeight: =FontWeight.Bold
@@ -2075,13 +2112,17 @@ Screens:
             Font: =Font.'Open Sans'
             X: =183
             Y: =176
-            Width: =1000
+            Width: =520
             Height: =24
       - lblPasteHint:
           Control: Label@2.5.1
           Properties:
             Text: |-
-              ="For the weekly refresh: select the roster in Excel (two columns, Name then Email), copy, and paste below. This replaces every current member of this group in one go."
+              =If(
+                  varPasteFormat = "outlook",
+                  "Paste the group as copied from Outlook: names and email addresses separated by semicolons or new lines. Lines ending in a colon (like NAL:) are ignored, so paste one group at a time. This replaces every current member of this group in one go.",
+                  "For the weekly refresh: select the roster in Excel (two columns, Name then Email), copy, and paste below. This replaces every current member of this group in one go."
+              )
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             Color: =RGBA(120,120,120,1)
             Size: =12
@@ -2093,7 +2134,7 @@ Screens:
       - txtPasteRoster:
           Control: Classic/TextInput@2.3.2
           Properties:
-            HintText: ="Paste rows here - either the standard sheet (Bde/Area, County/District, Rank, First Name, Surname, Appointment, Email) or just Name (Tab) Email, one person per line"
+            HintText: =If(varPasteFormat = "outlook", "Paste the Outlook list here, like Name email; Name email; Name email", "Paste rows here - either the standard sheet (Bde/Area, County/District, Rank, First Name, Surname, Appointment, Email) or just Name (Tab) Email, one person per line")
             Mode: =TextMode.MultiLine
             BorderColor: =RGBA(0,18,107,1)
             Font: =Font.'Open Sans'
@@ -2102,6 +2143,32 @@ Screens:
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
             OnChange: |-
               =Set(varRosterLines, Filter(Split(txtPasteRoster.Text, Char(10)), Trim(Value) <> ""));
+              If(
+                  varPasteFormat = "outlook",
+                  ClearCollect(
+                      colParsedRoster,
+                      ForAll(
+                          Ungroup(
+                              ForAll(
+                                  Filter(
+                                      ForAll(Split(Substitute(Substitute(txtPasteRoster.Text, Char(13), ""), Char(160), " "), Char(10)) As raw, {Line: Trim(raw.Value)}),
+                                      !IsBlank(Line) && !(Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 40)
+                                  ) As ln,
+                                  {Segs: Filter(Split(ln.Line, ";"), !IsBlank(Trim(Value)))}
+                              ),
+                              Segs
+                          ) As sg,
+                          With(
+                              {seg: Trim(sg.Value), em: Last(MatchAll(Trim(sg.Value), "[A-Za-z0-9._%+'\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")).FullMatch},
+                              {
+                                  Name: If(IsBlank(em), seg, Coalesce(Trim(Substitute(Substitute(Substitute(Substitute(seg, em, ""), "<>", ""), "()", ""), Char(34), "")), em)),
+                                  Email: Lower(em),
+                                  JMC: "",
+                                  County: ""
+                              }
+                          )
+                      )
+                  ),
               ClearCollect(colParsedRoster,
                   ForAll(
                       varRosterLines,
@@ -2130,10 +2197,26 @@ Screens:
                           )
                       )
                   )
+              )
               );
-              ClearCollect(colParsedRosterValid, Filter(colParsedRoster, IsMatch(Email, Match.Email)));
+              ClearCollect(
+                  colParsedRosterValid,
+                  If(
+                      varPasteFormat = "outlook",
+                      DropColumns(
+                          AddColumns(
+                              GroupBy(Filter(colParsedRoster, IsMatch(Email, Match.Email)), Email, Rows),
+                              Name, First(Rows).Name,
+                              JMC, First(Rows).JMC,
+                              County, First(Rows).County
+                          ),
+                          Rows
+                      ),
+                      Filter(colParsedRoster, IsMatch(Email, Match.Email))
+                  )
+              );
               Set(varParsedRosterCount, CountRows(colParsedRosterValid));
-              Set(varParsedRosterSkipped, CountRows(colParsedRoster) - varParsedRosterCount);
+              Set(varParsedRosterSkipped, CountRows(Filter(colParsedRoster, !IsMatch(Email, Match.Email))));
               Set(varPasteCurrentCount, With({groupTitle: LookUp(colGroups, ID = varManageGroupID).Title}, CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle))))));
               Set(varPasteAddCount, With({groupTitle: LookUp(colGroups, ID = varManageGroupID).Title}, CountRows(Filter(colParsedRosterValid As pr, CountRows(Filter(colMemberships As mem, Lower(Trim(mem.GroupName)) = Lower(Trim(groupTitle)) && Lower(mem.Email) = Lower(pr.Email))) = 0))));
               Set(varPasteRemoveCount, With({groupTitle: LookUp(colGroups, ID = varManageGroupID).Title}, CountRows(Filter(colMemberships As mem, Lower(Trim(mem.GroupName)) = Lower(Trim(groupTitle)) && CountRows(Filter(colParsedRosterValid As pr, Lower(pr.Email) = Lower(mem.Email))) = 0))));
@@ -2195,7 +2278,7 @@ Screens:
                   RemoveIf(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
                   ForAll(colParsedRosterValid, Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Name: Name, Email: Email, GroupName: varGroupTitle, JMC: JMC, 'County/Contingent': County})));
                   Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: varGroupTitle});
-                  Patch('BM History', Defaults('BM History'), {Title: "Bulk replace via paste: " & varOldRosterCount & " removed, " & varParsedRosterCount & " added", GroupName: varGroupTitle, EventType: {Value: "Replaced"}});
+                  Patch('BM History', Defaults('BM History'), {Title: "Bulk replace via " & If(varPasteFormat = "outlook", "Outlook paste", "CSV/Excel paste") & ": " & varOldRosterCount & " removed, " & varParsedRosterCount & " added", GroupName: varGroupTitle, EventType: {Value: "Replaced"}});
                   Reset(txtPasteRoster);
                   Set(varParsedRosterCount, 0);
                   Set(varParsedRosterSkipped, 0);
