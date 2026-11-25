@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..'))
 BIBLE = r'C:\Users\Phaderon\Projects\PowerApps'
 VERSION = 'v2.50'
-KEY = 'bcg-guide-done-' + VERSION
+KEY = 'bcg-guide-done-' + VERSION + '-r2'
 
 try:
     from zoneinfo import ZoneInfo
@@ -66,13 +66,14 @@ CSS += """
     ul.ticks { list-style: none; padding-left: .2rem; line-height: 2; }
     ul.ticks li.is-done { opacity: .55; text-decoration: line-through; }
     section.is-done h2 { opacity: .55; }
-    .skip { opacity: .8; }
+    .replace-all { border: 2px solid var(--primary); border-radius: 12px; padding: 14px 18px; margin: 14px 0 22px; background: var(--primary-soft); }
+    .replace-all h2 { margin-top: 0; }
+    .replace-all ol { margin: 8px 0 0; padding-left: 1.3rem; line-height: 1.7; }
 """
 
 
 def card(cid, label, content, ver, relpath, crlf=False, note=''):
-    iso, text = stamp(relpath, ver)
-    stamp_html = ('<span class="code-stamp" data-updated="%s">%s%s</span>' % (iso, text, (' &mdash; ' + esc(note)) if note else '')) if iso else ''
+    stamp_html = '<span class="code-stamp">Replace all of it%s</span>' % ((' &mdash; ' + esc(note)) if note else '')
     return '''        <div class="code-card">
           <div class="code-toolbar">
             <div class="code-meta">
@@ -145,19 +146,33 @@ def list_tables():
 SECTIONS = [
     ('formulas', 'Step 1 - App.Formulas'),
     ('onstart', 'Step 2 - App.OnStart'),
-    ('quick', 'Step 3 - Quick Contacts'),
-    ('send', 'Step 4 - Send Email'),
-    ('manage', 'Step 5 - Manage Groups'),
-    ('import', 'Step 6 - Import (new)'),
-    ('people', 'Manage People (unchanged)'),
-    ('start', 'Step 7 - Start screen'),
-    ('test', 'Step 8 - Test'),
-    ('vault', 'Step 9 - Save to the Vault'),
+    ('delete', 'Step 3 - Delete all screens'),
+    ('quick', 'Step 4 - Quick Contacts'),
+    ('send', 'Step 5 - Send Email'),
+    ('manage', 'Step 6 - Manage Groups'),
+    ('import', 'Step 7 - Import (new)'),
+    ('people', 'Step 8 - Manage People'),
+    ('start', 'Step 9 - Start screen'),
+    ('test', 'Step 10 - Test'),
+    ('vault', 'Step 11 - Save to the Vault'),
     ('lists', 'SharePoint columns'),
 ]
 nav = '\n'.join('        <a href="#%s">%s</a>' % (i, esc(t)) for i, t in SECTIONS)
 
-_, top_stamp = stamp('src/scrImport.yaml', VERSION)
+def build_time():
+    """Time this page was built, in UK time (real clock, never typed in)."""
+    utc = datetime.datetime.now(datetime.timezone.utc)
+    if UK:
+        uk = utc.astimezone(UK)
+        zone = uk.tzname() or 'GMT'
+    else:
+        def last_sunday(y, m):
+            d = datetime.datetime(y, m, 31, 1, 0, tzinfo=datetime.timezone.utc)
+            return d - datetime.timedelta(days=(d.weekday() + 1) % 7)
+        bst = last_sunday(utc.year, 3) <= utc < last_sunday(utc.year, 10)
+        uk = utc + datetime.timedelta(hours=1 if bst else 0)
+        zone = 'BST' if bst else 'GMT'
+    return '%s %s' % (uk.strftime('%d/%m/%Y %H:%M'), zone)
 
 BODY = '''
       <div class="topline">
@@ -165,7 +180,15 @@ BODY = '''
         <span class="pill">Last build %(stamp)s</span>
       </div>
       <h1>Branch Contact Groups</h1>
-      <p class="lead">Paste these in order and tick each one off. Use <strong>Show the code</strong> only if you want to read it; Copy works without opening it.</p>
+      <div class="replace-all">
+        <h2>Replace everything</h2>
+        <p>Everything below is new compared with the app in Studio. Do not pick and choose. Work down the page and tick each step off. Copy works without opening the code.</p>
+        <ol>
+          <li>Replace <strong>App.Formulas</strong> and <strong>App.OnStart</strong></li>
+          <li>Delete <strong>all five screens</strong></li>
+          <li>Paste all five back: Quick Contacts, Send Email, Manage Groups, Import, Manage People</li>
+        </ol>
+      </div>
 
       <section id="formulas">
         <h2><span class="step">1</span>App.Formulas %(d_formulas)s</h2>
@@ -175,47 +198,52 @@ BODY = '''
 
       <section id="onstart">
         <h2><span class="step">2</span>App.OnStart %(d_onstart)s</h2>
-        <p>Select <strong>App</strong> &rarr; <span class="kb">OnStart</span>, replace everything, paste. Optional if you pasted it on 18/11/2026 or later (only one unused line has gone).</p>
+        <p>Select <strong>App</strong> &rarr; <span class="kb">OnStart</span>, replace everything, paste.</p>
 %(c_onstart)s
       </section>
 
+      <section id="delete">
+        <h2><span class="step">3</span>Delete all five screens %(d_delete)s</h2>
+        <p>In the Tree view, delete <span class="kb">scrQuickContacts</span>, <span class="kb">scrSendEmail</span>, <span class="kb">scrManageGroups</span>, <span class="kb">scrManagePeople</span> and <span class="kb">scrImport</span> if it exists. Pasting does not overwrite, so old copies would be duplicated. Red errors on the screens you paste first are normal until all five are in.</p>
+      </section>
+
       <section id="quick">
-        <h2><span class="step">3</span>scrQuickContacts %(d_quick)s</h2>
-        <p>Delete the old <span class="kb">scrQuickContacts</span>, add a blank screen with exactly that name, then paste.</p>
+        <h2><span class="step">4</span>scrQuickContacts %(d_quick)s</h2>
+        <p>Add a blank screen named exactly <span class="kb">scrQuickContacts</span>, then paste.</p>
 %(c_quick)s
       </section>
 
       <section id="send">
-        <h2><span class="step">4</span>scrSendEmail %(d_send)s</h2>
-        <p>Delete the old <span class="kb">scrSendEmail</span>, add a blank screen with exactly that name, then paste.</p>
+        <h2><span class="step">5</span>scrSendEmail %(d_send)s</h2>
+        <p>Add a blank screen named exactly <span class="kb">scrSendEmail</span>, then paste.</p>
 %(c_send)s
       </section>
 
       <section id="manage">
-        <h2><span class="step">5</span>scrManageGroups %(d_manage)s</h2>
-        <p>Delete the old <span class="kb">scrManageGroups</span>, add a blank screen with exactly that name, then paste. (New <strong>Import from paste</strong> button.)</p>
+        <h2><span class="step">6</span>scrManageGroups %(d_manage)s</h2>
+        <p>Add a blank screen named exactly <span class="kb">scrManageGroups</span>, then paste. (It has a new <strong>Import from paste</strong> button.)</p>
 %(c_manage)s
       </section>
 
       <section id="import">
-        <h2><span class="step">6</span>scrImport (new) %(d_import)s</h2>
+        <h2><span class="step">7</span>scrImport (new) %(d_import)s</h2>
         <p>Add a blank screen named exactly <span class="kb">scrImport</span>, then paste. If a <span class="kb">Navigate</span> on Manage Groups shows red until this exists, that is expected.</p>
 %(c_import)s
       </section>
 
-      <section id="people" class="skip">
-        <h2>scrManagePeople (unchanged) %(d_people)s</h2>
-        <p>No change this round. Paste only if you are rebuilding the app from scratch.</p>
+      <section id="people">
+        <h2><span class="step">8</span>scrManagePeople %(d_people)s</h2>
+        <p>Add a blank screen named exactly <span class="kb">scrManagePeople</span>, then paste. The code is unchanged apart from the version label being removed.</p>
 %(c_people)s
       </section>
 
       <section id="start">
-        <h2><span class="step">7</span>Start screen %(d_start)s</h2>
+        <h2><span class="step">9</span>Start screen %(d_start)s</h2>
         <p>Select <strong>App</strong>, set <span class="kb">StartScreen</span> to <span class="kb">scrQuickContacts</span>, save.</p>
       </section>
 
       <section id="test">
-        <h2><span class="step">8</span>Test</h2>
+        <h2><span class="step">10</span>Test</h2>
         <ul class="ticks">
           %(t1)s
           %(t2)s
@@ -227,8 +255,8 @@ BODY = '''
       </section>
 
       <section id="vault">
-        <h2><span class="step">9</span>Save to the Vault %(d_vault)s</h2>
-        <p>Save the changed screens and App.OnStart back into the <a href="yaml.html">Screen YAML Vault</a>, then tell me, so I can check what is really in the app.</p>
+        <h2><span class="step">11</span>Save to the Vault %(d_vault)s</h2>
+        <p>Save all five screens and App.OnStart back into the <a href="yaml.html">Screen YAML Vault</a>, then tell me, so I can check what is really in the app.</p>
       </section>
 
       <details class="ref" id="lists">
@@ -237,8 +265,8 @@ BODY = '''
 %(lists)s
       </details>
 ''' % {
-    'ver': VERSION, 'stamp': top_stamp.split('&middot; ', 1)[1],
-    'd_formulas': done('formulas'), 'd_onstart': done('onstart'), 'd_quick': done('quick'), 'd_send': done('send'),
+    'ver': VERSION, 'stamp': build_time(),
+    'd_formulas': done('formulas'), 'd_delete': done('delete'), 'd_onstart': done('onstart'), 'd_quick': done('quick'), 'd_send': done('send'),
     'd_manage': done('manage'), 'd_import': done('import'), 'd_people': done('people'), 'd_start': done('start'), 'd_vault': done('vault'),
     'c_formulas': card('bcg-formulas', 'App - Formulas', formulas, 'v2.49', 'docs/formulas.txt'),
     'c_onstart': card('bcg-onstart', 'App - OnStart', onstart, 'v2.49', 'docs/on-start.txt'),
@@ -304,18 +332,6 @@ SCRIPTS = r'''
       setActive(visible[0].target.id);
     }, { rootMargin: '-15%% 0px -70%% 0px', threshold: 0 });
     sections.forEach(function (s) { observer.observe(s); });
-  })();
-  </script>
-  <script>
-  (function () {
-    var WINDOW_MS = 48 * 60 * 60 * 1000, now = Date.now();
-    function age(ms) { var m = Math.round(ms / 60000); if (m < 1) return 'just now'; if (m < 60) return m + 'm ago'; var h = Math.round(m / 60); if (h < 24) return h + 'h ago'; return Math.round(h / 24) + 'd ago'; }
-    document.querySelectorAll('.code-stamp[data-updated]').forEach(function (el) {
-      var t = new Date(el.getAttribute('data-updated')).getTime();
-      if (isNaN(t)) return;
-      var a = now - t;
-      if (a >= 0 && a < WINDOW_MS) { var pill = document.createElement('span'); pill.className = 'update-pill'; pill.textContent = 'Updated ' + age(a); el.after(pill); }
-    });
   })();
   </script>
 ''' % {'key': KEY}
