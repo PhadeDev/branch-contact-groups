@@ -378,7 +378,7 @@ Screens:
       - lblImpTag1:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 1).Tag
+            Text: =If(CountRows(colImpTags) >= 1, Index(colImpTags, 1).Tag, "")
             Visible: =CountRows(colImpTags) >= 1
             Color: =RGBA(24,45,55,1)
             FontWeight: =FontWeight.Bold
@@ -391,7 +391,7 @@ Screens:
       - lblImpCount1:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 1).N & " address" & If(Index(colImpTags, 1).N = 1, "", "es")
+            Text: =If(CountRows(colImpTags) >= 1, Index(colImpTags, 1).N & " address" & If(Index(colImpTags, 1).N = 1, "", "es"), "")
             Visible: =CountRows(colImpTags) >= 1
             Color: =RGBA(96,105,103,1)
             Size: =11
@@ -475,7 +475,7 @@ Screens:
       - lblImpTag2:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 2).Tag
+            Text: =If(CountRows(colImpTags) >= 2, Index(colImpTags, 2).Tag, "")
             Visible: =CountRows(colImpTags) >= 2
             Color: =RGBA(24,45,55,1)
             FontWeight: =FontWeight.Bold
@@ -488,7 +488,7 @@ Screens:
       - lblImpCount2:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 2).N & " address" & If(Index(colImpTags, 2).N = 1, "", "es")
+            Text: =If(CountRows(colImpTags) >= 2, Index(colImpTags, 2).N & " address" & If(Index(colImpTags, 2).N = 1, "", "es"), "")
             Visible: =CountRows(colImpTags) >= 2
             Color: =RGBA(96,105,103,1)
             Size: =11
@@ -572,7 +572,7 @@ Screens:
       - lblImpTag3:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 3).Tag
+            Text: =If(CountRows(colImpTags) >= 3, Index(colImpTags, 3).Tag, "")
             Visible: =CountRows(colImpTags) >= 3
             Color: =RGBA(24,45,55,1)
             FontWeight: =FontWeight.Bold
@@ -585,7 +585,7 @@ Screens:
       - lblImpCount3:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 3).N & " address" & If(Index(colImpTags, 3).N = 1, "", "es")
+            Text: =If(CountRows(colImpTags) >= 3, Index(colImpTags, 3).N & " address" & If(Index(colImpTags, 3).N = 1, "", "es"), "")
             Visible: =CountRows(colImpTags) >= 3
             Color: =RGBA(96,105,103,1)
             Size: =11
@@ -669,7 +669,7 @@ Screens:
       - lblImpTag4:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 4).Tag
+            Text: =If(CountRows(colImpTags) >= 4, Index(colImpTags, 4).Tag, "")
             Visible: =CountRows(colImpTags) >= 4
             Color: =RGBA(24,45,55,1)
             FontWeight: =FontWeight.Bold
@@ -682,7 +682,7 @@ Screens:
       - lblImpCount4:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 4).N & " address" & If(Index(colImpTags, 4).N = 1, "", "es")
+            Text: =If(CountRows(colImpTags) >= 4, Index(colImpTags, 4).N & " address" & If(Index(colImpTags, 4).N = 1, "", "es"), "")
             Visible: =CountRows(colImpTags) >= 4
             Color: =RGBA(96,105,103,1)
             Size: =11
@@ -766,7 +766,7 @@ Screens:
       - lblImpTag5:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 5).Tag
+            Text: =If(CountRows(colImpTags) >= 5, Index(colImpTags, 5).Tag, "")
             Visible: =CountRows(colImpTags) >= 5
             Color: =RGBA(24,45,55,1)
             FontWeight: =FontWeight.Bold
@@ -779,7 +779,7 @@ Screens:
       - lblImpCount5:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 5).N & " address" & If(Index(colImpTags, 5).N = 1, "", "es")
+            Text: =If(CountRows(colImpTags) >= 5, Index(colImpTags, 5).N & " address" & If(Index(colImpTags, 5).N = 1, "", "es"), "")
             Visible: =CountRows(colImpTags) >= 5
             Color: =RGBA(96,105,103,1)
             Size: =11
@@ -863,7 +863,7 @@ Screens:
       - lblImpTag6:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 6).Tag
+            Text: =If(CountRows(colImpTags) >= 6, Index(colImpTags, 6).Tag, "")
             Visible: =CountRows(colImpTags) >= 6
             Color: =RGBA(24,45,55,1)
             FontWeight: =FontWeight.Bold
@@ -876,7 +876,7 @@ Screens:
       - lblImpCount6:
           Control: Label@2.5.1
           Properties:
-            Text: =Index(colImpTags, 6).N & " address" & If(Index(colImpTags, 6).N = 1, "", "es")
+            Text: =If(CountRows(colImpTags) >= 6, Index(colImpTags, 6).N & " address" & If(Index(colImpTags, 6).N = 1, "", "es"), "")
             Visible: =CountRows(colImpTags) >= 6
             Color: =RGBA(96,105,103,1)
             Size: =11
