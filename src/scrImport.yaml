@@ -421,7 +421,7 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {title: Trim(txtImpTitle1.Text), tag: Index(colImpTags, 1).Tag},
+                  {title: Trim(txtImpTitle1.Text), tag: If(CountRows(colImpTags) >= 1, Index(colImpTags, 1).Tag, "")},
                   With(
                       {
                           ents: Filter(colImpClean, Tag = tag),
@@ -518,7 +518,7 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {title: Trim(txtImpTitle2.Text), tag: Index(colImpTags, 2).Tag},
+                  {title: Trim(txtImpTitle2.Text), tag: If(CountRows(colImpTags) >= 2, Index(colImpTags, 2).Tag, "")},
                   With(
                       {
                           ents: Filter(colImpClean, Tag = tag),
@@ -615,7 +615,7 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {title: Trim(txtImpTitle3.Text), tag: Index(colImpTags, 3).Tag},
+                  {title: Trim(txtImpTitle3.Text), tag: If(CountRows(colImpTags) >= 3, Index(colImpTags, 3).Tag, "")},
                   With(
                       {
                           ents: Filter(colImpClean, Tag = tag),
@@ -712,7 +712,7 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {title: Trim(txtImpTitle4.Text), tag: Index(colImpTags, 4).Tag},
+                  {title: Trim(txtImpTitle4.Text), tag: If(CountRows(colImpTags) >= 4, Index(colImpTags, 4).Tag, "")},
                   With(
                       {
                           ents: Filter(colImpClean, Tag = tag),
@@ -809,7 +809,7 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {title: Trim(txtImpTitle5.Text), tag: Index(colImpTags, 5).Tag},
+                  {title: Trim(txtImpTitle5.Text), tag: If(CountRows(colImpTags) >= 5, Index(colImpTags, 5).Tag, "")},
                   With(
                       {
                           ents: Filter(colImpClean, Tag = tag),
@@ -906,7 +906,7 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {title: Trim(txtImpTitle6.Text), tag: Index(colImpTags, 6).Tag},
+                  {title: Trim(txtImpTitle6.Text), tag: If(CountRows(colImpTags) >= 6, Index(colImpTags, 6).Tag, "")},
                   With(
                       {
                           ents: Filter(colImpClean, Tag = tag),
@@ -958,8 +958,7 @@ Screens:
             BasePaletteColor: =If(varImpMode = "replace", RGBA(163,45,45,1), RGBA(0,78,66,1))
             DisplayMode: =If(varImpBusy || CountRows(colImpClean) = 0, DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
-              =Notify("Import button pressed.", NotificationType.Information);
-              With(
+              =With(
                   {
                       titled: CountRows(Filter(Sequence(CountRows(colImpTags)) As q, q.Value <= 6 && !IsBlank(Switch(q.Value, 1, Trim(txtImpTitle1.Text), 2, Trim(txtImpTitle2.Text), 3, Trim(txtImpTitle3.Text), 4, Trim(txtImpTitle4.Text), 5, Trim(txtImpTitle5.Text), 6, Trim(txtImpTitle6.Text))))),
                       titles: Filter(ForAll(Sequence(CountRows(colImpTags)) As q, {T: Lower(Switch(q.Value, 1, Trim(txtImpTitle1.Text), 2, Trim(txtImpTitle2.Text), 3, Trim(txtImpTitle3.Text), 4, Trim(txtImpTitle4.Text), 5, Trim(txtImpTitle5.Text), 6, Trim(txtImpTitle6.Text)))}), !IsBlank(T))
