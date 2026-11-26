@@ -1055,6 +1055,9 @@ Screens:
                       varImpMode = "replace" && !varImpArmed,
                       Set(varImpArmed, true),
                       Set(varImpBusy, true);
+                      Set(varImpTotal, titled);
+                      Set(varImpDone, 0);
+                      Set(varImpName, "");
                       Notify("Import started. Keep this screen open until the green message appears.", NotificationType.Information);
                       IfError(
                       Clear(colImpResults);
@@ -1079,6 +1082,8 @@ Screens:
                               },
                               If(
                                   s.Value <= 6 && !IsBlank(typed),
+                                  Set(varImpDone, varImpDone + 1);
+                                  Set(varImpName, typed);
                                   With(
                                       {gTitle: Coalesce(LookUp(colGroups, Lower(Trim(Title)) = Lower(typed)).Title, typed)},
                                       With(
@@ -1138,6 +1143,8 @@ Screens:
           Properties:
             Text: |-
               =If(
+                  varImpBusy,
+                  If(varImpDone = 0, "Starting: creating any new groups and getting ready. Please wait.", "Importing list " & varImpDone & " of " & varImpTotal & ": " & varImpName & ". Not finished yet, please wait. A large list can take a minute or two."),
                   CountRows(colImpResults) = 0,
                   If(CountRows(colImpClean) > 0, "A large list can take a minute or two. Keep this screen open until the green message appears.", ""),
                   "Finished. " & Concat(colImpResults, Group & ": " & If(Before = 0, "created as a new group with " & Added & " people", "already existed (" & Before & " people before), " & Added & " added" & If(Updated > 0, ", " & Updated & " emails changed", "") & If(Removed > 0, ", " & Removed & " removed", "")), "; ")
