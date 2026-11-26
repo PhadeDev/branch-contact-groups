@@ -10,6 +10,10 @@ Screens:
             Set(varPasteFormat, "csv");
             Set(varRenameBusy, false);
             Set(varRenameTimerOn, false);
+            Set(varRenameFinal, false);
+            Set(varCustSearching, false);
+            ClearCollect(colEditCustodians, Filter(Table({Email: "", Name: ""}), false));
+            ClearCollect(colCustSearchResults, Filter(Table({DisplayName: "", Mail: ""}), false));
             Set(varRenameTotal, 0);
             Set(varRenameDone, 0);
             ClearCollect(colRenameQueue, Filter(Table({ID: 0}), false));
@@ -94,6 +98,29 @@ Screens:
             Y: =44
             Width: =600
             Height: =22
+      - btnHomeManage:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Home"
+            Tooltip: ="Go to the Branch Contact Groups home screen"
+            Fill: =RGBA(255,255,255,0.16)
+            HoverFill: =RGBA(255,255,255,0.28)
+            PressedFill: =RGBA(255,255,255,0.28)
+            BorderColor: =RGBA(255,255,255,0.45)
+            BorderThickness: =1
+            Color: =RGBA(255,255,255,1)
+            RadiusTopLeft: =20
+            RadiusTopRight: =20
+            RadiusBottomLeft: =20
+            RadiusBottomRight: =20
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            OnSelect: =Navigate(scrQuickContacts, ScreenTransition.None)
+            X: =830
+            Y: =16
+            Width: =140
+            Height: =40
       - btnPeopleNav:
           Control: ModernButton@1.0.0
           Properties:
@@ -147,6 +174,10 @@ Screens:
               Reset(txtEditTitle);
               Reset(txtEditNotes);
               Reset(drpEditThursdayBatch);
+              Reset(chkEditCustodians);
+              Reset(txtCustSearch);
+              Clear(colCustSearchResults);
+              ClearCollect(colEditCustodians, ForAll(Filter(Split(Coalesce(LookUp(colGroups, ID = varManageGroupID).CustodianEmails, ""), ";"), !IsBlank(Trim(Value))) As c, {Email: Trim(c.Value), Name: IfError(Office365Users.UserProfileV2(Trim(c.Value)).displayName, Trim(c.Value))}));
               Reset(chkEditPrivate);
               Reset(chkEditSensitive);
               Reset(chkEditOfficialUse);
@@ -202,7 +233,7 @@ Screens:
                   colHealthChecks,
                   Table(
                       {Severity: If(CountRows(Filter(colMemberships, IsBlank(Trim(Name)))) = 0, "OK", "Fix"), Issue: "Blank Name values", Detail: CountRows(Filter(colMemberships, IsBlank(Trim(Name)))) & " membership row(s) have blank Name. Backfill Name from Title before using these screens."},
-                      {Severity: If(CountRows(Filter(colMemberships, IsBlank(Trim(Email)) || !IsMatch(Email, Match.Email))) = 0, "OK", "Fix"), Issue: "Blank or invalid email addresses", Detail: CountRows(Filter(colMemberships, IsBlank(Trim(Email)) || !IsMatch(Email, Match.Email))) & " membership row(s) have a blank or invalid email."},
+                      {Severity: If(CountRows(Filter(colMemberships, (IsBlank(Trim(Email)) && !(GroupName in Filter(colGroups, HasCustodians = true).Title)) || (!IsBlank(Trim(Email)) && !IsMatch(Email, Match.Email)))) = 0, "OK", "Fix"), Issue: "Blank or invalid email addresses (blank is fine in custodian groups)", Detail: CountRows(Filter(colMemberships, (IsBlank(Trim(Email)) && !(GroupName in Filter(colGroups, HasCustodians = true).Title)) || (!IsBlank(Trim(Email)) && !IsMatch(Email, Match.Email)))) & " membership row(s) have a blank or invalid email."},
                       {Severity: If(CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) = 0)) = 0, "OK", "Fix"), Issue: "Memberships pointing at missing groups", Detail: CountRows(Filter(colMemberships As mem, CountRows(Filter(colGroups As grp, Lower(Trim(grp.Title)) = Lower(Trim(mem.GroupName)))) = 0)) & " row(s) have a GroupName that does not match any current group title."}
                   )
               );
@@ -383,6 +414,10 @@ Screens:
                     Reset(txtEditTitle);
                     Reset(txtEditNotes);
                     Reset(drpEditThursdayBatch);
+                    Reset(chkEditCustodians);
+                    Reset(txtCustSearch);
+                    Clear(colCustSearchResults);
+                    ClearCollect(colEditCustodians, ForAll(Filter(Split(Coalesce(LookUp(colGroups, ID = varManageGroupID).CustodianEmails, ""), ";"), !IsBlank(Trim(Value))) As c, {Email: Trim(c.Value), Name: IfError(Office365Users.UserProfileV2(Trim(c.Value)).displayName, Trim(c.Value))}));
                     Reset(chkEditPrivate);
                     Reset(chkEditSensitive);
                     Reset(chkEditOfficialUse);
@@ -496,6 +531,10 @@ Screens:
                     Reset(txtEditTitle);
                     Reset(txtEditNotes);
                     Reset(drpEditThursdayBatch);
+                    Reset(chkEditCustodians);
+                    Reset(txtCustSearch);
+                    Clear(colCustSearchResults);
+                    ClearCollect(colEditCustodians, ForAll(Filter(Split(Coalesce(LookUp(colGroups, ID = varManageGroupID).CustodianEmails, ""), ";"), !IsBlank(Trim(Value))) As c, {Email: Trim(c.Value), Name: IfError(Office365Users.UserProfileV2(Trim(c.Value)).displayName, Trim(c.Value))}));
                     Reset(chkEditPrivate);
                     Reset(chkEditSensitive);
                     Reset(chkEditOfficialUse);
@@ -965,6 +1004,205 @@ Screens:
             Y: =448
             Width: =220
             Height: =40
+      - chkEditCustodians:
+          Control: CheckBox@0.0.30
+          Properties:
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Add custodians"
+            Checked: =If(varManageGroupID = 0, false, Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false))
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            X: =860
+            Y: =278
+            Width: =360
+            Height: =32
+      - lblCustHint:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="For groups whose member email addresses are withheld. The custodians are shown at the top of the group as the people to contact."
+            Visible: =varShowLightbox && varLightboxMode = "edit"
+            Color: =RGBA(96,105,103,1)
+            Size: =11
+            Font: =Font.'Open Sans'
+            X: =860
+            Y: =310
+            Width: =360
+            Height: =40
+      - lblCustChosen:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Custodians (" & CountRows(colEditCustodians) & ")"
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkEditCustodians.Checked
+            Color: =RGBA(31,58,95,1)
+            FontWeight: =FontWeight.Bold
+            Size: =13
+            Font: =Font.'Open Sans'
+            X: =860
+            Y: =352
+            Width: =360
+            Height: =22
+      - galCustSelected:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colEditCustodians
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkEditCustodians.Checked
+            TemplateSize: =52
+            TemplatePadding: =0
+            X: =860
+            Y: =376
+            Width: =360
+            Height: =104
+          Children:
+            - recCustSelBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(240,247,245,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(190,201,197,1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =0
+                  Width: =360
+                  Height: =48
+            - lblCustSelName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Name
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =10
+                  Y: =3
+                  Width: =250
+                  Height: =20
+            - lblCustSelMail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email
+                  Wrap: =false
+                  Color: =RGBA(96,105,103,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =10
+                  Y: =24
+                  Width: =250
+                  Height: =18
+            - btnCustRemove:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Text: ="Remove"
+                  BasePaletteColor: =RGBA(163,45,45,1)
+                  OnSelect: =RemoveIf(colEditCustodians, Lower(Email) = Lower(ThisItem.Email))
+                  X: =266
+                  Y: =7
+                  Width: =84
+                  Height: =34
+      - txtCustSearch:
+          Control: ModernTextInput@1.1.0
+          Properties:
+            Placeholder: ="Search the GAL by surname..."
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkEditCustodians.Checked
+            OnChange: |-
+              =If(
+                  IsBlank(Trim(txtCustSearch.Text)),
+                  Clear(colCustSearchResults)
+              )
+            X: =860
+            Y: =490
+            Width: =235
+            Height: =42
+      - btnCustSearch:
+          Control: ModernButton@1.0.0
+          Properties:
+            Text: =If(varCustSearching, "Searching...", "Search")
+            DisplayMode: =If(varCustSearching || IsBlank(Trim(txtCustSearch.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkEditCustodians.Checked
+            BasePaletteColor: =RGBA(0,78,66,1)
+            OnSelect: |-
+              =Set(varCustSearching, true);
+              ClearCollect(colCustSearchResults, Office365Users.SearchUserV2({searchTerm: Trim(txtCustSearch.Text), top: 10}).value);
+              Set(varCustSearching, false)
+            X: =1105
+            Y: =490
+            Width: =115
+            Height: =42
+      - galCustResults:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colCustSearchResults
+            Visible: =varShowLightbox && varLightboxMode = "edit" && chkEditCustodians.Checked && !varCustSearching && !IsBlank(Trim(txtCustSearch.Text))
+            TemplateSize: =50
+            TemplatePadding: =0
+            X: =860
+            Y: =538
+            Width: =360
+            Height: =150
+          Children:
+            - recCustResBg:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =""
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(248,250,252,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  BorderColor: =RGBA(221,227,234,1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =0
+                  Width: =360
+                  Height: =46
+            - lblCustResName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.DisplayName
+                  Wrap: =false
+                  Color: =RGBA(31,58,95,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =10
+                  Y: =3
+                  Width: =260
+                  Height: =20
+            - lblCustResMail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Mail
+                  Wrap: =false
+                  Color: =RGBA(96,105,103,1)
+                  Size: =11
+                  Font: =Font.'Open Sans'
+                  X: =10
+                  Y: =23
+                  Width: =260
+                  Height: =18
+            - btnCustAdd:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Text: ="Add"
+                  BasePaletteColor: =RGBA(0,78,66,1)
+                  OnSelect: |-
+                    =If(
+                        IsBlank(ThisItem.Mail),
+                        Notify("That GAL result does not include an email address.", NotificationType.Warning),
+                        CountRows(Filter(colEditCustodians, Lower(Email) = Lower(ThisItem.Mail))) > 0,
+                        Notify(ThisItem.DisplayName & " is already a custodian.", NotificationType.Warning),
+                        Collect(colEditCustodians, {Email: Lower(ThisItem.Mail), Name: ThisItem.DisplayName});
+                        Reset(txtCustSearch);
+                        Clear(colCustSearchResults)
+                    )
+                  X: =276
+                  Y: =6
+                  Width: =76
+                  Height: =34
       - btnSaveGroupEdit:
           Control: ModernButton@1.0.0
           Properties:
@@ -982,6 +1220,8 @@ Screens:
                       Notify("Group name can't be blank.", NotificationType.Warning),
                       CountRows(Filter(colGroups, Lower(Trim(Title)) = Lower(newTitle) && (varManageGroupID = 0 || ID <> varManageGroupID))) > 0,
                       Notify("A group with that name already exists.", NotificationType.Warning),
+                      chkEditCustodians.Checked && CountRows(colEditCustodians) = 0,
+                      Notify("Add at least one custodian, or untick Add custodians.", NotificationType.Warning),
                       varManageGroupID = 0,
                       Patch('BM Groups', Defaults('BM Groups'), {
                           Title: newTitle,
@@ -990,6 +1230,8 @@ Screens:
                           Private: chkEditPrivate.Checked,
                           OfficialSensitiveApproved: chkEditSensitive.Checked,
                           OfficialUseOnly: chkEditOfficialUse.Checked,
+                          HasCustodians: chkEditCustodians.Checked,
+                          CustodianEmails: Concat(colEditCustodians, Email, ";"),
                           ManuallySetModified: If(chkOverrideDate.Checked, datEditManualDate.SelectedDate, Blank())
                       });
                       Patch('BM History', Defaults('BM History'), {Title: "Group created", GroupName: newTitle, EventType: {Value: "Created"}});
@@ -1002,6 +1244,8 @@ Screens:
                           Private: chkEditPrivate.Checked,
                           OfficialSensitiveApproved: chkEditSensitive.Checked,
                           OfficialUseOnly: chkEditOfficialUse.Checked,
+                          HasCustodians: chkEditCustodians.Checked,
+                          CustodianEmails: Concat(colEditCustodians, Email, ";"),
                           ManuallySetModified: If(chkOverrideDate.Checked, datEditManualDate.SelectedDate, Blank())
                       });
                       If(
@@ -1012,6 +1256,7 @@ Screens:
                           Set(varRenameGroupID, varManageGroupID);
                           Set(varRenameTotal, CountRows(colRenameQueue));
                           Set(varRenameDone, 0);
+                          Set(varRenameFinal, false);
                           Set(varRenameBusy, true);
                           Set(varRenameTimerOn, true),
                           Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: newTitle});
@@ -1099,7 +1344,7 @@ Screens:
             OnSelect: |-
               =Set(varManageSubTab, "existing");
               Reset(txtExistingPeopleSearch);
-              ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false))
+              ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false))
             X: =367
             Y: =124
             Width: =200
@@ -1818,7 +2063,7 @@ Screens:
                       )
                   );
                   Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: groupTitle});
-                  ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
+                  ClearCollect(colExistingPeoplePicks, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows), Picked, false));
                   Reset(txtExistingPeopleSearch);
                   Notify("Added " & CountRows(pickedPeople) & " existing person" & If(CountRows(pickedPeople) = 1, "", "s") & " to " & groupTitle & ".", NotificationType.Success)
               )
@@ -1995,7 +2240,7 @@ Screens:
           Control: ModernTextInput@1.1.0
           Properties:
             Default: =If(!IsBlank(varGalPickEmail), varGalPickEmail, If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Email))
-            Placeholder: ="Email address"
+            Placeholder: =If(Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false), "Email address (optional for this group)", "Email address")
             Visible: =varShowMemberEditDialog || (varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add")
             OnChange: =Set(varErrManualEmail, false)
             X: =If(varShowMemberEditDialog, 433, 703)
@@ -2034,11 +2279,11 @@ Screens:
               Set(varAddedJMC, Trim(txtManualJMC.Text));
               Set(varAddedCounty, Trim(txtManualCounty.Text));
               Set(varErrManualName, IsBlank(varAddedName));
-              Set(varErrManualEmail, IsBlank(varAddedEmail) || IsBlank(Find("@", varAddedEmail)) || IsBlank(Find(".", varAddedEmail)));
+              Set(varErrManualEmail, If(IsBlank(varAddedEmail), !Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false), IsBlank(Find("@", varAddedEmail)) || IsBlank(Find(".", varAddedEmail))));
                   If(
                       varErrManualName || varErrManualEmail,
-                      Notify("Enter a name and a valid email address.", NotificationType.Warning),
-                      varEditingMemberID <> 0 && CountRows(Filter(colMemberships, ID <> varEditingMemberID, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)), Lower(Email) = varAddedEmail)) > 0,
+                      Notify(If(Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false), "Enter a name. The email address is optional for this group, but if you enter one it must be valid.", "Enter a name and a valid email address."), NotificationType.Warning),
+                      varEditingMemberID <> 0 && !IsBlank(varAddedEmail) && CountRows(Filter(colMemberships, ID <> varEditingMemberID, Lower(Trim(GroupName)) = Lower(Trim(LookUp(colGroups, ID = varManageGroupID).Title)), Lower(Email) = varAddedEmail)) > 0,
                       Notify("That email is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
                       varEditingMemberID <> 0,
                       Patch('BM Memberships', LookUp('BM Memberships', ID = varEditingMemberID), {Title: varAddedName, Name: varAddedName, Email: varAddedEmail, JMC: varAddedJMC, 'County/Contingent': varAddedCounty});
@@ -2055,7 +2300,7 @@ Screens:
                   Notify("Updated " & varAddedName & ".", NotificationType.Success),
                   With(
                       {groupTitle: LookUp(colGroups, ID = varManageGroupID).Title},
-                      CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle)) && Lower(Email) = varAddedEmail)) > 0
+                      !IsBlank(varAddedEmail) && CountRows(Filter(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(groupTitle)) && Lower(Email) = varAddedEmail)) > 0
                   ),
                   Notify("That email is already a member of " & LookUp(colGroups, ID = varManageGroupID).Title & ".", NotificationType.Warning),
                   Set(varNewRow, Patch('BM Memberships', Defaults('BM Memberships'), {Title: varAddedName, Name: varAddedName, Email: varAddedEmail, GroupName: LookUp(colGroups, ID = varManageGroupID).Title, JMC: varAddedJMC, 'County/Contingent': varAddedCounty}));
@@ -2513,16 +2758,20 @@ Screens:
                       Notify("Rename stopped: " & FirstError.Message & " " & CountRows(colRenameQueue) & " member(s) still have the old name. Open the group and press Save again to finish.", NotificationType.Error)
                   ),
                   Set(varRenameTimerOn, false);
-                  IfError(
-                      Patch('BM Groups', LookUp('BM Groups', ID = varRenameGroupID), {Title: varRenameNew});
-                      UpdateIf('BM History', GroupName = varRenameOld, {GroupName: varRenameNew});
-                      ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
-                      Patch('BM History', Defaults('BM History'), {Title: "Group renamed from " & varRenameOld & " (" & varRenameTotal & " members updated)", GroupName: varRenameNew, EventType: {Value: "Edited"}});
-                      Set(varRenameBusy, false);
-                      Set(varShowLightbox, false);
-                      Notify("Saved. The group name was changed on " & varRenameTotal & " members.", NotificationType.Success),
-                      Set(varRenameBusy, false);
-                      Notify("Could not finish the rename: " & FirstError.Message, NotificationType.Error)
+                  If(
+                      !varRenameFinal,
+                      Set(varRenameFinal, true);
+                      IfError(
+                          Patch('BM Groups', LookUp('BM Groups', ID = varRenameGroupID), {Title: varRenameNew});
+                          UpdateIf('BM History', GroupName = varRenameOld, {GroupName: varRenameNew});
+                          ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
+                          Patch('BM History', Defaults('BM History'), {Title: "Group renamed from " & varRenameOld & " (" & varRenameTotal & " members updated)", GroupName: varRenameNew, EventType: {Value: "Edited"}});
+                          Set(varRenameBusy, false);
+                          Set(varShowLightbox, false);
+                          Notify("Saved. The group name was changed on " & varRenameTotal & " members.", NotificationType.Success),
+                          Set(varRenameBusy, false);
+                          Notify("Could not finish the rename: " & FirstError.Message, NotificationType.Error)
+                      )
                   )
               )
             X: =0
@@ -2612,6 +2861,10 @@ Screens:
               Reset(txtEditTitle);
               Reset(txtEditNotes);
               Reset(drpEditThursdayBatch);
+              Reset(chkEditCustodians);
+              Reset(txtCustSearch);
+              Clear(colCustSearchResults);
+              ClearCollect(colEditCustodians, ForAll(Filter(Split(Coalesce(LookUp(colGroups, ID = varManageGroupID).CustodianEmails, ""), ";"), !IsBlank(Trim(Value))) As c, {Email: Trim(c.Value), Name: IfError(Office365Users.UserProfileV2(Trim(c.Value)).displayName, Trim(c.Value))}));
               Reset(chkEditPrivate);
               Reset(chkEditSensitive);
               Reset(chkEditOfficialUse);

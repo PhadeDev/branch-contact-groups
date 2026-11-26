@@ -45,6 +45,29 @@ Screens:
             Y: =24
             Width: =24
             Height: =24
+      - btnHomeImport:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Home"
+            Tooltip: ="Go to the Branch Contact Groups home screen"
+            Fill: =RGBA(255,255,255,0.16)
+            HoverFill: =RGBA(255,255,255,0.28)
+            PressedFill: =RGBA(255,255,255,0.28)
+            BorderColor: =RGBA(255,255,255,0.45)
+            BorderThickness: =1
+            Color: =RGBA(255,255,255,1)
+            RadiusTopLeft: =20
+            RadiusTopRight: =20
+            RadiusBottomLeft: =20
+            RadiusBottomRight: =20
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            OnSelect: =Navigate(scrQuickContacts, ScreenTransition.None)
+            X: =1180
+            Y: =16
+            Width: =160
+            Height: =40
       - lblHeaderTitle:
           Control: Label@2.5.1
           Properties:

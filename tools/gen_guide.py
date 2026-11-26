@@ -11,7 +11,7 @@ import os, re, html, subprocess, sys, datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..'))
 BIBLE = r'C:\Users\Phaderon\Projects\PowerApps'
-VERSION = 'v2.50'
+VERSION = 'v2.51'
 KEY = 'bcg-guide-done-' + VERSION + '-r2'
 
 try:
@@ -187,6 +187,7 @@ BODY = '''
       <div class="replace-all">
         <h2>Replace everything</h2>
         <p>Everything below is new compared with the app in Studio. Do not pick and choose. Work down the page and tick each step off. Copy works without opening the code.</p>
+        <p><strong>First, in SharePoint.</strong> Open the <strong>BM Groups</strong> list and add two columns, spelled exactly like this: <strong>HasCustodians</strong> (Yes/No, default No) and <strong>CustodianEmails</strong> (Multiple lines of text, plain text). On <strong>BM Memberships</strong>, check the <strong>Email</strong> column is not set to Required. Then in Power Apps Studio refresh the <strong>BM Groups</strong> data source (Data panel, the three dots, Refresh) before pasting.</p>
         <ol>
           <li>Replace <strong>App.Formulas</strong> and <strong>App.OnStart</strong></li>
           <li>Delete <strong>all five screens</strong></li>
@@ -260,6 +261,9 @@ BODY = '''
           %(t9)s
           %(t10)s
           %(t11)s
+          %(t12)s
+          %(t13)s
+          %(t14)s
         </ul>
       </section>
 
@@ -291,6 +295,9 @@ BODY = '''
     't5': tick('t5', 'Import: paste 3 or 4 made-up lines (for example <span class="kb">TEST: Role One alex@example.test; Role Two sam@example.test</span>), Check paste, name it, Import. Delete the test group afterwards.'),
     't8': tick('t8', 'Import: switch to <strong>Replace whole group</strong> or <strong>Add and correct emails</strong>. Each list now shows a dropdown of your existing groups instead of a text box. Pick the group, check the status line, then Import.'),
     't11': tick('t11', 'Last-updated date: on Import (next to Import now) and on Manage Members &rarr; Replace all, tick <strong>Set the last-updated date</strong>, pick a date, run it. The group card then shows that date. Left unticked, the date is not touched.'),
+    't12': tick('t12', 'Manage Groups: Edit group, tick <strong>Add custodians</strong>, search the GAL by surname, Add two people, Save. Open that group from Quick Contacts (<strong>Who's in it</strong>) and from Send Email (the members icon). The amber notice and the custodians (photo, name, email) show above the members.'),
+    't13': tick('t13', 'Blank emails: in a custodian group, Manage Members &rarr; add or edit a person and leave the email empty. It saves. In Send Email, tick that group: the recipient count ignores people without an email and the line says how many have none. BCC is not forced by them.'),
+    't14': tick('t14', 'Navigation: every screen has a <strong>Home</strong> button that goes to Quick Contacts. Send Email also has Back. Tick a group with an outside address in Send Email and read the new BCC message.'),
     't10': tick('t10', 'Manage Groups: Edit group, type a note over several lines (Enter for a new line), Save. That group card now shows an amber <strong>Note</strong> chip. Hover shows the note; click opens a popup with Edit group and Close.'),
     't9': tick('t9', 'Manage Groups &rarr; a group &rarr; Manage Members &rarr; <strong>Replace all (CSV / Outlook)</strong>: choose <strong>From Outlook</strong>, paste an Outlook list, check the counts, then Replace. <strong>From CSV / Excel</strong> works as before.'),
     't7': tick('t7', 'Manage Groups: edit a group, change its name, Save. A box appears with a progress bar counting up, then a green Saved message. Groups are listed A to Z.'),

@@ -6,7 +6,7 @@ Screens:
         =If(
             !varIsMaintainer,
             Back(),
-            ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
+            ClearCollect(colPeople, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
             Set(varSelectedPersonEmail, "");
             Set(varAddPersonSearching, false);
             Set(varAddPersonNamePrefill, "");
@@ -70,6 +70,29 @@ Screens:
             Y: =44
             Width: =600
             Height: =22
+      - btnHomePeople:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Home"
+            Tooltip: ="Go to the Branch Contact Groups home screen"
+            Fill: =RGBA(255,255,255,0.16)
+            HoverFill: =RGBA(255,255,255,0.28)
+            PressedFill: =RGBA(255,255,255,0.28)
+            BorderColor: =RGBA(255,255,255,0.45)
+            BorderThickness: =1
+            Color: =RGBA(255,255,255,1)
+            RadiusTopLeft: =20
+            RadiusTopRight: =20
+            RadiusBottomLeft: =20
+            RadiusBottomRight: =20
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            OnSelect: =Navigate(scrQuickContacts, ScreenTransition.None)
+            X: =660
+            Y: =16
+            Width: =140
+            Height: =40
       - btnAddPersonTrigger:
           Control: ModernButton@1.0.0
           Properties:
@@ -113,7 +136,7 @@ Screens:
             OnSelect: |-
               =If(
                   LoadCache(),
-                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
+                  ClearCollect(colPeople, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                   Notify("Refreshed people and memberships.", NotificationType.Success)
               )
             X: =820
@@ -656,7 +679,7 @@ Screens:
                       Patch('BM Groups', LookUp('BM Groups', ID = grp.ID), {Title: grp.Title});
                       Patch('BM History', Defaults('BM History'), {Title: varNewPersonName & " added (" & varNewPersonEmail & ")", GroupName: grp.Title, EventType: {Value: "Added"}})
                   );
-                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
+                  ClearCollect(colPeople, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                   Set(varAddPersonNamePrefill, "");
                   Set(varAddPersonEmailPrefill, "");
                   Reset(txtAddPersonSearch);
@@ -796,7 +819,7 @@ Screens:
                               )
                           )
                       );
-                      ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
+                      ClearCollect(colPeople, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                       Set(varSelectedPersonEmail, newEmail);
                       Set(varShowLightbox, false);
                       Notify("Saved " & newName & ".", NotificationType.Success)
@@ -1005,7 +1028,7 @@ Screens:
                   );
                   RemoveIf('BM Memberships', Lower(Email) = Lower(varPurgeEmail));
                   RemoveIf(colMemberships, Lower(Email) = Lower(varPurgeEmail));
-                  ClearCollect(colPeople, AddColumns(GroupBy(colMemberships, Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
+                  ClearCollect(colPeople, AddColumns(GroupBy(Filter(colMemberships, !IsBlank(Trim(Email))), Email, Rows), Name, First(Rows).Name, JMC, First(Rows).JMC, County, First(Rows).'County/Contingent', GroupCount, CountRows(Rows)));
                   Reset(txtPurgeSearch);
                   Set(varConfirmPurgeArmed, false);
                   Set(varPurgeSelectedEmail, "");

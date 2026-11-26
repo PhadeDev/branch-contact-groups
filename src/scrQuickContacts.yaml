@@ -5,6 +5,7 @@ Screens:
       OnVisible: |-
         =Set(varQuickFilter, "All");
         Set(varQuickPreviewTitle, "");
+        Set(varCustodianView, false);
         If(!varCacheReady && !varLoading, LoadCache())
     Children:
       - recHeader:
@@ -333,8 +334,8 @@ Screens:
                 Properties:
                   Text: |-
                     =With(
-                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title && !IsBlank(Trim(Email))))},
-                        n & " member" & If(n = 1, "", "s") & "  |  Last modified " & Text(Coalesce(ThisItem.ManuallySetModified, ThisItem.Modified), "d mmm yyyy")
+                        {n: CountRows(Filter(colMemberships, GroupName = ThisItem.Title && (Coalesce(ThisItem.HasCustodians, false) || !IsBlank(Trim(Email)))))},
+                        n & " member" & If(n = 1, "", "s") & "  |  Last modified " & Text(Coalesce(ThisItem.ManuallySetModified, ThisItem.Modified), "d mmm yyyy") & If(Coalesce(ThisItem.HasCustodians, false), "  |  Email addresses withheld", "")
                     )
                   Color: =RGBA(96,105,103,1)
                   Size: =11
@@ -427,7 +428,10 @@ Screens:
                   RadiusBottomLeft: =20
                   RadiusBottomRight: =20
                   Tooltip: ="See who is in this list before you copy it"
-                  OnSelect: =Set(varQuickPreviewTitle, ThisItem.Title)
+                  OnSelect: |-
+                    =Set(varQuickPreviewTitle, ThisItem.Title);
+                    Set(varCustodianView, Coalesce(ThisItem.HasCustodians, false));
+                    ClearCollect(colCustodianView, ForAll(Filter(Split(If(Coalesce(ThisItem.HasCustodians, false), Coalesce(ThisItem.CustodianEmails, ""), ""), ";"), !IsBlank(Trim(Value))) As c, {Email: Trim(c.Value), Name: IfError(Office365Users.UserProfileV2(Trim(c.Value)).displayName, Trim(c.Value))}))
                   X: =916
                   Y: =26
                   Width: =170
@@ -436,6 +440,7 @@ Screens:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: ="Copy addresses"
+                  Visible: =!Coalesce(ThisItem.HasCustodians, false)
                   Fill: =RGBA(0,78,66,1)
                   HoverFill: =RGBA(0,98,84,1)
                   PressedFill: =RGBA(0,62,52,1)
@@ -471,7 +476,10 @@ Screens:
                   PressedFill: =RGBA(0,78,66,0.08)
                   BorderThickness: =0
                   Tooltip: ="See who is in this list"
-                  OnSelect: =Set(varQuickPreviewTitle, ThisItem.Title)
+                  OnSelect: |-
+                    =Set(varQuickPreviewTitle, ThisItem.Title);
+                    Set(varCustodianView, Coalesce(ThisItem.HasCustodians, false));
+                    ClearCollect(colCustodianView, ForAll(Filter(Split(If(Coalesce(ThisItem.HasCustodians, false), Coalesce(ThisItem.CustodianEmails, ""), ""), ";"), !IsBlank(Trim(Value))) As c, {Email: Trim(c.Value), Name: IfError(Office365Users.UserProfileV2(Trim(c.Value)).displayName, Trim(c.Value))}))
                   X: =0
                   Y: =0
                   Width: =904
@@ -557,8 +565,8 @@ Screens:
           Properties:
             Text: |-
               =With(
-                  {n: CountRows(Filter(colMemberships, GroupName = varQuickPreviewTitle && !IsBlank(Trim(Email))))},
-                  n & " member" & If(n = 1, "", "s") & ". Check these are the right people, then copy the addresses."
+                  {n: CountRows(Filter(colMemberships, GroupName = varQuickPreviewTitle && (varCustodianView || !IsBlank(Trim(Email)))))},
+                  n & " member" & If(n = 1, "", "s") & If(varCustodianView, " listed.", ". Check these are the right people, then copy the addresses.")
               )
             Visible: =!IsBlank(varQuickPreviewTitle)
             Color: =RGBA(96,105,103,1)
@@ -568,13 +576,98 @@ Screens:
             Y: =124
             Width: =492
             Height: =40
+      - lblCustodianNoteQuick:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="The email addresses of members within this contact group have been withheld for privacy or sensitivity reasons. If you wish to contact any of the individuals listed below, please contact one of the designated custodians."
+            Visible: =!IsBlank(varQuickPreviewTitle) && varCustodianView
+            Fill: =RGBA(255,243,205,1)
+            Color: =RGBA(95,60,0,1)
+            Size: =12
+            Font: =Font.'Open Sans'
+            PaddingLeft: =10
+            PaddingRight: =10
+            PaddingTop: =6
+            PaddingBottom: =6
+            X: =437
+            Y: =168
+            Width: =492
+            Height: =92
+      - galCustodiansQuick:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colCustodianView
+            Visible: =!IsBlank(varQuickPreviewTitle) && varCustodianView
+            TemplateSize: =58
+            TemplatePadding: =0
+            X: =437
+            Y: =266
+            Width: =492
+            Height: =120
+          Children:
+            - galCustodiansQuickAvatar:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =Upper(Left(ThisItem.Name, 1))
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(0,78,66,1)
+                  HoverFill: =Self.Fill
+                  PressedFill: =Self.Fill
+                  Color: =RGBA(255,255,255,1)
+                  BorderThickness: =0
+                  RadiusTopLeft: =22
+                  RadiusTopRight: =22
+                  RadiusBottomLeft: =22
+                  RadiusBottomRight: =22
+                  X: =4
+                  Y: =5
+                  Width: =44
+                  Height: =44
+            - galCustodiansQuickPhoto:
+                Control: Image@2.2.3
+                Properties:
+                  Image: =Office365Users.UserPhotoV2(ThisItem.Email)
+                  RadiusTopLeft: =22
+                  RadiusTopRight: =22
+                  RadiusBottomLeft: =22
+                  RadiusBottomRight: =22
+                  X: =4
+                  Y: =5
+                  Width: =44
+                  Height: =44
+            - galCustodiansQuickName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Name
+                  Wrap: =false
+                  Color: =RGBA(24,45,55,1)
+                  FontWeight: =FontWeight.Semibold
+                  Size: =13
+                  Font: =Font.'Open Sans'
+                  X: =60
+                  Y: =6
+                  Width: =422
+                  Height: =22
+            - galCustodiansQuickMail:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Email
+                  Wrap: =false
+                  Color: =RGBA(96,105,103,1)
+                  Size: =12
+                  Font: =Font.'Open Sans'
+                  X: =60
+                  Y: =28
+                  Width: =422
+                  Height: =20
       - galMembers:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
             Items: |-
               =Sort(
-                  Filter(colMemberships, GroupName = varQuickPreviewTitle && !IsBlank(Trim(Email))),
+                  Filter(colMemberships, GroupName = varQuickPreviewTitle && (varCustodianView || !IsBlank(Trim(Email)))),
                   If(IsBlank(Trim(Name)), Email, Name),
                   SortOrder.Ascending
               )
@@ -582,9 +675,9 @@ Screens:
             TemplateSize: =54
             TemplatePadding: =0
             X: =437
-            Y: =172
+            Y: =If(varCustodianView, 394, 172)
             Width: =492
-            Height: =430
+            Height: =If(varCustodianView, 208, 430)
           Children:
             - lblMemberName:
                 Control: Label@2.5.1
@@ -602,7 +695,7 @@ Screens:
             - lblMemberEmail:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Email & If(!IsApprovedAddress(ThisItem.Email), "   (other domain)", "")
+                  Text: =ThisItem.Email & If(!IsBlank(Trim(ThisItem.Email)) && !IsApprovedAddress(ThisItem.Email), "   (other domain)", "")
                   Wrap: =false
                   Color: =If(!IsApprovedAddress(ThisItem.Email), RGBA(163,45,45,1), RGBA(96,105,103,1))
                   Size: =11
@@ -637,7 +730,7 @@ Screens:
           Control: Classic/Button@2.2.0
           Properties:
             Text: ="Copy addresses"
-            Visible: =!IsBlank(varQuickPreviewTitle)
+            Visible: =!IsBlank(varQuickPreviewTitle) && !varCustodianView
             Fill: =RGBA(0,78,66,1)
             HoverFill: =RGBA(0,98,84,1)
             PressedFill: =RGBA(0,62,52,1)
