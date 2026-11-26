@@ -2307,6 +2307,7 @@ Screens:
                   ForAll(colParsedRosterValid, Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Name: Name, Email: Email, GroupName: varGroupTitle, JMC: JMC, 'County/Contingent': County})));
                   Set(varPasteDateText, If(chkPasteSetDate.Checked, " Last-updated date set to " & Text(datPasteDate.SelectedDate, "dd/mm/yyyy") & ".", " Last-updated date left as it was."));
                   If(chkPasteSetDate.Checked, Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {ManuallySetModified: datPasteDate.SelectedDate}));
+                  ClearCollect(colGroups, AddColumns(Sort('BM Groups', SortOrder, SortOrder.Ascending), Ticked, false));
                   Patch('BM History', Defaults('BM History'), {Title: "Bulk replace via " & If(varPasteFormat = "outlook", "Outlook paste", "CSV/Excel paste") & ": " & varOldRosterCount & " removed, " & varParsedRosterCount & " added", GroupName: varGroupTitle, EventType: {Value: "Replaced"}});
                   Reset(txtPasteRoster);
                   Set(varParsedRosterCount, 0);
@@ -2316,8 +2317,10 @@ Screens:
                   Set(varPasteRemoveCount, 0);
                   Set(varPasteUnchangedCount, 0);
                   Set(varConfirmReplaceArmed, false);
-                  Notify("Replaced membership of " & varGroupTitle & "." & varPasteDateText, NotificationType.Success);
-                  Reset(chkPasteSetDate)
+                  Reset(chkPasteSetDate);
+                  Set(varShowLightbox, false);
+                  Set(varManageGroupID, 0);
+                  Notify("Saved. Replaced membership of " & varGroupTitle & "." & varPasteDateText, NotificationType.Success)
               )
             X: =183
             Y: =522
