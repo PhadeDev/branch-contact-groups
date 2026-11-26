@@ -258,6 +258,7 @@ BODY = '''
           %(t7)s
           %(t8)s
           %(t9)s
+          %(t10)s
         </ul>
       </section>
 
@@ -288,6 +289,7 @@ BODY = '''
     't4': tick('t4', 'Manage Groups &rarr; <strong>Import from paste</strong> opens the Import screen.'),
     't5': tick('t5', 'Import: paste 3 or 4 made-up lines (for example <span class="kb">TEST: Role One alex@example.test; Role Two sam@example.test</span>), Check paste, name it, Import. Delete the test group afterwards.'),
     't8': tick('t8', 'Import: switch to <strong>Replace whole group</strong> or <strong>Add and correct emails</strong>. Each list now shows a dropdown of your existing groups instead of a text box. Pick the group, check the status line, then Import.'),
+    't10': tick('t10', 'Manage Groups: Edit group, type a note over several lines (Enter for a new line), Save. That group card now shows an amber <strong>Note</strong> chip. Hover shows the note; click opens a popup with Edit group and Close.'),
     't9': tick('t9', 'Manage Groups &rarr; a group &rarr; Manage Members &rarr; <strong>Replace all (CSV / Outlook)</strong>: choose <strong>From Outlook</strong>, paste an Outlook list, check the counts, then Replace. <strong>From CSV / Excel</strong> works as before.'),
     't7': tick('t7', 'Manage Groups: edit a group, change its name, Save. A box appears with a progress bar counting up, then a green Saved message. Groups are listed A to Z.'),
     't6': tick('t6', 'Import: the real lists, only after the test worked.'),
