@@ -9,6 +9,7 @@ Screens:
             Set(varImpMode, "add");
             Set(varImpArmed, false);
             Set(varImpBusy, false);
+            Reset(chkImpSetDate);
             ClearCollect(colImpParsed, Filter(Table({Tag: "", Email: "", Name: ""}), false));
             ClearCollect(colImpClean, AddColumns(GroupBy(Filter(colImpParsed, false), Tag, Email, Rows), Name, First(Rows).Name, Dups, CountRows(Rows) - 1));
             ClearCollect(colImpTags, Filter(Table({Tag: "", N: 0}), false));
@@ -1031,6 +1032,25 @@ Screens:
             Y: =640
             Width: =736
             Height: =22
+      - chkImpSetDate:
+          Control: CheckBox@0.0.30
+          Properties:
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Set the last-updated date"
+            X: =930
+            Y: =654
+            Width: =250
+            Height: =32
+      - datImpDate:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            DefaultDate: =Today()
+            Visible: =chkImpSetDate.Checked
+            X: =1190
+            Y: =650
+            Width: =156
+            Height: =40
       - btnImpGo:
           Control: ModernButton@1.0.0
           Properties:
@@ -1058,6 +1078,7 @@ Screens:
                       Set(varImpTotal, titled);
                       Set(varImpDone, 0);
                       Set(varImpName, "");
+                      Set(varImpDateText, If(chkImpSetDate.Checked, "Last-updated date set to " & Text(datImpDate.SelectedDate, "dd/mm/yyyy") & ". ", "Last-updated dates left as they were. "));
                       Notify("Import started. Keep this screen open until the green message appears.", NotificationType.Information);
                       IfError(
                       Clear(colImpResults);
@@ -1116,7 +1137,7 @@ Screens:
                                                   Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: e.Name, Name: e.Name, Email: e.Email, GroupName: gTitle}))
                                               );
                                               Patch('BM History', Defaults('BM History'), {Title: "Import via paste: " & CountRows(toAdd) & " added, " & CountRows(toUpd) & " updated, " & CountRows(toRem) & " removed", GroupName: gTitle, EventType: {Value: Switch(varImpMode, "replace", "Replaced", "update", "Edited", "Added")}});
-                                              Patch('BM Groups', LookUp('BM Groups', Title = gTitle), {Title: gTitle})
+                                              If(chkImpSetDate.Checked, Patch('BM Groups', LookUp('BM Groups', Title = gTitle), {ManuallySetModified: datImpDate.SelectedDate}))
                                           )
                                       )
                                   )
@@ -1147,7 +1168,7 @@ Screens:
                   If(varImpDone = 0, "Starting: creating any new groups and getting ready. Please wait.", "Importing list " & varImpDone & " of " & varImpTotal & ": " & varImpName & ". Not finished yet, please wait. A large list can take a minute or two."),
                   CountRows(colImpResults) = 0,
                   If(CountRows(colImpClean) > 0, "A large list can take a minute or two. Keep this screen open until the green message appears.", ""),
-                  "Finished. " & Concat(colImpResults, Group & ": " & If(Before = 0, "created as a new group with " & Added & " people", "already existed (" & Before & " people before), " & Added & " added" & If(Updated > 0, ", " & Updated & " emails changed", "") & If(Removed > 0, ", " & Removed & " removed", "")), "; ")
+                  "Finished. " & varImpDateText & Concat(colImpResults, Group & ": " & If(Before = 0, "created as a new group with " & Added & " people", "already existed (" & Before & " people before), " & Added & " added" & If(Updated > 0, ", " & Updated & " emails changed", "") & If(Removed > 0, ", " & Removed & " removed", "")), "; ")
               )
             Color: =RGBA(24,45,55,1)
             Size: =11

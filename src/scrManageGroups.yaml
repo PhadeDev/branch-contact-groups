@@ -2305,7 +2305,8 @@ Screens:
                   RemoveIf('BM Memberships', Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
                   RemoveIf(colMemberships, Lower(Trim(GroupName)) = Lower(Trim(varGroupTitle)));
                   ForAll(colParsedRosterValid, Collect(colMemberships, Patch('BM Memberships', Defaults('BM Memberships'), {Title: Name, Name: Name, Email: Email, GroupName: varGroupTitle, JMC: JMC, 'County/Contingent': County})));
-                  Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {Title: varGroupTitle});
+                  Set(varPasteDateText, If(chkPasteSetDate.Checked, " Last-updated date set to " & Text(datPasteDate.SelectedDate, "dd/mm/yyyy") & ".", " Last-updated date left as it was."));
+                  If(chkPasteSetDate.Checked, Patch('BM Groups', LookUp('BM Groups', ID = varManageGroupID), {ManuallySetModified: datPasteDate.SelectedDate}));
                   Patch('BM History', Defaults('BM History'), {Title: "Bulk replace via " & If(varPasteFormat = "outlook", "Outlook paste", "CSV/Excel paste") & ": " & varOldRosterCount & " removed, " & varParsedRosterCount & " added", GroupName: varGroupTitle, EventType: {Value: "Replaced"}});
                   Reset(txtPasteRoster);
                   Set(varParsedRosterCount, 0);
@@ -2315,12 +2316,33 @@ Screens:
                   Set(varPasteRemoveCount, 0);
                   Set(varPasteUnchangedCount, 0);
                   Set(varConfirmReplaceArmed, false);
-                  Notify("Replaced membership of " & varGroupTitle & ".", NotificationType.Success)
+                  Notify("Replaced membership of " & varGroupTitle & "." & varPasteDateText, NotificationType.Success);
+                  Reset(chkPasteSetDate)
               )
             X: =183
             Y: =522
             Width: =1000
             Height: =44
+      - chkPasteSetDate:
+          Control: CheckBox@0.0.30
+          Properties:
+            BasePaletteColor: =RGBA(156, 220, 79, 1)
+            CheckboxSize: =22
+            Label: ="Set the last-updated date (otherwise it is left as it is)"
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste"
+            X: =183
+            Y: =578
+            Width: =470
+            Height: =32
+      - datPasteDate:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            DefaultDate: =Today()
+            Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "paste" && chkPasteSetDate.Checked
+            X: =663
+            Y: =574
+            Width: =220
+            Height: =40
       - recRenameShade:
           Control: Classic/Button@2.2.0
           Properties:
