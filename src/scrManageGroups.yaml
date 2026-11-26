@@ -2152,7 +2152,7 @@ Screens:
                               ForAll(
                                   Filter(
                                       ForAll(Split(Substitute(Substitute(txtPasteRoster.Text, Char(13), ""), Char(160), " "), Char(10)) As raw, {Line: Trim(raw.Value)}),
-                                      !IsBlank(Line) && !(Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 40)
+                                      !IsBlank(Line) && !(Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 150)
                                   ) As ln,
                                   {Segs: Filter(Split(ln.Line, ";"), !IsBlank(Trim(Value)))}
                               ),

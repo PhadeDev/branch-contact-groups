@@ -123,7 +123,7 @@ Screens:
                   With(
                       {
                           heads: ForAll(
-                              Filter(lines, !IsBlank(Line) && Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 40) As h,
+                              Filter(lines, !IsBlank(Line) && Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 150) As h,
                               {HIdx: h.Idx, Tag: Trim(Left(h.Line, Len(h.Line) - 1))}
                           )
                       },
@@ -132,7 +132,7 @@ Screens:
                           ForAll(
                               Ungroup(
                                   ForAll(
-                                      Filter(lines, !IsBlank(Line) && !(Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 40)) As ln,
+                                      Filter(lines, !IsBlank(Line) && !(Right(Line, 1) = ":" && !("@" in Line) && Len(Line) <= 150)) As ln,
                                       {
                                           Tag: If(CountRows(Filter(heads, HIdx < ln.Idx)) = 0, "Pasted list", Last(Filter(heads, HIdx < ln.Idx)).Tag),
                                           Segs: Filter(Split(ln.Line, ";"), !IsBlank(Trim(Value)))
