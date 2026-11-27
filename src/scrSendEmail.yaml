@@ -951,7 +951,7 @@ Screens:
             - galCustodiansEmailPhoto:
                 Control: Image@2.2.3
                 Properties:
-                  Image: =Office365Users.UserPhotoV2(ThisItem.Email)
+                  Image: =If(IsBlank(Trim(ThisItem.Email)), Blank(), IfError(Office365Users.UserPhotoV2(Trim(ThisItem.Email)), Blank()))
                   RadiusTopLeft: =22
                   RadiusTopRight: =22
                   RadiusBottomLeft: =22
