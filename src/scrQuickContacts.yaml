@@ -8,7 +8,7 @@ Screens:
         Set(varCustodianView, false);
         If(!varCacheReady && !varLoading, LoadCache())
     Children:
-      - recHeader:
+      - recHeaderQc:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -25,7 +25,7 @@ Screens:
             Y: =0
             Width: =1366
             Height: =76
-      - lblHeaderTitle:
+      - lblHeaderTitleQc:
           Control: Label@2.5.1
           Properties:
             Text: ="Branch Contact Groups"
@@ -37,7 +37,7 @@ Screens:
             Y: =10
             Width: =520
             Height: =32
-      - lblHeaderSub:
+      - lblHeaderSubQc:
           Control: Label@2.5.1
           Properties:
             Text: ="Quick copy contact lists"
@@ -70,7 +70,7 @@ Screens:
             Y: =18
             Width: =160
             Height: =40
-      - btnManageNav:
+      - btnManageNavQc:
           Control: Classic/Button@2.2.0
           Properties:
             Text: ="Manage Groups"
@@ -141,7 +141,7 @@ Screens:
             Width: =130
             Height: =36
       - txtQuickSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search contact lists..."
             X: =36
@@ -344,7 +344,7 @@ Screens:
                   Y: =38
                   Width: =620
                   Height: =20
-            - pilSensitive:
+            - pilSensitiveQc:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: ="Official Sensitive Approved"
@@ -388,7 +388,7 @@ Screens:
                   Y: =62
                   Width: =128
                   Height: =20
-            - pilPrivate:
+            - pilPrivateQc:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: ="Private"
@@ -661,7 +661,7 @@ Screens:
                   Y: =28
                   Width: =422
                   Height: =20
-      - galMembers:
+      - galMembersQc:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
@@ -679,7 +679,7 @@ Screens:
             Width: =492
             Height: =If(varCustodianView, 208, 430)
           Children:
-            - lblMemberName:
+            - lblMemberNameQc:
                 Control: Label@2.5.1
                 Properties:
                   Text: =If(IsBlank(Trim(ThisItem.Name)), ThisItem.Email, ThisItem.Name)
@@ -692,7 +692,7 @@ Screens:
                   Y: =6
                   Width: =470
                   Height: =22
-            - lblMemberEmail:
+            - lblMemberEmailQc:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.Email & If(!IsBlank(Trim(ThisItem.Email)) && !IsApprovedAddress(ThisItem.Email), "   (other domain)", "")
@@ -717,7 +717,7 @@ Screens:
           Control: Label@2.5.1
           Properties:
             Text: ="There are no members in this list yet."
-            Visible: =!IsBlank(varQuickPreviewTitle) && CountRows(galMembers.AllItems) = 0
+            Visible: =!IsBlank(varQuickPreviewTitle) && CountRows(galMembersQc.AllItems) = 0
             Color: =RGBA(96,105,103,1)
             Size: =13
             Font: =Font.'Open Sans'

@@ -178,8 +178,8 @@ def screen_step(sid, name, key, extra='', changed=None):
 
 screen_step('s_quick', 'scrQuickContacts', 'quick')
 screen_step('s_send', 'scrSendEmail', 'send')
-screen_step('s_manage', 'scrManageGroups', 'manage')
-screen_step('s_import', 'scrImport', 'import')
+screen_step('s_manage', 'scrManageGroups', 'manage', '<p class="warn">If a dropdown shows a red line under <span class="kb">ThisItem.Value1</span>, delete the <span class="kb">1</span>. This is a Studio quirk when it pastes dropdowns. It does not affect your data.</p>')
+screen_step('s_import', 'scrImport', 'import', '<p class="warn">If a dropdown shows a red line under <span class="kb">ThisItem.Value1</span>, delete the <span class="kb">1</span>. This is a Studio quirk when it pastes dropdowns. It does not affect your data.</p>')
 screen_step('s_people', 'scrManagePeople', 'people')
 
 step('start', 2, 'Check the start screen', 'Power Apps Studio, App properties', None, 'check', '''

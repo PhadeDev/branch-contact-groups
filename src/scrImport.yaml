@@ -17,7 +17,7 @@ Screens:
             ClearCollect(colImpGroupChoices, ForAll(Sort(colGroups, Title, SortOrder.Ascending), Title))
         )
     Children:
-      - recHeader:
+      - recHeaderIm:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -34,7 +34,7 @@ Screens:
             Y: =0
             Width: =1366
             Height: =72
-      - icoBack:
+      - icoBackIm:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.ChevronLeft
@@ -68,7 +68,7 @@ Screens:
             Y: =16
             Width: =160
             Height: =40
-      - lblHeaderTitle:
+      - lblHeaderTitleIm:
           Control: Label@2.5.1
           Properties:
             Text: ="Import from paste"
@@ -80,7 +80,7 @@ Screens:
             Y: =10
             Width: =600
             Height: =32
-      - lblHeaderSub:
+      - lblHeaderSubIm:
           Control: Label@2.5.1
           Properties:
             Text: ="Create or update contact groups from a pasted list of names and email addresses"
@@ -455,8 +455,9 @@ Screens:
             Width: =330
             Height: =34
       - ddImpGroup1:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colImpGroupChoices
             Visible: =CountRows(colImpTags) >= 1 && varImpMode <> "add"
             X: =800
@@ -563,8 +564,9 @@ Screens:
             Width: =330
             Height: =34
       - ddImpGroup2:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colImpGroupChoices
             Visible: =CountRows(colImpTags) >= 2 && varImpMode <> "add"
             X: =800
@@ -671,8 +673,9 @@ Screens:
             Width: =330
             Height: =34
       - ddImpGroup3:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colImpGroupChoices
             Visible: =CountRows(colImpTags) >= 3 && varImpMode <> "add"
             X: =800
@@ -779,8 +782,9 @@ Screens:
             Width: =330
             Height: =34
       - ddImpGroup4:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colImpGroupChoices
             Visible: =CountRows(colImpTags) >= 4 && varImpMode <> "add"
             X: =800
@@ -887,8 +891,9 @@ Screens:
             Width: =330
             Height: =34
       - ddImpGroup5:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colImpGroupChoices
             Visible: =CountRows(colImpTags) >= 5 && varImpMode <> "add"
             X: =800
@@ -995,8 +1000,9 @@ Screens:
             Width: =330
             Height: =34
       - ddImpGroup6:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colImpGroupChoices
             Visible: =CountRows(colImpTags) >= 6 && varImpMode <> "add"
             X: =800
@@ -1056,7 +1062,7 @@ Screens:
             Width: =736
             Height: =22
       - chkImpSetDate:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
@@ -1064,7 +1070,6 @@ Screens:
             X: =930
             Y: =654
             Width: =250
-            Height: =32
       - datImpDate:
           Control: Classic/DatePicker@2.6.0
           Properties:

@@ -48,7 +48,7 @@ Screens:
             Clear(colMaintainerGalSearchResults)
         )
     Children:
-      - recHeader:
+      - recHeaderMg:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -65,7 +65,7 @@ Screens:
             Y: =0
             Width: =1366
             Height: =72
-      - icoBack:
+      - icoBackMg:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.ChevronLeft
@@ -75,7 +75,7 @@ Screens:
             Y: =24
             Width: =24
             Height: =24
-      - lblHeaderTitle:
+      - lblHeaderTitleMg:
           Control: Label@2.5.1
           Properties:
             Text: ="Manage Groups"
@@ -87,7 +87,7 @@ Screens:
             Y: =10
             Width: =600
             Height: =32
-      - lblHeaderSub:
+      - lblHeaderSubMg:
           Control: Label@2.5.1
           Properties:
             Text: ="Create groups, manage membership, and clear out leavers"
@@ -254,22 +254,22 @@ Screens:
             Y: =138
             Width: =200
             Height: =20
-      - txtGroupSearch:
-          Control: ModernTextInput@1.1.0
+      - txtGroupSearchMg:
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search groups by name..."
             X: =20
             Y: =126
             Width: =620
             Height: =44
-      - icoClearGroupSearch:
+      - icoClearGroupSearchMg:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.Cancel
-            Visible: =!IsBlank(Trim(txtGroupSearch.Text))
+            Visible: =!IsBlank(Trim(txtGroupSearchMg.Text))
             Color: =RGBA(160,160,160,1)
             Tooltip: ="Clear search"
-            OnSelect: =Reset(txtGroupSearch)
+            OnSelect: =Reset(txtGroupSearchMg)
             X: =588
             Y: =137
             Width: =22
@@ -278,7 +278,7 @@ Screens:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: =Sort(Filter(colGroups, IsBlank(Trim(txtGroupSearch.Text)) || txtGroupSearch.Text in Title), Title, SortOrder.Ascending)
+            Items: =Sort(Filter(colGroups, IsBlank(Trim(txtGroupSearchMg.Text)) || txtGroupSearchMg.Text in Title), Title, SortOrder.Ascending)
             TemplateSize: =88
             TemplatePadding: =4
             X: =20
@@ -302,7 +302,7 @@ Screens:
                   RadiusBottomRight: =8
                   X: =0
                   Y: =0
-                  Width: =1320
+                  Width: =1312
                   Height: =84
             - lblRowTitle:
                 Control: Label@2.5.1
@@ -318,7 +318,7 @@ Screens:
                   Y: =9
                   Width: =1288
                   Height: =30
-            - pilSensitive:
+            - pilSensitiveMg:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: ="Official Sensitive Approved"
@@ -340,7 +340,7 @@ Screens:
                   Y: =50
                   Width: =190
                   Height: =24
-            - pilOfficialUse:
+            - pilOfficialUseMg:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: ="Official Use Only"
@@ -362,7 +362,7 @@ Screens:
                   Y: =50
                   Width: =150
                   Height: =24
-            - pilPrivate:
+            - pilPrivateMg:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: ="Private"
@@ -400,7 +400,7 @@ Screens:
                   Y: =51
                   Width: =360
                   Height: =22
-            - recRowClickCatcher:
+            - recRowClickCatcherMg:
                 Control: Classic/Button@2.2.0
                 Properties:
                   Text: =""
@@ -427,7 +427,7 @@ Screens:
                     Set(varShowLightbox, true)
                   X: =0
                   Y: =0
-                  Width: =1320
+                  Width: =1312
                   Height: =84
             - recRowManageMembersChip:
                 Control: Classic/Button@2.2.0
@@ -569,7 +569,7 @@ Screens:
                   Y: =30
                   Width: =66
                   Height: =26
-      - recLightboxBackdrop:
+      - recLightboxBackdropMg:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -593,7 +593,7 @@ Screens:
             Y: =0
             Width: =1366
             Height: =768
-      - recLightboxPanel:
+      - recLightboxPanelMg:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -611,7 +611,7 @@ Screens:
             Y: =54
             Width: =1140
             Height: =660
-      - lblLightboxTitle:
+      - lblLightboxTitleMg:
           Control: Label@2.5.1
           Properties:
             Text: |-
@@ -632,7 +632,7 @@ Screens:
             Y: =78
             Width: =1000
             Height: =32
-      - icoLightboxClose:
+      - icoLightboxCloseMg:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.Cancel
@@ -914,7 +914,7 @@ Screens:
             Width: =1000
             Height: =22
       - txtEditTitle:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =If(varManageGroupID = 0, "", LookUp(colGroups, ID = varManageGroupID).Title)
             Placeholder: ="Group name"
@@ -938,8 +938,9 @@ Screens:
             Width: =1000
             Height: =92
       - drpEditThursdayBatch:
-          Control: ModernDropdown@1.0.1
+          Control: ModernDropdown@1.0.3
           Properties:
+            ItemDisplayText: =ThisItem.Value
             Items: =colThursdayBatchOptions
             Default: =LookUp(colThursdayBatchOptions, Lower(Trim(Value)) = Lower(Trim(Coalesce(LookUp(colGroups, ID = varManageGroupID).ThursdayBatch.Value, "None"))))
             Visible: =varShowLightbox && varLightboxMode = "edit"
@@ -948,53 +949,49 @@ Screens:
             Width: =200
             Height: =42
       - chkEditPrivate:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Private (maintainers only)"
-            Checked: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).Private)
+            Default: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).Private)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =332
             Width: =420
-            Height: =32
       - chkEditSensitive:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Official Sensitive Approved"
-            Checked: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
+            Default: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).OfficialSensitiveApproved)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =372
             Width: =420
-            Height: =32
       - chkEditOfficialUse:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Official Use Only"
-            Checked: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
+            Default: =If(varManageGroupID = 0, false, LookUp(colGroups, ID = varManageGroupID).OfficialUseOnly)
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =412
             Width: =420
-            Height: =32
       - chkOverrideDate:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Override last modified date"
-            Checked: =If(varManageGroupID = 0, false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
+            Default: =If(varManageGroupID = 0, false, !IsBlank(LookUp(colGroups, ID = varManageGroupID).ManuallySetModified))
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =183
             Y: =452
             Width: =420
-            Height: =32
       - datEditManualDate:
           Control: Classic/DatePicker@2.6.0
           Properties:
@@ -1005,17 +1002,16 @@ Screens:
             Width: =220
             Height: =40
       - chkEditCustodians:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
             Label: ="Add custodians"
-            Checked: =If(varManageGroupID = 0, false, Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false))
+            Default: =If(varManageGroupID = 0, false, Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false))
             Visible: =varShowLightbox && varLightboxMode = "edit"
             X: =860
             Y: =278
             Width: =360
-            Height: =32
       - lblCustHint:
           Control: Label@2.5.1
           Properties:
@@ -1104,7 +1100,7 @@ Screens:
                   Width: =84
                   Height: =34
       - txtCustSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search the GAL by surname..."
             Visible: =varShowLightbox && varLightboxMode = "edit" && chkEditCustodians.Checked
@@ -1371,7 +1367,7 @@ Screens:
             Y: =124
             Width: =220
             Height: =36
-      - galLightboxHistory:
+      - galLightboxHistoryMg:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
@@ -1384,7 +1380,7 @@ Screens:
             Width: =1000
             Height: =520
           Children:
-            - lblLightboxHistoryRow:
+            - lblLightboxHistoryRowMg:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.Title & "  ·  " & Text(ThisItem.Created, "d mmm yyyy")
@@ -1500,7 +1496,7 @@ Screens:
             Width: =420
             Height: =24
       - txtMaintainerSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search GAL by surname..."
             Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
@@ -1632,7 +1628,7 @@ Screens:
             Width: =420
             Height: =24
       - txtMaintainerName:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Full name"
             Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
@@ -1642,7 +1638,7 @@ Screens:
             Width: =420
             Height: =42
       - txtMaintainerEmail:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Email address"
             Visible: =varShowLightbox && varLightboxMode = "adminMaintainers"
@@ -1678,7 +1674,7 @@ Screens:
             Y: =556
             Width: =420
             Height: =44
-      - galMembers:
+      - galMembersMg:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
@@ -1724,7 +1720,7 @@ Screens:
                   Y: =4 + If(IsBlank(Trim(ThisItem.JMC)), 0, 18)
                   Width: =800
                   Height: =18
-            - lblMemberName:
+            - lblMemberNameMg:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.Name
@@ -1736,7 +1732,7 @@ Screens:
                   Y: =4 + If(IsBlank(Trim(ThisItem.JMC)), 0, 18) + If(IsBlank(Trim(ThisItem.'County/Contingent')), 0, 18)
                   Width: =800
                   Height: =22
-            - lblMemberEmail:
+            - lblMemberEmailMg:
                 Control: Label@2.5.1
                 Properties:
                   Text: =ThisItem.Email
@@ -1897,7 +1893,7 @@ Screens:
             Width: =1000
             Height: =24
       - txtExistingPeopleSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search existing people by name or email..."
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "existing"
@@ -1964,10 +1960,10 @@ Screens:
                   Width: =1000
                   Height: =56
             - chkExistingPerson:
-                Control: CheckBox@0.0.30
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   Label: =""
-                  Checked: =ThisItem.Picked
+                  Default: =ThisItem.Picked
                   BasePaletteColor: =RGBA(156,220,79,1)
                   CheckboxSize: =22
                   OnCheck: |-
@@ -1977,7 +1973,6 @@ Screens:
                   X: =14
                   Y: =14
                   Width: =38
-                  Height: =34
             - lblExistingPersonName:
                 Control: Label@2.5.1
                 Properties:
@@ -2085,7 +2080,7 @@ Screens:
             Width: =480
             Height: =24
       - txtGalSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search GAL by surname, e.g. Hughes..."
             Visible: =varShowLightbox && varLightboxMode = "manage" && varManageSubTab = "add"
@@ -2226,7 +2221,7 @@ Screens:
             Width: =If(varShowMemberEditDialog, 440, 420)
             Height: =24
       - txtManualName:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =If(!IsBlank(varGalPickEmail), varGalPickName, If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Name))
             Placeholder: ="Full name"
@@ -2237,7 +2232,7 @@ Screens:
             Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - txtManualEmail:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =If(!IsBlank(varGalPickEmail), varGalPickEmail, If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).Email))
             Placeholder: =If(Coalesce(LookUp(colGroups, ID = varManageGroupID).HasCustodians, false), "Email address (optional for this group)", "Email address")
@@ -2248,7 +2243,7 @@ Screens:
             Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - txtManualJMC:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).JMC)
             Placeholder: ="JMC (optional)"
@@ -2258,7 +2253,7 @@ Screens:
             Width: =If(varShowMemberEditDialog, 500, 420)
             Height: =42
       - txtManualCounty:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =If(varEditingMemberID = 0, "", LookUp(colMemberships, ID = varEditingMemberID).'County/Contingent')
             Placeholder: ="County/Contingent (optional)"
@@ -2572,7 +2567,7 @@ Screens:
             Width: =1000
             Height: =44
       - chkPasteSetDate:
-          Control: CheckBox@0.0.30
+          Control: ModernCheckbox@1.0.2
           Properties:
             BasePaletteColor: =RGBA(156, 220, 79, 1)
             CheckboxSize: =22
@@ -2581,7 +2576,6 @@ Screens:
             X: =183
             Y: =578
             Width: =470
-            Height: =32
       - datPasteDate:
           Control: Classic/DatePicker@2.6.0
           Properties:

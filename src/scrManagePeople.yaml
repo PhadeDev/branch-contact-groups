@@ -20,7 +20,7 @@ Screens:
             Clear(colAddPersonGalResults)
         )
     Children:
-      - recHeader:
+      - recHeaderMp:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -37,7 +37,7 @@ Screens:
             Y: =0
             Width: =1366
             Height: =72
-      - icoBack:
+      - icoBackMp:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.ChevronLeft
@@ -47,7 +47,7 @@ Screens:
             Y: =24
             Width: =24
             Height: =24
-      - lblHeaderTitle:
+      - lblHeaderTitleMp:
           Control: Label@2.5.1
           Properties:
             Text: ="Manage People"
@@ -59,7 +59,7 @@ Screens:
             Y: =10
             Width: =600
             Height: =32
-      - lblHeaderSub:
+      - lblHeaderSubMp:
           Control: Label@2.5.1
           Properties:
             Text: ="One record per person - tick the groups they belong to"
@@ -167,7 +167,7 @@ Screens:
             Width: =400
             Height: =26
       - txtPeopleSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search people by name or email..."
             X: =20
@@ -354,7 +354,7 @@ Screens:
                   Y: =0
                   Width: =1320
                   Height: =86
-      - recLightboxBackdrop:
+      - recLightboxBackdropMp:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -368,7 +368,7 @@ Screens:
             Y: =0
             Width: =1366
             Height: =768
-      - recLightboxPanel:
+      - recLightboxPanelMp:
           Control: Classic/Button@2.2.0
           Properties:
             Text: =""
@@ -386,7 +386,7 @@ Screens:
             Y: =54
             Width: =900
             Height: =660
-      - lblLightboxTitle:
+      - lblLightboxTitleMp:
           Control: Label@2.5.1
           Properties:
             Text: =Switch(varPeopleLightboxMode, "addPerson", "Add new person", "editPerson", "Edit person", "purge", "Remove someone from every group", "")
@@ -399,7 +399,7 @@ Screens:
             Y: =78
             Width: =760
             Height: =32
-      - icoLightboxClose:
+      - icoLightboxCloseMp:
           Control: Classic/Icon@2.5.0
           Properties:
             Icon: =Icon.Cancel
@@ -424,7 +424,7 @@ Screens:
             Width: =400
             Height: =22
       - txtAddPersonSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search GAL by surname, e.g. Hughes..."
             Visible: =varShowLightbox && varPeopleLightboxMode = "addPerson"
@@ -548,7 +548,7 @@ Screens:
             Width: =400
             Height: =22
       - txtAddPersonName:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =varAddPersonNamePrefill
             Placeholder: ="Full name"
@@ -558,7 +558,7 @@ Screens:
             Width: =400
             Height: =42
       - txtAddPersonEmail:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =varAddPersonEmailPrefill
             Placeholder: ="Email address"
@@ -618,12 +618,12 @@ Screens:
             Height: =144
           Children:
             - chkAddPersonGroup:
-                Control: CheckBox@0.0.30
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   BasePaletteColor: =RGBA(156, 220, 79, 1)
                   CheckboxSize: =22
                   Label: =ThisItem.Title & If(ThisItem.Private, " (Private)", "")
-                  Checked: =ThisItem.Picked
+                  Default: =ThisItem.Picked
                   OnCheck: |-
                     =Patch(colAddPersonPicks, ThisItem, {Picked: true})
                   OnUncheck: |-
@@ -631,7 +631,6 @@ Screens:
                   X: =0
                   Y: =2
                   Width: =800
-                  Height: =32
       - btnAddPerson:
           Control: ModernButton@1.0.0
           Properties:
@@ -695,7 +694,7 @@ Screens:
             Width: =300
             Height: =44
       - txtPersonName:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =If(IsBlank(varSelectedPersonEmail), "", LookUp(colPeople, Lower(Email) = Lower(varSelectedPersonEmail)).Name)
             Placeholder: ="Full name"
@@ -705,7 +704,7 @@ Screens:
             Width: =400
             Height: =42
       - txtPersonEmail:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Default: =varSelectedPersonEmail
             Placeholder: ="Email address"
@@ -765,12 +764,12 @@ Screens:
             Height: =320
           Children:
             - chkGroupMember:
-                Control: CheckBox@0.0.30
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   BasePaletteColor: =RGBA(156, 220, 79, 1)
                   CheckboxSize: =22
                   Label: =ThisItem.Title & If(ThisItem.Picked, "  (current member)", "") & If(ThisItem.Private, " (Private)", "")
-                  Checked: =ThisItem.Picked
+                  Default: =ThisItem.Picked
                   OnCheck: |-
                     =Patch(colPersonGroupPicks, ThisItem, {Picked: true})
                   OnUncheck: |-
@@ -778,7 +777,6 @@ Screens:
                   X: =0
                   Y: =2
                   Width: =800
-                  Height: =32
       - btnSavePersonChanges:
           Control: ModernButton@1.0.0
           Properties:
@@ -843,7 +841,7 @@ Screens:
             Width: =820
             Height: =36
       - txtPurgeSearch:
-          Control: ModernTextInput@1.1.0
+          Control: ModernTextInput@1.1.2
           Properties:
             Placeholder: ="Search by name or email..."
             Visible: =varShowLightbox && varPeopleLightboxMode = "purge"
@@ -918,10 +916,10 @@ Screens:
                   Width: =820
                   Height: =48
             - chkPurgeSelect:
-                Control: CheckBox@0.0.30
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   Label: =""
-                  Checked: =Lower(ThisItem.Email) = Lower(varPurgeSelectedEmail)
+                  Default: =Lower(ThisItem.Email) = Lower(varPurgeSelectedEmail)
                   BasePaletteColor: =RGBA(156,220,79,1)
                   CheckboxSize: =22
                   OnCheck: =Set(varPurgeSelectedEmail, ThisItem.Email); Set(varConfirmPurgeArmed, false)
@@ -929,7 +927,6 @@ Screens:
                   X: =14
                   Y: =10
                   Width: =38
-                  Height: =34
             - lblPurgePersonName:
                 Control: Label@2.5.1
                 Properties:
